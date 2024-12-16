@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+{% block title %}
+Best Movie Actors
+{% endblock %}
+
+
+{% block content %}
+
+<!--
+	TIPS about using Bootstrap-Flask:
+	https://github.com/helloflask/bootstrap-flask
+	https://bootstrap-flask.readthedocs.io/
+-->
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-10 col-lg-8 mx-lg-auto mx-md-auto">
+
+      <h1 class="pt-5 pb-2">Welcome to the best movie actors Flask example!</h1>
+
+      <p class="lead">This is the index page for an example Flask app using Bootstrap and WTForms (purpose: to demonstrate the WTF quick form). Note that <em>only 100 actors</em> are in the data source. Partial names are not valid. You may use all lowercase.</p>
+
+      {{ render_form(form) }}
+
+      <p class="pt-5"><strong>{{ message }}</strong></p>
+
+      <p>The data source is a simple Python list of dictionaries:</p>
+
+      <img src="{{ url_for('static', filename='images/screenshot_actors_data.png') }}" alt="Screenshot of part of the data file showing id, actor name, and image URL" class="img-fluid border border-primary-subtle mb-5">
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
