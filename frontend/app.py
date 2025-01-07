@@ -19,8 +19,11 @@ csrf = CSRFProtect(app)
 # with Flask-WTF, each web form is represented by a class
 # "NameForm" can change; "(FlaskForm)" cannot
 # see the route for "/" and "index.html" to see how this is used
+
+
 class NameForm(FlaskForm):
-    name = StringField('Which actor is your favorite? Type a complete name.', validators=[DataRequired(), Length(10, 40)])
+    name = StringField('Which actor is your favorite? Type a complete name.', validators=[
+                       DataRequired(), Length(10, 40)])
     submit = SubmitField('Submit')
 
 
@@ -40,10 +43,11 @@ def index():
             form.name.data = ""
             id = get_id(ACTORS, name)
             # redirect the browser to another route and template
-            return redirect( url_for('actor', id=id) )
+            return redirect(url_for('actor', id=id))
         else:
             message = "That actor is not in our database."
     return render_template('index.html', names=names, form=form, message=message)
+
 
 @app.route('/actor/<id>')
 def actor(id):
@@ -58,9 +62,11 @@ def actor(id):
 
 # 2 routes to handle errors - they have templates too
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
 
 @app.errorhandler(500)
 def internal_server_error(e):

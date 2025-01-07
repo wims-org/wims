@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "5000:5000"
+  # backend:
+  #   build: ./backend
+  #   ports:
+  #     - "5000:5000"
+  # db:
+  #   image: mariadb:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - mariadb-data:/var/lib/mysql
+  #   environment: 
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: test
+  #     MYSQL_USER: test
+  #     MYSQL_PASSWORD: test
