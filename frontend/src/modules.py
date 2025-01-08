@@ -9,10 +9,11 @@ def get_names(source):
         names.append(name)
     return sorted(names)
 
+
 # find the row that matches the id in the URL, retrieve name and photo
 def get_actor(source, id):
     for row in source:
-        if id == str( row["id"] ):
+        if id == str(row["id"]):
             name = row["name"]
             photo = row["photo"]
             # change number to string
@@ -21,6 +22,7 @@ def get_actor(source, id):
             return id, name, photo
     # return these if id is not valid - not a great solution, but simple
     return "Unknown", "Unknown", ""
+
 
 # find the row that matches the name in the form and retrieve matching id
 def get_id(source, name):
