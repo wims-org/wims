@@ -1,0 +1,47 @@
+GET http://localhost:5005/ws HTTP/1.1
+
+###
+
+GET http://localhost:5005/item/123e4567-e89b-12d3-a456-426614174000  HTTP/1.1
+
+###
+
+
+GET http://localhost:5005/items  HTTP/1.1
+
+###
+
+GET http://localhost:5002/item?reader=04-04-46-42-CD-66-81&rfid=123e4567-e89b-12d3-a456-426614174000 HTTP/1.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

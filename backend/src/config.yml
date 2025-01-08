@@ -1,0 +1,25 @@
+# backend/configuration/config.yaml
+
+server:
+    host: "0.0.0.0"
+    port: 8000
+
+database:
+    host: "127.0.0.1"
+    port: 3306
+    name: "test"
+    database: "test"
+    user: "test"
+    password: "test"
+
+mqtt:
+    broker: "127.0.0.1"
+    port: 1883
+
+logging:
+    level: "INFO"
+    file: "/var/log/backend_service.log"
+
+features:
+    enable_feature_x: true
+    enable_feature_y: false

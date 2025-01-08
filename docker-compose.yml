@@ -6,14 +6,15 @@ services:
   # backend:
   #   build: ./backend
   #   ports:
-  #     - "5000:5000"
-  # db:
-  #   image: mariadb:latest
-  #   restart: unless-stopped
-  #   volumes:
-  #     - mariadb-data:/var/lib/mysql
-  #   environment: 
-  #     MYSQL_ROOT_PASSWORD: root
-  #     MYSQL_DATABASE: test
-  #     MYSQL_USER: test
-  #     MYSQL_PASSWORD: test
+  #     - "8000:8000"
+  db:
+    image: mongodb/mongodb-community-server:latest
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+volumes:
+  mongodb-data:

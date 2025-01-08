@@ -74,6 +74,7 @@
 
     * read Android Phone nfc tag  (too hard for now)
 
+* Inventar durchsuchen 
 
 * Finden & Nutzen / Item Auslagern (borrowed by)
 
