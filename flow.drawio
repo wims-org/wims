@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="cTCUjx13s9DEdmhTzEqC" name="Page-1">
-        <mxGraphModel dx="1020" dy="821" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+        <mxGraphModel dx="2650" dy="5737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -150,20 +150,20 @@
                 <mxCell id="57" value="Scan Personal&lt;br&gt;NFC Token" style="whiteSpace=wrap;html=1;rounded=0;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" parent="1" vertex="1">
                     <mxGeometry x="200" y="340" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="58" value="Reader-RFID&lt;br&gt;User ID&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" vertex="1" parent="1">
-                    <mxGeometry x="400" y="440" width="120" height="60" as="geometry"/>
+                <mxCell id="58" value="Reader-RFID&lt;br&gt;User ID&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="-60" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="59" value="&lt;strike&gt;Reader-RFID&lt;br&gt;User ID&lt;/strike&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" vertex="1" parent="1">
-                    <mxGeometry x="680" y="440" width="120" height="60" as="geometry"/>
+                <mxCell id="59" value="&lt;strike&gt;Reader-RFID&lt;br&gt;User ID&lt;/strike&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="-60" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="60" value="Reader-RFID&lt;br&gt;&lt;strike&gt;User ID&lt;/strike&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" vertex="1" parent="1">
-                    <mxGeometry x="540" y="440" width="120" height="60" as="geometry"/>
+                <mxCell id="60" value="Reader-RFID&lt;br&gt;&lt;strike&gt;User ID&lt;/strike&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="-60" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="61" value="&lt;strike&gt;Reader-RFID&lt;/strike&gt;&lt;br&gt;User ID" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" vertex="1" parent="1">
-                    <mxGeometry x="820" y="440" width="120" height="60" as="geometry"/>
+                <mxCell id="61" value="&lt;strike&gt;Reader-RFID&lt;/strike&gt;&lt;br&gt;User ID" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;align=center;strokeColor=default;fillColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="-60" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="62" value="Prerequisites / Frontend-States" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-                    <mxGeometry x="550" y="400" width="250" height="30" as="geometry"/>
+                <mxCell id="62" value="Prerequisites / Frontend-States" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="190" y="-100" width="250" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
