@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="cTCUjx13s9DEdmhTzEqC" name="Page-1">
-        <mxGraphModel dx="2650" dy="5737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+        <mxGraphModel dx="2148" dy="5586" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -97,7 +97,7 @@
                     <mxGeometry x="40" y="1140" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="36" value="MVP" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;" parent="1" vertex="1">
-                    <mxGeometry x="70" y="1660" width="120" height="60" as="geometry"/>
+                    <mxGeometry x="40" y="1600" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="38" value="Search" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="680" y="840" width="120" height="60" as="geometry"/>
@@ -164,6 +164,72 @@
                 </mxCell>
                 <mxCell id="62" value="Prerequisites / Frontend-States" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="190" y="-100" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="63" target="64">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="Stock Taking" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="840" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="64" target="66">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="Check container for completeness of child containers" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="940" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="66" target="68">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="User scans Tag of container to be checked" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1040" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="68" target="70">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" value="List of all child containers is shown in Frontend" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1140" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="70" target="72">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="User scans Tags of all child containers" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1240" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="72" target="74">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="Scanned Containers are marked complete in Frontend list" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1340" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="77" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="74" target="76">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="User confirms scan of all child containers" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1440" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="79" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="76" target="78">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="76" value="List of missing containers is shown in Frontend" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1540" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="78" target="80">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="78" value="User scans IDs of discovered containers" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1640" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="80" target="82">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="80" value="User confirms no further missing containers could be found" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1740" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" value="Missing containers are marked as missing" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="840" y="1840" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="Alert Popup&lt;br&gt;if container has been marked as missing" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="345" y="570" width="150" height="110" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
