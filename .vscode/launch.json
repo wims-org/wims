@@ -25,7 +25,8 @@
                 "--no-debugger",
                 "--no-reload"
             ],
-            "jinja": true
+            "jinja": true,
+            "consoleTitle": "Python: Flask" // do not trust the linter, this works
         },
         {
             "name": "Python: FastAPI",
@@ -42,7 +43,8 @@
                 "5005",
                 "--reload"
             ],
-            "jinja": true
+            "jinja": true,
+            "consoleTitle": "Python: FastAPI"
         }
     ]
 }

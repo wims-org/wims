@@ -5,11 +5,13 @@ from pymongo.collection import Collection
 
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
-        self.client = MongoClient(uri,
-                     username='root',
-                     password='example',
-                     authSource='admin',
-                     authMechanism='SCRAM-SHA-256')
+        self.client = MongoClient(
+            uri,
+            username="root",
+            password="example",
+            authSource="admin",
+            authMechanism="SCRAM-SHA-256",
+        )
         self.db = self.client[database]
 
     def create(self, collection_name: str, document: Dict[str, Any]) -> Optional[str]:
@@ -26,7 +28,7 @@ class MongoDBConnector:
         self, collection_name: str, query: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         collection: Collection = self.db[collection_name]
-        documents = collection.find(query or {}, projection={'_id': False})
+        documents = collection.find(query or {}, projection={"_id": False})
         return list(documents)
 
     def update(

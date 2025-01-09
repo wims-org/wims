@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Length, Regexp, Disabled, ReadOnly
+from wtforms.validators import DataRequired, Length, ReadOnly
 
 
 class ItemForm(FlaskForm):
@@ -10,9 +10,8 @@ class ItemForm(FlaskForm):
         validators=[
             DataRequired(),
             ReadOnly(),
-            
             Length(min=10, max=57),
-            # Regexp(                r"^[0-9A-Fa-f]{2,10}(-[0-9A-Fa-f]{2,10}){4,7}$", message="Invalid RFID format"         ),
+            # Regexp(r"^[0-9A-Fa-f]{2,10}(-[0-9A-Fa-f]{2,10}){4,7}$", message="Invalid RFID format"),
         ],
     )
     short_name = StringField("Short Name", validators=[DataRequired(), Length(1, 100)])

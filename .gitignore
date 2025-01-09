@@ -1,5 +1,4 @@
 .envrc
 shell.nix
-.devcontainer/mqtt/mosquitto-conf/passwd
 .direnv/
 __pycache__/

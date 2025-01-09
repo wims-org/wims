@@ -1,7 +1,13 @@
 import threading
 from fastapi import WebSocket
 
+import logging
 
+logger = logging.getLogger("uvicorn")
+logger.setLevel(logging.DEBUG)
+
+
+# Todo: Change to manage EventSource connections
 class WebSocketManager:
     def __init__(self):
         self.connections = {}
@@ -9,13 +15,13 @@ class WebSocketManager:
 
     async def send_message(self, message, param):
         with self.lock:
-            print(self.connections)
+            logger.debug(self.connections)
             if param in self.connections:
                 for connection in self.connections[param]:
                     try:
                         await connection.send_text(message)
                     except Exception as e:
-                        print(f"Error sending message to WebSocket: {e}")
+                        logger.debug(f"Error sending message to WebSocket: {e}")
 
     async def connect(self, websocket: WebSocket, param):
         await websocket.accept()
@@ -23,12 +29,12 @@ class WebSocketManager:
             if param not in self.connections:
                 self.connections[param] = []
             self.connections[param].append(websocket)
-        print(self.connections, param)
+        logger.debug(self.connections, param)
         try:
             while True:
                 await websocket.receive_text()
         except Exception as e:
-            print(f"WebSocket connection error: {e}")
+            logger.debug(f"WebSocket connection error: {e}")
         finally:
             with self.lock:
                 self.connections[param].remove(websocket)
@@ -42,4 +48,4 @@ class WebSocketManager:
                     try:
                         await connection.send_text(message)
                     except Exception as e:
-                        print(f"Error broadcasting message to WebSocket: {e}")
+                        logger.debug(f"Error broadcasting message to WebSocket: {e}")

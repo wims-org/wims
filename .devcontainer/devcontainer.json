@@ -49,6 +49,6 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip3 install -r requirements.txt && sudo apt update && sudo apt install docker.io -y && sudo usermod -aG docker $(whoami)",
+	"postCreateCommand": "poetry config virtualenvs.in-project true && pip3 install -r requirements.txt && sudo apt update && sudo apt install docker.io -y && sudo usermod -aG docker $(whoami)",
 	// "remoteUser": "root"
 }

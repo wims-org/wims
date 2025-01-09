@@ -1,29 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>
-  {% block title %}
-  {% endblock %}
+    {% block title %}
+    {% endblock %}
   </title>
 
   {{ bootstrap.load_css() }}
 
   <style>
-    body { background: #e8f1f9; }
+    body {
+      background: #e8f1f9;
+    }
   </style>
+
 </head>
+
 <body>
   <!-- this is a base template using Bootstrap-Flask
        https://bootstrap-flask.readthedocs.io/ -->
 
-{% block content %}
-{% endblock %}
+  {% block content %}
+  <div id="target_div">Watch this space...</div>
+  {% endblock %}
 
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var targetContainer = document.getElementById("target_div");
+      var eventSource = new EventSource("/stream");
+      eventSource.onmessage = function (e) {
+        console.log(Object(e.data), Object(e.data).reader, Object(e.data).rfid);
 
-<!-- you can delete the next line if you're not using any Bootstrap JS -->
-{{ bootstrap.load_js() }}
+        targetContainer.innerHTML = e.data;
+        // window.location.href = "/item?reader=" + Object(e.data).reader + "&rfid=" + Object(e.data).rfid;
+      };
+
+      /*
+       * This will listen only for events
+       * similar to the following:
+       *
+       * event: notice
+       * data: useful data
+       * id: some-id
+       */
+      eventSource.addEventListener("notice", (e) => {
+        console.log(e.data);
+      });
+
+      /*
+       * Similarly, this will listen for events
+       * with the field `event: update`
+       */
+      eventSource.addEventListener("update", (e) => {
+        console.log(e.data);
+      });
+
+      /*
+       * The event "message" is a special case, as it
+       * will capture events without an event field
+       * as well as events that have the specific type
+       * `event: message` It will not trigger on any
+       * other event type.
+       */
+      eventSource.addEventListener("message", (e) => {
+        console.log(e.data);
+      });
+    });
+  </script>
+  <!-- you can delete the next line if you're not using any Bootstrap JS -->
+  {{ bootstrap.load_js() }}
 </body>
+
 </html>

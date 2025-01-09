@@ -23,6 +23,7 @@ paho-mqtt = "^2.1.0"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
 pydantic = "^2.10.4"
 pymongo = "^4.10.1"
+sse-starlette = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

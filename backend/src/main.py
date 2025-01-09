@@ -1,17 +1,43 @@
+import asyncio
 from pathlib import Path
-from fastapi import FastAPI, WebSocket
+import time
+from fastapi import FastAPI, Request
 import threading
 from fastapi.responses import HTMLResponse
 
-from models.database import Item
+from fastapi.middleware.cors import CORSMiddleware
 from models.requests import UpdateItemRequest
 from database_connector import MongoDBConnector
 from mqtt_client import MQTTClientManager
-from websocket import WebSocketManager
 import yaml
-from uuid import UUID
 
+from sse_starlette.sse import EventSourceResponse
+
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.DEBUG)
+
+MESSAGE_STREAM_DELAY = 1  # second
+MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # milisecond
 app = FastAPI()
+
+origins = [
+    "http://localhost:5000",
+    "http://localhost:5002",
+    "http://localhost:5005",
+    "http://localhost:8000",
+    "http://localhost",
+    "https://localhost",
+    "http://localhost:8080",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def read_config():
@@ -66,27 +92,17 @@ class BackendService:
             host=mqtt_config.get("host", "localhost"),
             port=mqtt_config.get("port", 1883),
         )
-        self.websocket_manager = WebSocketManager()
+        # self.websocket_manager = WebSocketManager()
 
     async def handle_message(self, message, topic):
-        print(f"Handle message: {message} on topic {topic}")
-        await self.websocket_manager.send_message(message, topic)
+        logger.debug(f"Handle message: {message} on topic {topic}")
+        # await self.websocket_manager.send_message(message, topic)
 
     def start_mqtt(self):
-        self.mqtt_client_manager.start()
+        self.mqtt_client_manager.connect()
 
     def add_mqtt_topic(self, topic):
         self.mqtt_client_manager.add_topic(topic)
-
-    async def connect_websocket(self, websocket: WebSocket, mqtt_topic: str):
-        if not mqtt_topic:
-            await websocket.accept()
-            await websocket.send_text("No topic provided")
-            await websocket.close()
-            return
-        print(f"Websocket connection for topic {mqtt_topic}")
-        await self.websocket_manager.connect(websocket, mqtt_topic)
-        self.add_mqtt_topic(mqtt_topic)
 
 
 # init
@@ -101,8 +117,8 @@ mqtt_thread.start()
 
 
 async def handle_message(message, topic):
-    print(f"Handle message: {message} on topic {topic}")
-    await backend_service.websocket_manager.send_message(message, topic)
+    logger.debug(f"Handle message: {message} on topic {topic}")
+    # await backend_service.websocket_manager.send_message(message, topic)
 
 
 @app.get("/test-db")
@@ -123,17 +139,6 @@ def read_root():
     return {"message": "Hello, World!"}
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, mqtt_topic: str):
-    if not mqtt_topic:
-        await websocket.accept()
-        await websocket.send_text("No topic provided")
-        await websocket.close()
-        return
-    print(f"Websocket connection for topic {mqtt_topic}")
-    await backend_service.connect_websocket(websocket, mqtt_topic)
-    backend_service.add_mqtt_topic(mqtt_topic)
-
 # Database Proxy
 
 
@@ -141,7 +146,9 @@ async def websocket_endpoint(websocket: WebSocket, mqtt_topic: str):
 async def update_item(item: UpdateItemRequest):
     item_data = item.model_dump(mode="json")
     updated_rows = backend_service.db.update(
-        collection_name="items", query={"container_tag_id": item_data["container_tag_id"]}, update_values=item_data
+        collection_name="items",
+        query={"container_tag_id": item_data["container_tag_id"]},
+        update_values=item_data,
     )
     if updated_rows:
         return {"message": "Item updated successfully"}
@@ -150,9 +157,11 @@ async def update_item(item: UpdateItemRequest):
 
 
 @app.put("/item")
-async def update_item(item: UpdateItemRequest):
+async def create_item(item: UpdateItemRequest):
     item_data = item.model_dump(mode="json")
-    updated_rows = backend_service.db.create(collection_name="items", document=item_data)
+    updated_rows = backend_service.db.create(
+        collection_name="items", document=item_data
+    )
     if updated_rows:
         return {"message": "Item updated successfully"}
     else:
@@ -175,3 +184,42 @@ async def get_items():
         return items
     else:
         return {"message": "Item not found"}
+
+
+def get_message():
+    """this could be any function that blocks until data is ready"""
+    time.sleep(1.0)
+    s = time.ctime(time.time())
+    return s
+
+
+@app.get("/stream")
+async def message_stream(request: Request):
+    logger.debug("Message stream")
+
+    def new_messages():
+        while True:
+            time.sleep(1.0)
+            yield {
+                "reader": "reader1",
+                "rfid": "rfid1",
+                "time": time.ctime(time.time()),
+            }
+
+    async def event_generator():
+        while True:
+            # If client was closed the connection
+            if await request.is_disconnected():
+                break
+            # Checks for new messages and return them to client if any
+            if msg_generator := new_messages():
+                yield {
+                    "event": "message",
+                    "id": "message_id",
+                    "retry": MESSAGE_STREAM_RETRY_TIMEOUT,
+                    "data": next(msg_generator),
+                }
+
+            await asyncio.sleep(MESSAGE_STREAM_DELAY)
+
+    return EventSourceResponse(event_generator())

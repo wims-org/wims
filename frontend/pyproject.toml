@@ -22,7 +22,15 @@ bootstrap-flask = "^2.4.1"
 flask_wtf = "^1.2.2"
 pydantic = "^2.10.4"
 requests = "^2.32.3"
+websockets = "^14.1"
+websocket = "^0.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.8.6"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "SIM", "I", "UP", "B"]

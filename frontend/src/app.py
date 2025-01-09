@@ -1,16 +1,16 @@
 import os
-from flask import Flask, render_template, redirect, request, url_for, Response
+from uuid import UUID
+
+import requests
+import websockets
+from flask import Flask, Response, flash, redirect, render_template, request, session, url_for
 from flask_bootstrap import Bootstrap5
 from flask_wtf import CSRFProtect
-from typing import Tuple, Union
+from websocket_manager import WebSocketClient
 
 import app_config
 from models.database import Item
 from models.forms import ItemForm
-from uuid import UUID
-from typing import Optional
-import requests
-from flask import flash
 
 app = Flask(__name__)
 app.secret_key = "tO$&!|0wkamvVia0?n$NqIRVWOG"
@@ -18,11 +18,14 @@ app.secret_key = "tO$&!|0wkamvVia0?n$NqIRVWOG"
 bootstrap = Bootstrap5(app)
 # Flask-WTF requires this line
 # TODO enable; Disable CSRF protection for now
-app.config['WTF_CSRF_ENABLED'] = False
+app.config["WTF_CSRF_ENABLED"] = False
+
+
 csrf = CSRFProtect(app)
 csrf.init_app(app)
 
-reader: Union[str, None] = None
+reader: str | None = None
+
 
 def get_config() -> app_config.Config:
     if os.environ["FLASK_ENV"] == "development":
@@ -34,7 +37,8 @@ def get_config() -> app_config.Config:
     else:
         return app_config.Config()
 
-def get_item_by_rfid(rfid: str) -> Optional[ItemForm]:
+
+def get_item_by_rfid(rfid: str) -> ItemForm | None:
     # Implement the logic to get item by RFID
     # This is a placeholder implementation
     item_data = {
@@ -63,21 +67,29 @@ def get_item_by_rfid(rfid: str) -> Optional[ItemForm]:
     return Item(**item_data)
 
 
+def get_websocket(reader_id: str) -> websockets.WebSocketClientProtocol:
+    if not reader_id:
+        return None
+    if "websocket" not in session:
+        session["websocket"] = WebSocketClient(get_config(), reader_id)
+    return session["websocket"]
+
+
 @app.route("/", methods=["GET", "POST"])
-def index() -> Union[str, Response]:
-    global reader
-    reader = "04-04-46-42-CD-66-81"
-    return redirect(
-        url_for("menu", reader=reader,
-                rfid="123e4567-e89b-12d3-a456-426614174000")
-    )
+def index() -> str | Response:
+    reader = request.args.get("reader") or "04-04-46-42-CD-66-81"
+    session["reader"] = reader
+    # get_websocket(reader)
+
+    return redirect(url_for("menu", reader=reader, rfid="123e4567-e89b-12d3-a456-426614174000"))
 
 
 @app.route("/menu", methods=["GET", "POST"])
-def menu() -> Union[str, Tuple[str, int]]:
+def menu() -> str | tuple[str, int]:
     reader = request.args.get("reader")
     rfid = request.args.get("rfid")
     return render_template("menu.html", reader=reader, rfid=rfid)
+
 
 def update_item(item: Item) -> None:
     backend_uri = get_config().BACKEND_URI
@@ -91,6 +103,7 @@ def update_item(item: Item) -> None:
     except requests.RequestException as e:
         flash(f"Failed to update item: {e}", "danger")
         print(f"Failed to update item: {e}", "danger")
+
 
 def create_item(item: Item) -> None:
     backend_uri = get_config().BACKEND_URI
@@ -106,7 +119,7 @@ def create_item(item: Item) -> None:
 
 
 @app.route("/item", methods=["GET", "POST"])
-def item() -> Union[str, Tuple[str, int]]:
+def item() -> str | tuple[str, int]:
     reader = request.args.get("reader")
     rfid = request.args.get("rfid")
     print(f"{reader=}, {rfid}")
@@ -165,15 +178,13 @@ def item() -> Union[str, Tuple[str, int]]:
             vendor=item_form.vendor.data,
             shop_url=item_form.shop_url.data,
             container_size=item_form.container_size.data,
-            consumable=item_form.consumable.data.lower() == 'true',
+            consumable=item_form.consumable.data.lower() == "true",
             documentation=item_form.documentation.data,
         )
-        #update_item(item)
+        # update_item(item)
         create_item(item)
         return redirect(url_for("item", reader=reader, rfid=rfid))
-    return render_template(
-        "item.html", reader=reader, rfid=rfid, item_form=item_form, message=message
-    )
+    return render_template("item.html", reader=reader, rfid=rfid, item_form=item_form, message=message)
 
 
 def read_tag(reader: str) -> str:
@@ -183,6 +194,20 @@ def read_tag(reader: str) -> str:
         return redirect(url_for("index"))
     # Implement the logic to read a tag
     return render_template("read_tag.html", reader=reader)
+
+
+@app.route("/stream")
+def stream() -> str:  # todo add reader: str
+    def generate():
+        backend_uri = get_config().BACKEND_URI
+        endpoint = f"{backend_uri}/stream"
+        with requests.get(endpoint, stream=True) as response:
+            response.raise_for_status()
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    yield chunk
+
+    return Response(generate(), content_type="text/event-stream")
 
 
 @app.route("/tag/<tag_id>")
@@ -197,16 +222,14 @@ def user(reader: str) -> str:
     return render_template("create_user.html", reader=reader)
 
 
-def page_not_found(e: Exception) -> Tuple[str, int]:
+def page_not_found(e: Exception) -> tuple[str, int]:
     return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
-def internal_server_error(e: Exception) -> Tuple[str, int]:
+def internal_server_error(e: Exception) -> tuple[str, int]:
     return render_template("500.html"), 500
 
 
 if __name__ == "__main__":
-
-
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)
