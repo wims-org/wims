@@ -6,7 +6,6 @@ import websockets
 from flask import Flask, Response, flash, redirect, render_template, request, session, url_for
 from flask_bootstrap import Bootstrap5
 from flask_wtf import CSRFProtect
-from websocket_manager import WebSocketClient
 
 import app_config
 from models.database import Item
@@ -198,9 +197,10 @@ def read_tag(reader: str) -> str:
 
 @app.route("/stream")
 def stream() -> str:  # todo add reader: str
+    reader = request.args.get("reader")
     def generate():
         backend_uri = get_config().BACKEND_URI
-        endpoint = f"{backend_uri}/stream"
+        endpoint = f"{backend_uri}/stream?reader={reader}"
         with requests.get(endpoint, stream=True) as response:
             response.raise_for_status()
             for chunk in response.iter_content(chunk_size=8192):

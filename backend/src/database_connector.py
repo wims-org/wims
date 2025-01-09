@@ -21,7 +21,7 @@ class MongoDBConnector:
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> Optional[Dict[str, Any]]:
         collection: Collection = self.db[collection_name]
-        document = collection.find_one({"rfid": rfid})
+        document = collection.find_one({"container_tag_id": rfid})
         return document
 
     def read(

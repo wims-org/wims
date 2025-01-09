@@ -31,7 +31,9 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var targetContainer = document.getElementById("target_div");
-      var eventSource = new EventSource("/stream");
+      const current_url = new URL(window.location.toLocaleString());
+      const reader_id = current_url.searchParams.get("reader");
+      var eventSource = new EventSource("/stream?reader=" + reader_id);
       eventSource.onmessage = function (e) {
         console.log(Object(e.data), Object(e.data).reader, Object(e.data).rfid);
 
