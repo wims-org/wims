@@ -17,6 +17,14 @@ topic: {{TopicLevel1}}/bar
     "rfid": "123e4567-e89b-12d3-a456-426614174000"
 }
 
+# ##a Publish '{ "message": "Hello, world!" }'
+topic: {{TopicLevel1}}/bar
+
+{
+    "reader_id": "04-04-46-42-CD-66-81",
+    "rfid": "321-321-321-321-321"
+}
+
 # ## Publish '{{message}}'
 topic: {{TopicLevel1}}/bar
 

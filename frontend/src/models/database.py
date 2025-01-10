@@ -1,14 +1,12 @@
-from uuid import UUID
-
 from pydantic import BaseModel
 
 
 class Item(BaseModel):
-    container_tag_id: UUID
-    short_name: str
+    container_tag_id: str
+    short_name: str | None = None
     description: str | None = None
-    amount: int
-    category_tags: list[str]
+    amount: int = 0
+    category_tags: list[str] = []
     images: list[str] = []
     storage_location: str | None = None
     storage_location_tag_id: str | None = None
@@ -23,5 +21,5 @@ class Item(BaseModel):
     vendor: str | None = None
     shop_url: str | None = None
     container_size: str | None = None
-    consumable: bool
+    consumable: bool = False
     documentation: str | None = None

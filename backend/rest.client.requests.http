@@ -5,6 +5,12 @@ GET http://localhost:5005/ws HTTP/1.1
 GET http://localhost:5005/item/123e4567-e89b-12d3-a456-426614174000  HTTP/1.1
 
 ###
+GET http://localhost:5005/item/321-321-321-321-321  HTTP/1.1
+
+###
+DELETE  http://localhost:5005/item/321-321-321-321-321  HTTP/1.1
+
+###
 
 
 GET http://localhost:5005/items  HTTP/1.1

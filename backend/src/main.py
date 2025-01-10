@@ -1,14 +1,15 @@
 import asyncio
+import enum
 import json
 from pathlib import Path
 import time
-from fastapi import FastAPI, Request
-import threading
+import uuid
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import ValidationError
-from models.requests import UpdateItemRequest
+from pydantic import BaseModel, ValidationError
+from models.requests import ItemRequest
 from database_connector import MongoDBConnector
 from mqtt_client import MQTTClientManager, ReaderMessage
 import yaml
@@ -85,6 +86,21 @@ async def get():
     return HTMLResponse(html)
 
 
+class Event(enum.Enum):
+    REDIRECT = "REDIRECT"
+
+
+class SseMessage(BaseModel):
+    event: Event
+    data: dict
+    id: str = str(uuid.uuid4())
+    retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
+
+    class SseMessageData(BaseModel):
+        reader_id: str
+        rfid: str
+
+
 class BackendService:
     def __init__(self, db_config, mqtt_config):
         self.db = MongoDBConnector(
@@ -106,11 +122,15 @@ class BackendService:
         except (ValidationError, json.JSONDecodeError) as e:
             logger.error(f"Error parsing message: {e}, {message}")
             return
-        document = self.db.find_by_rfid(collection_name="items", rfid=msg.rfid)
-        logger.debug(f"Document: {document}")
-        if document:
-            # send redirect to rfid frontend
-            self.readers[msg.reader_id].append("message for reader"+msg.reader_id)
+
+        self.readers[msg.reader_id].append(
+            SseMessage(
+                data=SseMessage.SseMessageData(
+                    reader_id=msg.reader_id, rfid=msg.rfid
+                ).model_dump(mode="json"),
+                event=Event.REDIRECT,
+            ).model_dump(mode="json")
+        )
 
     def start_mqtt(self):
         self.mqtt_client_manager.connect()
@@ -156,7 +176,7 @@ def read_root():
 
 
 @app.post("/item")
-async def update_item(item: UpdateItemRequest):
+async def update_item(item: ItemRequest):
     item_data = item.model_dump(mode="json")
     updated_rows = backend_service.db.update(
         collection_name="items",
@@ -170,13 +190,25 @@ async def update_item(item: UpdateItemRequest):
 
 
 @app.put("/item")
-async def create_item(item: UpdateItemRequest):
+async def create_item(item: ItemRequest):
     item_data = item.model_dump(mode="json")
     updated_rows = backend_service.db.create(
         collection_name="items", document=item_data
     )
     if updated_rows:
-        return {"message": "Item updated successfully"}
+        return {"message": "Item created successfully"}
+    else:
+        return {"message": "Failed to update item"}
+
+
+@app.delete("/item/{rfid}")
+async def delete_item(rfid: str):
+    updated_rows = backend_service.db.delete(
+        collection_name="items",
+        query={"container_tag_id": rfid},
+    )
+    if updated_rows:
+        return {"message": "Item deleted successfully"}
     else:
         return {"message": "Failed to update item"}
 
@@ -185,9 +217,9 @@ async def create_item(item: UpdateItemRequest):
 async def get_item(rfid: str):
     item = backend_service.db.find_by_rfid(collection_name="items", rfid=rfid)
     if item:
-        return item
+        return ItemRequest(**item)
     else:
-        return {"message": "Item not found"}
+        raise HTTPException(status_code=404, detail="Item not found")
 
 
 @app.get("/items")
@@ -207,7 +239,7 @@ def get_message():
 
 
 @app.get("/stream")
-async def message_stream(request: Request,  reader: str):
+async def message_stream(request: Request, reader: str):
     logger.debug(f"Message stream{request}, {reader}")
     backend_service.readers[reader] = []
 
@@ -223,13 +255,9 @@ async def message_stream(request: Request,  reader: str):
                 break
             # Checks for new messages and return them to client if any
             if new_messages():
-                yield {
-                    "event": "message",
-                    "id": "message_id",
-                    "retry": MESSAGE_STREAM_RETRY_TIMEOUT,
-                    "data": backend_service.readers[reader].pop(0),
-                }
-
+                message = backend_service.readers[reader].pop(0)
+                logger.debug(f"Sending message: {message}")
+                yield message
             await asyncio.sleep(MESSAGE_STREAM_DELAY)
 
     return EventSourceResponse(event_generator())

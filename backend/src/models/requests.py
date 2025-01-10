@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from uuid import UUID
 from typing import Optional, List
 
 
-class UpdateItemRequest(BaseModel):
-    container_tag_id: UUID
+class ItemRequest(BaseModel):
+    container_tag_id: str
     short_name: str
     description: Optional[str] = None
     amount: int

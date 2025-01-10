@@ -34,23 +34,20 @@
       const current_url = new URL(window.location.toLocaleString());
       const reader_id = current_url.searchParams.get("reader");
       var eventSource = new EventSource("/stream?reader=" + reader_id);
-      eventSource.onmessage = function (e) {
-        console.log(Object(e.data), Object(e.data).reader, Object(e.data).rfid);
-
-        targetContainer.innerHTML = e.data;
-        // window.location.href = "/item?reader=" + Object(e.data).reader + "&rfid=" + Object(e.data).rfid;
-      };
-
       /*
        * This will listen only for events
        * similar to the following:
        *
-       * event: notice
+       * event: REDIRECT
        * data: useful data
        * id: some-id
        */
-      eventSource.addEventListener("notice", (e) => {
-        console.log(e.data);
+      eventSource.addEventListener("REDIRECT", (e) => {
+        data = JSON.parse(e.data.replace(/'/g, '"'));
+        console.log(e.data, data["reader_id"], data.rfid, "/item/" + data.rfid + "?reader=" + data.reader_id);
+        targetContainer.innerHTML = e.data;
+        // window.location.href = "/item?reader=
+        window.location.replace( "/item/" + data.rfid + "?reader=" + data.reader_id);
       });
 
       /*

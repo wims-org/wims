@@ -33,7 +33,7 @@ class MQTTClientManager:
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port)
             if self.mqtt_client.loop_start() == mqtt.MQTT_ERR_SUCCESS:
                 break
-            time.sleep(.5)
+            time.sleep(0.5)
 
     def on_connect(self, client, userdata, flags, rc):
         logger.debug(f"Connected with result code {rc}")
@@ -42,8 +42,10 @@ class MQTTClientManager:
             client.subscribe(topic)
 
     def on_message(self, client, userdata, msg):
-        logger.debug(f"Received message: {
-                     msg.payload.decode()} on topic {msg.topic}")
+        logger.debug(
+            f"Received message: {
+                     msg.payload.decode()} on topic {msg.topic}"
+        )
         asyncio.run(self.callback(msg.payload.decode(), msg.topic))
 
     def on_disconnect(self, client, userdata, rc):
@@ -54,8 +56,10 @@ class MQTTClientManager:
     async def reconnect(self):
         while True:
             try:
-                logger.debug(f"Reconnecting in {
-                             self.reconnect_delay} seconds...")
+                logger.debug(
+                    f"Reconnecting in {
+                             self.reconnect_delay} seconds..."
+                )
                 await asyncio.sleep(self.reconnect_delay)
                 await self.loop.run_in_executor(None, self.mqtt_client.reconnect)
                 break

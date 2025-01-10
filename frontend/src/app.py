@@ -1,23 +1,56 @@
 import os
-from uuid import UUID
+from logging.config import dictConfig
 
 import requests
-import websockets
 from flask import Flask, Response, flash, redirect, render_template, request, session, url_for
 from flask_bootstrap import Bootstrap5
+from flask_cors import CORS
 from flask_wtf import CSRFProtect
 
 import app_config
 from models.database import Item
 from models.forms import ItemForm
 
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(levelname)s]: %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "DEBUG", "handlers": ["wsgi"]},
+    }
+)
+
 app = Flask(__name__)
 app.secret_key = "tO$&!|0wkamvVia0?n$NqIRVWOG"
 # Bootstrap-Flask requires this line
 bootstrap = Bootstrap5(app)
-# Flask-WTF requires this line
-# TODO enable; Disable CSRF protection for now
-app.config["WTF_CSRF_ENABLED"] = False
+
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "http://localhost:5002",
+                "http://localhost:5000",
+                "http://localhost:5005",
+                "http://localhost:8000",
+                "http://localhost",
+                "https://localhost",
+                "http://localhost:8080",
+            ]
+        }
+    },
+)
 
 
 csrf = CSRFProtect(app)
@@ -40,38 +73,17 @@ def get_config() -> app_config.Config:
 def get_item_by_rfid(rfid: str) -> ItemForm | None:
     # Implement the logic to get item by RFID
     # This is a placeholder implementation
-    item_data = {
-        "container_tag_id": UUID("123e4567-e89b-12d3-a456-426614174000"),
-        "short_name": "Sample Item",
-        "description": "This is a sample item description.",
-        "amount": 10,
-        "category_tags": ["sample", "item"],
-        "images": ["image1.jpg", "image2.jpg"],
-        "storage_location": "Warehouse A",
-        "storage_location_tag_id": "67890",
-        "current_location": "Shelf B",
-        "borrowed_by": None,
-        "cost_per_item": 100.0,
-        "manufacturer": "Sample Manufacturer",
-        "model_number": "SM1234",
-        "upc": "123456789012",
-        "asin": "B000123456",
-        "serial_number": "SN1234567890",
-        "vendor": "Sample Vendor",
-        "shop_url": "http://example.com",
-        "container_size": "Medium",
-        "consumable": False,
-        "documentation": "http://example.com/doc",
-    }
-    return Item(**item_data)
-
-
-def get_websocket(reader_id: str) -> websockets.WebSocketClientProtocol:
-    if not reader_id:
-        return None
-    if "websocket" not in session:
-        session["websocket"] = WebSocketClient(get_config(), reader_id)
-    return session["websocket"]
+    try:
+        app.logger.debug(f"Get: {rfid}")
+        backend_uri = get_config().BACKEND_URI
+        res = requests.get(f"{backend_uri}/item/{rfid}")
+        app.logger.debug(f"Response: {res}")
+        if res.status_code == 404:
+            return None
+        return Item(**res.json())
+    except requests.RequestException as e:
+        app.logger.error(f"Failed to get item by RFID: {e}")
+    return None
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -97,11 +109,11 @@ def update_item(item: Item) -> None:
         response = requests.post(endpoint, json=item.model_dump(mode="json"))
         response.raise_for_status()
         flash("Item updated successfully!", "success")
-        print("Item updated successfully!", "success")
+        app.logger.debug("Item updated successfully!", "success")
 
     except requests.RequestException as e:
         flash(f"Failed to update item: {e}", "danger")
-        print(f"Failed to update item: {e}", "danger")
+        app.logger.debug(f"Failed to update item: {e}", "danger")
 
 
 def create_item(item: Item) -> None:
@@ -111,23 +123,22 @@ def create_item(item: Item) -> None:
         response = requests.put(endpoint, json=item.model_dump(mode="json"))
         response.raise_for_status()
         flash("Item created successfully!", "success")
-        print("Item created successfully!", "success")
+        app.logger.debug("Item created successfully!", "success")
     except requests.RequestException as e:
         flash(f"Failed to create item: {e}", "danger")
-        print(f"Failed to create item: {e}", "danger")
+        app.logger.debug(f"Failed to create item: {e}", "danger")
 
 
-@app.route("/item", methods=["GET", "POST"])
-def item() -> str | tuple[str, int]:
-    reader = request.args.get("reader")
-    rfid = request.args.get("rfid")
-    print(f"{reader=}, {rfid}")
-    if not reader or not rfid:
+@app.route("/item/<rfid>", methods=["GET", "POST"])
+def item(rfid) -> str | tuple[str, int]:
+    reader_id = request.args.get("reader")
+    app.logger.debug(f"{reader_id=}, {rfid}")
+    if not reader_id or not rfid:
         return redirect(url_for("index"))
     # Assuming you have a function to get item by RFID
-    item_data = get_item_by_rfid(rfid)
-
-    if item_data:
+    item_res = get_item_by_rfid(rfid)
+    item_data = item_res if item_res else Item(container_tag_id=rfid)
+    if item_res:
         item_form = ItemForm(
             container_tag_id=str(item_data.container_tag_id),
             short_name=item_data.short_name,
@@ -152,13 +163,13 @@ def item() -> str | tuple[str, int]:
             documentation=item_data.documentation,
         )
     else:
-        item_form = ItemForm()
+        item_form = ItemForm(container_tag_id=str(item_data.container_tag_id))
     message = "Hello"
     if item_form.validate_on_submit():
         # Implement the logic to handle the item form submission
         message = f"Item '{item_data.short_name}' has been submitted."
         item = Item(
-            container_tag_id=UUID(item_form.container_tag_id.data),
+            container_tag_id=item_form.container_tag_id.data,
             short_name=item_form.short_name.data,
             description=item_form.description.data,
             amount=int(item_form.amount.data),
@@ -180,10 +191,12 @@ def item() -> str | tuple[str, int]:
             consumable=item_form.consumable.data.lower() == "true",
             documentation=item_form.documentation.data,
         )
-        # update_item(item)
-        create_item(item)
-        return redirect(url_for("item", reader=reader, rfid=rfid))
-    return render_template("item.html", reader=reader, rfid=rfid, item_form=item_form, message=message)
+        if item_res:
+            update_item(item)
+        else:
+            create_item(item)
+        return redirect(url_for("item", reader=reader_id, rfid=rfid))
+    return render_template("item.html", reader=reader_id, rfid=rfid, item_form=item_form, message=message)
 
 
 def read_tag(reader: str) -> str:
@@ -198,6 +211,7 @@ def read_tag(reader: str) -> str:
 @app.route("/stream")
 def stream() -> str:  # todo add reader: str
     reader = request.args.get("reader")
+
     def generate():
         backend_uri = get_config().BACKEND_URI
         endpoint = f"{backend_uri}/stream?reader={reader}"
