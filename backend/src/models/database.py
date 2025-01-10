@@ -1,27 +1,72 @@
-from pydantic import BaseModel
-from uuid import UUID
-from typing import Optional, List
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
+class User(BaseModel):
+    username: str
+    tag_uuid: list[str]
+    email: str | None = None
+
+
+class Size(BaseModel):
+    # Size Information in mm
+    length: float
+    width: float
+    height: float
+
+
+class Change(BaseModel):
+    # Size Information in mm
+    user: str
+    timestamp: int  # Unix timestamp
+    diff_from_prev_version: dict[str, str]
+
+
+# Field Alias is used to map the old field name to new field name during database migration after changes
 class Item(BaseModel):
-    container_tag_id: UUID
+    model_config = ConfigDict(populate_by_name=True)  # noqa: F821
+    tag_uuid: Annotated[str, Field(alias="container_tag_id")]  # UUID of the item
+  
+    # Mandatory Item Information
     short_name: str
-    description: Optional[str] = None
     amount: int
-    category_tags: List[str]
-    images: List[str] = []
-    storage_location: Optional[str] = None
-    storage_location_tag_id: Optional[str] = None
-    current_location: Optional[str] = None
-    borrowed_by: Optional[str] = None
-    cost_per_item: Optional[float] = None
-    manufacturer: Optional[str] = None
-    model_number: Optional[str] = None
-    upc: Optional[str] = None
-    asin: Optional[str] = None
-    serial_number: Optional[str] = None
-    vendor: Optional[str] = None
-    shop_url: Optional[str] = None
-    container_size: Optional[str] = None
+    item_type: str  # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
     consumable: bool
-    documentation: Optional[str] = None
+
+    # meta data
+    created_at: str
+    created_by: str
+    changes: list[Change] = []
+    ai_generated: set[str] = {}  # List of AI generated tags
+
+    # Item Details
+    description: str | None = None
+    min_amount: int | None = None  # Minimum amount of items, for alerts
+    tags: set[str] = {}  # custom tags for categorization
+    # Bindata image document id, <16MB, collection "images"
+    images: list[str] = []
+    cost_new: float | None = None  # per item in Euros when new
+    acquisition_date: int | None = None  # Unix timestamp
+    cost_used: float | None = None  # per item in Euros, for e.g. selling
+    manufacturer: str | None = None
+    model_number: str | None = None
+    manufacturing_date: int | None = None  # Unix timestamp
+    upc: str | None = None  # Universal Product Code
+    asin: str | None = None  # Amazon Standard Identification Number
+    serial_number: str | None = None
+    vendors: list[str] = []  # List of vendors
+    shop_url: list[str] = []  # List of URLs to shops
+    size: Size | None = None  # outer dimensions of the item in mm
+    documentation: list[str] = []  # URL to documentation or more text
+
+    # Container Information
+    # UUID of the parent item containing this item
+    container_tag_uuid: str | None = None
+    # temporary uuid of the location, for moving items around
+    current_location: str | None = None
+    # User Information
+    borrowed_by: str | None = None  # UUID of the user borrowing the item
+    borrowed_at: int | None = None  # Unix timestamp
+    borrowed_until: int | None = None  # Unix timestamp
+    owner: str | None = None  # UUID of the user owning the item

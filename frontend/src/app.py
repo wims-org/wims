@@ -211,7 +211,9 @@ def read_tag(reader: str) -> str:
 @app.route("/stream")
 def stream() -> str:  # todo add reader: str
     reader = request.args.get("reader")
-
+    if session["stream"]:
+        return session["stream"]
+    
     def generate():
         backend_uri = get_config().BACKEND_URI
         endpoint = f"{backend_uri}/stream?reader={reader}"
@@ -221,7 +223,8 @@ def stream() -> str:  # todo add reader: str
                 if chunk:
                     yield chunk
 
-    return Response(generate(), content_type="text/event-stream")
+    session["stream"] = Response(generate(), content_type="text/event-stream")
+    return session["stream"]
 
 
 @app.route("/tag/<tag_id>")

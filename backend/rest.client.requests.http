@@ -11,6 +11,9 @@ GET http://localhost:5005/item/321-321-321-321-321  HTTP/1.1
 DELETE  http://localhost:5005/item/321-321-321-321-321  HTTP/1.1
 
 ###
+DELETE  http://localhost:5005/item/321-321-321-321-321  HTTP/1.1
+
+###
 
 
 GET http://localhost:5005/items  HTTP/1.1

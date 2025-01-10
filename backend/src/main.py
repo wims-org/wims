@@ -1,22 +1,22 @@
 import asyncio
 import enum
 import json
-from pathlib import Path
+import logging
 import time
 import uuid
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from pathlib import Path
 
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ValidationError
-from models.requests import ItemRequest
-from database_connector import MongoDBConnector
-from mqtt_client import MQTTClientManager, ReaderMessage
 import yaml
-
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, ValidationError
+from pydantic_core import from_json
 from sse_starlette.sse import EventSourceResponse
 
-import logging
+from database_connector import MongoDBConnector
+from models.database import Item
+from mqtt_client import MQTTClientManager, ReaderMessage
 
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
@@ -46,7 +46,7 @@ app.add_middleware(
 
 
 def read_config():
-    with open(Path("__file__").parent.absolute() / "config.yml", "r") as file:
+    with open(Path("__file__").parent.absolute() / "config.yml") as file:
         return yaml.safe_load(file)
 
 
@@ -125,9 +125,7 @@ class BackendService:
 
         self.readers[msg.reader_id].append(
             SseMessage(
-                data=SseMessage.SseMessageData(
-                    reader_id=msg.reader_id, rfid=msg.rfid
-                ).model_dump(mode="json"),
+                data=SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json"),
                 event=Event.REDIRECT,
             ).model_dump(mode="json")
         )
@@ -176,11 +174,12 @@ def read_root():
 
 
 @app.post("/item")
-async def update_item(item: ItemRequest):
+async def update_item(item: Item):
     item_data = item.model_dump(mode="json")
     updated_rows = backend_service.db.update(
         collection_name="items",
-        query={"container_tag_id": item_data["container_tag_id"]},
+        # match by either tag_uuid or old container_tag_id, only for id migration
+        query={ "$or": [{"tag_uuid": item_data["tag_uuid"]}, {"container_tag_id": item_data["container_tag_id"]}] },
         update_values=item_data,
     )
     if updated_rows:
@@ -190,11 +189,9 @@ async def update_item(item: ItemRequest):
 
 
 @app.put("/item")
-async def create_item(item: ItemRequest):
+async def create_item(item: Item):
     item_data = item.model_dump(mode="json")
-    updated_rows = backend_service.db.create(
-        collection_name="items", document=item_data
-    )
+    updated_rows = backend_service.db.create(collection_name="items", document=item_data)
     if updated_rows:
         return {"message": "Item created successfully"}
     else:
@@ -217,7 +214,11 @@ async def delete_item(rfid: str):
 async def get_item(rfid: str):
     item = backend_service.db.find_by_rfid(collection_name="items", rfid=rfid)
     if item:
-        return ItemRequest(**item)
+        try:
+            return Item.model_validate(item, strict=False, from_attributes=True)
+        except ValidationError as e:
+            logger.error(f"Error validating item: {item=}, {e}")
+            return HTTPException(status_code=500, detail="found, but error validating database content")
     else:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -225,6 +226,23 @@ async def get_item(rfid: str):
 @app.get("/items")
 async def get_items():
     items = backend_service.db.read(collection_name="items")
+    if items:
+        return items
+    else:
+        return {"message": "Item not found"}
+
+# dont look to closely at this
+@app.patch("/items")
+async def patch_items():
+    items = backend_service.db.read(collection_name="items")
+    for item_data in items:
+        item = Item.model_validate(item_data, strict=False, from_attributes=True)
+        item_data = item.model_dump(mode="json")
+        updated_rows = backend_service.db.update(
+            collection_name="items",
+            query={"container_tag_id": item_data["container_tag_id"]},
+            update_values=item_data,
+        )
     if items:
         return items
     else:
@@ -244,9 +262,7 @@ async def message_stream(request: Request, reader: str):
     backend_service.readers[reader] = []
 
     def new_messages():
-        if len(backend_service.readers[reader]):
-            return True
-        return False
+        return len(backend_service.readers[reader]) > 0
 
     async def event_generator():
         while True:

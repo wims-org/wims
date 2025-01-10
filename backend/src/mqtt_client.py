@@ -1,9 +1,8 @@
 import asyncio
-import time
-from paho.mqtt import client as mqtt
-
 import logging
+import time
 
+from paho.mqtt import client as mqtt
 from pydantic import BaseModel
 
 logger = logging.getLogger("uvicorn.error")
@@ -65,9 +64,7 @@ class MQTTClientManager:
                 break
             except Exception as e:
                 logger.debug(f"Reconnection failed: {e}")
-                self.reconnect_delay = min(
-                    self.reconnect_delay * 2, 60
-                )  # Incremental backoff up to 60 seconds
+                self.reconnect_delay = min(self.reconnect_delay * 2, 60)  # Incremental backoff up to 60 seconds
 
     def add_topic(self, topic):
         if topic not in self.topics:

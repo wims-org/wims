@@ -11,8 +11,8 @@
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-		"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
-		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
+		//"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
+		//"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
 	],
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
@@ -27,12 +27,12 @@
 				"streetsidesoftware.code-spell-checker",
 				"k--kato.intellij-idea-keybindings",
 				"ms-azuretools.vscode-docker",
-				"github.copilot",
+				// "github.copilot",
 				"hediet.vscode-drawio",
 				"ms-vsliveshare.vsliveshare",
 				"humao.rest-client",
-				"kwkmp.mqttclient"
-				
+				"kwkmp.mqttclient",
+				"mhutchie.git-graph"
 			]
 		}
 	},
@@ -49,6 +49,6 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "poetry config virtualenvs.in-project true && pip3 install -r requirements.txt && sudo apt update && sudo apt install docker.io -y && sudo usermod -aG docker $(whoami)",
+	"postCreateCommand": " pip3 install -r requirements.txt && sudo apt update && sudo apt install docker.io -y && sudo usermod -aG docker $(whoami) && poetry config virtualenvs.in-project true"
 	// "remoteUser": "root"
 }

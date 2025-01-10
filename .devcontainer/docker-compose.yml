@@ -22,6 +22,8 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
   db:
     network_mode: host
+    volumes:
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
   # DEV Mqtt broker
   mqtt: # Todo mosquitto dies at startup
     image: eclipse-mosquitto:latest
