@@ -11,7 +11,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ValidationError
-from pydantic_core import from_json
 from sse_starlette.sse import EventSourceResponse
 
 from database_connector import MongoDBConnector
@@ -31,6 +30,7 @@ origins = [
     "http://localhost:5000",
     "http://localhost:5002",
     "http://localhost:5005",
+    "http://localhost:5173",
     "http://localhost:8000",
     "http://localhost",
     "https://localhost",

@@ -48,7 +48,14 @@ db.items.insert([
         borrowed_by: "user4",
         borrowed_at: 1672800000,
         borrowed_until: 1675401600,
-        owner: "user1"
+        owner: "user1",
+        related_items: [
+            {
+                related_tags: ["123e4567-e89b-12d3-a456-426614174001"],
+                tag: ["tool"],
+                description: "Related to Screwdriver Set"
+            }
+        ]
     },
     {
         tag_uuid: "123e4567-e89b-12d3-a456-426614174001",
@@ -82,7 +89,14 @@ db.items.insert([
         borrowed_by: null,
         borrowed_at: null,
         borrowed_until: null,
-        owner: "user2"
+        owner: "user2",
+        related_items: [
+            {
+                related_tags: ["123e4567-e89b-12d3-a456-426614174000"],
+                tag: ["tool"],
+                description: "Related to Hammer"
+            }
+        ]
     },
     {
         tag_uuid: "123e4567-e89b-12d3-a456-426614174002",
@@ -135,6 +149,13 @@ db.items.insert([
         borrowed_by: "user6",
         borrowed_at: 1672800002,
         borrowed_until: 1675401602,
-        owner: "user3"
+        owner: "user3",
+        related_items: [
+            {
+                related_tags: ["123e4567-e89b-12d3-a456-426614174000"],
+                tag: ["tool"],
+                description: "Related to Hammer"
+            }
+        ]
     }
 ])

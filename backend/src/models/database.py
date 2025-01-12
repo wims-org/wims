@@ -17,11 +17,16 @@ class Size(BaseModel):
 
 
 class Change(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     # Size Information in mm
     user: str
     timestamp: int  # Unix timestamp
-    diff_from_prev_version: dict[str, str]
+    diff_from_prev_version: dict[str, any]
 
+class Relation(BaseModel):
+    related_tags: list[str] # list of related tags
+    tag: list[str] # category or tag of relation 
+    description: str | None = None
 
 # Field Alias is used to map the old field name to new field name during database migration after changes
 class Item(BaseModel):
@@ -59,6 +64,7 @@ class Item(BaseModel):
     shop_url: list[str] = []  # List of URLs to shops
     size: Size | None = None  # outer dimensions of the item in mm
     documentation: list[str] = []  # URL to documentation or more text
+    related_items: list[Relation] = []  # Related  of related items
 
     # Container Information
     # UUID of the parent item containing this item

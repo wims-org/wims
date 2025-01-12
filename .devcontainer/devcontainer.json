@@ -22,17 +22,22 @@
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
-			"settings": {},
+			"settings": {
+				"remote.autoForwardPorts": false
+			},
 			"extensions": [
 				"streetsidesoftware.code-spell-checker",
 				"k--kato.intellij-idea-keybindings",
 				"ms-azuretools.vscode-docker",
-				// "github.copilot",
+				"github.copilot",
 				"hediet.vscode-drawio",
 				"ms-vsliveshare.vsliveshare",
 				"humao.rest-client",
 				"kwkmp.mqttclient",
-				"mhutchie.git-graph"
+				"mhutchie.git-graph",
+				"vue.volar",
+				"ms-python.python",
+				"holazz.vsc-reveal"
 			]
 		}
 	},
@@ -49,6 +54,6 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": " pip3 install -r requirements.txt && sudo apt update && sudo apt install docker.io -y && sudo usermod -aG docker $(whoami) && poetry config virtualenvs.in-project true"
+	"postCreateCommand": ""
 	// "remoteUser": "root"
 }

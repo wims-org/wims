@@ -22,8 +22,7 @@
                 "0.0.0.0",
                 "--port",
                 "5002",
-                "--no-debugger",
-                "--no-reload"
+                "--reload"
             ],
             "jinja": true,
             "consoleTitle": "Python: Flask" // do not trust the linter, this works
@@ -45,6 +44,18 @@
             ],
             "jinja": true,
             "consoleTitle": "Python: FastAPI"
+        },
+        {
+            "name": "Vue: npm run dev",
+            "type": "node",
+            "cwd": "${workspaceFolder}/vue_frontend",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }
