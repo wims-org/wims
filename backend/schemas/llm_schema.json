@@ -1,157 +1,127 @@
 {
-    "name": "paper_metadata",
+    "name": "item_schema",
     "strict": true,
     "schema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "Item",
-        "description": "Schema for an item",
-        "version": "0.1.0",
-        "type": "object",
-        "properties": {
-            "short_name": {
-                "type": "string",
-                "description": "Short name of the item"
-            },
-            "item_type": {
-                "type": "string",
-                "description": "Item type"
-            },
-            "consumable": {
-                "type": "boolean",
-                "description": "Indicates if the item is consumable"
-            },
-            "description": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Concise description of the item and general use"
-            },
-            "tags": {
-                "type": "array",
-                "items": {
-                    "type": "string"
-                },
-                "description": "Custom tags for categorization"
-            },
-            "cost_new": {
-                "type": [
-                    "number",
-                    "null"
-                ],
-                "description": "Cost per item in Euros when bought new"
-            },
-            "cost_used": {
-                "type": [
-                    "number",
-                    "null"
-                ],
-                "description": "Cost per item in Euros, for e.g. selling"
-            },
-            "manufacturer": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Manufacturer of the item"
-            },
-            "model_number": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Model number of the item"
-            },
-            "manufacturing_time": {
-                "type": "array",
-                "prefixItems": [
-                    {
-                        "type": "number",
-                        "description": "earliest manufacturing date in unix timestamp"
-                    },
-                    {
-                        "type": "number",
-                        "description": "latest manufacturing date in unix timestamp"
-                    }
-                ],
-                "description": "Manufacturing time frame of the item"
-            },
-            "upc": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Universal Product Code"
-            },
-            "asin": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Amazon Standard Identification Number"
-            },
-            "serial_number": {
-                "type": [
-                    "string",
-                    "null"
-                ],
-                "description": "Serial number of the item"
-            },
-            "vendors": {
-                "type": "array",
-                "items": {
-                    "type": "string"
-                },
-                "description": "List of vendors"
-            },
-            "shop_url": {
-                "type": "array",
-                "items": {
-                    "type": "string"
-                },
-                "description": "List of URLs to shops"
-            },
-            "size": {
-                "type": [
-                    "object",
-                    "null"
-                ],
-                "properties": {
-                    "length": {
-                        "type": "number",
-                        "description": "Length of the item in mm"
-                    },
-                    "width": {
-                        "type": "number",
-                        "description": "Width of the item in mm"
-                    },
-                    "height": {
-                        "type": "number",
-                        "description": "Height of the item in mm"
-                    }
-                },
-                "required": [
-                    "length",
-                    "width",
-                    "height"
-                ],
-                "description": "Outer dimensions of the item in mm"
-            },
-            "documentation": {
-                "type": "array",
-                "items": {
-                    "type": "string"
-                },
-                "description": "URL to documentation or more text"
-            }
+      "type": "object",
+      "title": "Item",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "version": "0.1.0",
+      "required": [
+        "short_name",
+        "item_type",
+        "consumable",
+        "description",
+        "tags",
+        "cost_new",
+        "cost_used",
+        "manufacturer",
+        "model_number",
+        "upc",
+        "asin",
+        "serial_number",
+        "vendors",
+        "shop_url",
+        "documentation"
+      ],
+      "properties": {
+        "upc": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Universal Product Code"
         },
-        "required": [
-            "short_name",
-            "item_type",
-            "description",
-            "tags",
-            "cost_new"
-        ],
-        "additionalItems": false
+        "asin": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Amazon Standard Identification Number"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Custom tags for categorization"
+        },
+        "vendors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of vendors"
+        },
+        "cost_new": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Cost per item in Euros when bought new"
+        },
+        "shop_url": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of URLs to shops"
+        },
+        "cost_used": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Cost per item in Euros, for e.g. selling"
+        },
+        "item_type": {
+          "type": "string",
+          "description": "Item type"
+        },
+        "consumable": {
+          "type": "boolean",
+          "description": "Indicates if the item is consumable"
+        },
+        "short_name": {
+          "type": "string",
+          "description": "Short name of the item"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Concise description of the item and general use"
+        },
+        "manufacturer": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Manufacturer of the item"
+        },
+        "model_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Model number of the item"
+        },
+        "documentation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "URL to documentation or more text"
+        },
+        "serial_number": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Serial number of the item"
+        }
+      },
+      "description": "Schema for an item",
+      "additionalProperties": false
     }
-}
+  }
