@@ -13,6 +13,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vue/compat": "^3.5.13",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
     "axios": "^1.7.9",
     "bootstrap-vue": "^2.23.1",
     "pinia": "^2.3.0",
@@ -31,7 +34,7 @@
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.3.3",
     "typescript": "~5.6.3",
-    "vite": "^6.0.5",
+    "vite": "^6.0.7",
     "vite-plugin-vue-devtools": "^7.6.8",
     "vue-tsc": "^2.1.10"
   }

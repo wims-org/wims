@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Item from '../components/Item.vue'
+import Item from '../components/ItemForm.vue'
 </script>
 
 <template>

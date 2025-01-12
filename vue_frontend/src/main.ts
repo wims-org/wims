@@ -19,7 +19,7 @@ axios.defaults.baseURL = "http://localhost:5005"
 
 watch(server_stream.messages, (newMessages) => {
     for (let i = 0; i < newMessages.length; i++) {
-        let data = JSON.parse(newMessages[i].replace(/'/g, '"'));
+        const data = JSON.parse(newMessages[i].replace(/'/g, '"'));
         router.push('/item/' + data.rfid)
     }
 })

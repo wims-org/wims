@@ -25,7 +25,7 @@ import axios from 'axios';
 
 
 import { FormField } from "@/interfaces/FormField.interface";
-import useValidate, { ValidationArgs } from "@vuelidate/core";
+import { ValidationArgs } from "@vuelidate/core";
 
 const formFields = {
     tag_uuid: { label: 'Tag UUID', type: 'text', disabled: true, hidden: false, details: false },

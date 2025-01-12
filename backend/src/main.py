@@ -222,10 +222,23 @@ async def get_item(rfid: str):
     else:
         raise HTTPException(status_code=404, detail="Item not found")
 
-
 @app.get("/items")
-async def get_items():
-    items = backend_service.db.read(collection_name="items")
+async def get_items(query: str = None):
+    if query:
+        items = backend_service.db.read(
+            collection_name="items",
+            query={
+                "$or": [
+                    {"tag_uuid": {"$regex": query, "$options": "i"}},
+                    {"short_name": {"$regex": query, "$options": "i"}},
+                    {"item_type": {"$regex": query, "$options": "i"}},
+                    {"documentation": {"$regex": query, "$options": "i"}},
+                ]
+            }
+        )
+    else:
+        items = backend_service.db.read(collection_name="items")
+    
     if items:
         return items
     else:

@@ -3,7 +3,7 @@ import { onMounted, onUnmounted } from 'vue'
 
 
 export const clientStore = defineStore('ClientStore', () => {
-  let reader_id: String = 'asdasdasd'
+  const reader_id: string = 'asdasdasd'
 
   onMounted(() => {
   })
