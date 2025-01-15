@@ -37,7 +37,11 @@
 				"mhutchie.git-graph",
 				"vue.volar",
 				"ms-python.python",
-				"holazz.vsc-reveal"
+				"holazz.vsc-reveal",
+				"",
+				"esbenp.prettier-vscode",
+				"charliermarsh.ruff",
+				"yzhang.markdown-all-in-one"
 			]
 		}
 	},

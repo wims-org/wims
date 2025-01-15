@@ -23,16 +23,18 @@ class Change(BaseModel):
     timestamp: int  # Unix timestamp
     diff_from_prev_version: dict[str, any]
 
+
 class Relation(BaseModel):
-    related_tags: list[str] # list of related tags
-    tag: list[str] # category or tag of relation 
+    related_tags: list[str]  # list of related tags
+    tag: list[str]  # category or tag of relation
     description: str | None = None
+
 
 # Field Alias is used to map the old field name to new field name during database migration after changes
 class Item(BaseModel):
     model_config = ConfigDict(populate_by_name=True)  # noqa: F821
     tag_uuid: Annotated[str, Field(alias="container_tag_id")]  # UUID of the item
-  
+
     # Mandatory Item Information
     short_name: str
     amount: int

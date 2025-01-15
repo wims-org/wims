@@ -5,11 +5,14 @@
         </button>
         <h1 class="mb-4">Item Details</h1>
         <form v-if="item" @submit.prevent="handleSubmit">
-            <div class="form-group" v-for="(field, key) in formFields" :key="key" v-show="!field.hidden && (!field.details || (showDetails && field.details))">
-                <label :for="key">{{ field.label }}</label>
-                <input v-if="field.type !== 'textarea'" :type="field.type" :name="key" :disabled="field.disabled" 
-                    v-model="item[key]" class="form-control" />
-                <textarea v-else :name="key" :disabled="field.disabled" v-model="item[key]" class="form-control"></textarea>
+            <div class="form-group" v-for="(field, key) in formFields" :key="key"
+                v-show="!field.hidden && (!field.details || (showDetails && field.details))">
+                <label :for="String(key)">{{ field.label }}</label>
+                <input v-if="field.type !== 'textarea'" :type="field.type" :name="String(key)" :disabled="field.disabled"
+                    :value="getFieldModel(String(key), field.type)" @input="updateFieldModel($event, String(key), field.type)"
+                    class="form-control" />
+                <textarea v-else :name="String(key)" :disabled="field.disabled" v-model="item[key]"
+                    class="form-control"></textarea>
             </div>
             <button type="submit" class="btn btn-primary mt-3">Submit</button>
         </form>
@@ -24,8 +27,9 @@ import { defineComponent } from "vue";
 import axios from 'axios';
 
 
-import { FormField } from "@/interfaces/FormField.interface";
-import { ValidationArgs } from "@vuelidate/core";
+import type { FormField } from "@/interfaces/FormField.interface";
+import type { ValidationArgs } from "@vuelidate/core";
+import type { PropType } from "vue";
 
 const formFields = {
     tag_uuid: { label: 'Tag UUID', type: 'text', disabled: true, hidden: false, details: false },
@@ -33,7 +37,7 @@ const formFields = {
     amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false },
     item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false },
     consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false },
-    created_at: { label: 'Created At', type: 'text', disabled: true, hidden: false, details: false },
+    created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false },
     created_by: { label: 'Created By', type: 'text', disabled: true, hidden: false, details: false },
     changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false },
     ai_generated: { label: 'AI Generated', type: 'array', disabled: true, hidden: true, details: false },
@@ -42,11 +46,11 @@ const formFields = {
     tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false },
     images: { label: 'Images', type: 'array', disabled: false, hidden: false, details: true },
     cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false },
-    acquisition_date: { label: 'Acquisition Date', type: 'number', disabled: false, hidden: false, details: false },
+    acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false },
     cost_used: { label: 'Cost Used', type: 'number', disabled: false, hidden: false, details: false },
     manufacturer: { label: 'Manufacturer', type: 'text', disabled: false, hidden: false, details: false },
     model_number: { label: 'Model Number', type: 'text', disabled: false, hidden: false, details: false },
-    manufacturing_date: { label: 'Manufacturing Date', type: 'number', disabled: false, hidden: false, details: false },
+    manufacturing_date: { label: 'Manufacturing Date', type: 'epoch', disabled: false, hidden: false, details: false },
     upc: { label: 'UPC', type: 'text', disabled: false, hidden: false, details: false },
     asin: { label: 'ASIN', type: 'text', disabled: false, hidden: false, details: false },
     serial_number: { label: 'Serial Number', type: 'text', disabled: false, hidden: false, details: false },
@@ -57,9 +61,9 @@ const formFields = {
     related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true },
     container_tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: false, hidden: true, details: false },
     current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: false },
-    borrowed_by: { label: 'Borrowed By', type: 'unix_epoch', disabled: false, hidden: false, details: false },
-    borrowed_at: { label: 'Borrowed At', type: 'unix_epoch', disabled: false, hidden: false, details: false },
-    borrowed_until: { label: 'Borrowed Until', type: 'text', disabled: false, hidden: false, details: false },
+    borrowed_by: { label: 'Borrowed By', type: 'text', disabled: false, hidden: false, details: false },
+    borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: false },
+    borrowed_until: { label: 'Borrowed Until', type: 'epoch', disabled: false, hidden: false, details: false },
     owner: { label: 'Owner', type: 'text', disabled: false, hidden: false, details: false }
 };
 
@@ -80,7 +84,6 @@ export default defineComponent({
             rfid: this.$route.params.rfid,
             item: {},
             showDetails: false,
-            formFields,
         };
     },
     created() {
@@ -105,12 +108,31 @@ export default defineComponent({
             }
         },
 
+        formatDate(timestamp: number): string {
+            if (!timestamp) return '';
+            const date = new Date(timestamp * 1000);
+            return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+        },
+        getFieldModel(key: string, type: string) {
+            if (type === 'checkbox') {
+                return this.item[key] ? 'checked' : '';
+            } else if (type === 'epoch') {
+                return this.formatDate(this.item[key]);
+            }
+            return this.item[key];
+        },
+        updateFieldModel(event: Event, key: string, type: string) {
+            const target = event.target as HTMLInputElement;
+            if (type === 'checkbox') {
+                this.$set(this.item, key, target.checked);
+            } if (type === 'epoch') {
+                this.$set(this.item, key, target.checked);
+            } else {
+                this.$set(this.item, key, target.value);
+            }
+        },
         toggleDetails() {
             this.showDetails = !this.showDetails;
-        },
-        formatDate(timestamp: number): string {
-            const date = new Date(timestamp * 1000);
-            return date.toISOString().split('T')[0];
         }
     },
 });

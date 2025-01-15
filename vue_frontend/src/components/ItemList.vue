@@ -11,14 +11,24 @@
 </template>
 
 <script lang="ts">
-export default {
+
+import { defineComponent } from 'vue';
+import type { PropType } from 'vue';
+
+interface Item {
+    tag_uuid: string;
+    name: string;
+    description: string;
+}
+
+export default defineComponent({
     props: {
         items: {
-            type: Array,
+            type: Array as PropType<Item[]>,
             required: true
         }
     }
-};
+});
 </script>
 
 <style scoped>

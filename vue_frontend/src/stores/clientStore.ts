@@ -1,16 +1,14 @@
 import { defineStore } from 'pinia'
 import { onMounted, onUnmounted } from 'vue'
-
+import { v4 as uuidv4 } from 'uuid'
 
 export const clientStore = defineStore('ClientStore', () => {
-  const reader_id: string = 'asdasdasd'
+  const client_id: string = uuidv4()
+  const reader_id: string = ''
 
-  onMounted(() => {
-  })
+  onMounted(() => {})
 
-  onUnmounted(() => {
+  onUnmounted(() => {})
 
-  })
-
-  return { reader_id }
+  return { reader_id, client_id }
 })
