@@ -15,8 +15,8 @@ app.use(router)
 app.mount('#app')
 
 const server_stream = serverStream()
-axios.defaults.baseURL = "http://localhost:5005"
-
+axios.defaults.baseURL = import.meta.env.VITE_APP_API_HOST+':'+import.meta.env.VITE_APP_API_PORT
+console.log(axios.defaults.baseURL)
 watch(server_stream.messages, (newMessages) => {
     for (let i = 0; i < newMessages.length; i++) {
         const data = JSON.parse(newMessages[i].replace(/'/g, '"'));

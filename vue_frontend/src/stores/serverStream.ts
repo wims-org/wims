@@ -8,7 +8,13 @@ export const serverStream = defineStore('ServerStream', () => {
   const alive = ref<boolean>(false)
   function connect(reader_id: string, source: string) {
     console.log('connecting to server with %s: %s', source, reader_id)
-    eventSource = new EventSource('http://localhost:5005/stream?reader=' + reader_id)
+    eventSource = new EventSource(
+        import.meta.env.VITE_APP_API_HOST +
+        ':' +
+        import.meta.env.VITE_APP_API_PORT +
+        '/stream?reader=' +
+        reader_id,
+    )
 
     let aliveTimeout: number | null = null
 

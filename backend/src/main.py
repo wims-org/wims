@@ -3,13 +3,14 @@ import base64
 import enum
 import json
 import logging
+import os
 import time
 import uuid
 from pathlib import Path
-from typing import Annotated, List, Optional
+from typing import Annotated
 
 import yaml
-from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Json, ValidationError
@@ -19,6 +20,7 @@ from database_connector import MongoDBConnector
 from models.database import Item
 from modules import chatgpt
 from mqtt_client import MQTTClientManager, ReaderMessage
+from utils import update
 
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
@@ -28,6 +30,28 @@ logger.debug("Starting backend service")
 MESSAGE_STREAM_DELAY = 1  # second
 MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # milisecond
 app = FastAPI()
+
+
+def read_config():
+    config = {}
+    try:
+        with open(Path("__file__").parent.absolute() / "config.yml") as file:
+            config = yaml.safe_load(file)
+    except FileNotFoundError:
+        logger.error(
+            "Config file not found. You may create a config file at src/config.yml by coping the example file."
+        )
+        return {}
+    except yaml.YAMLError as e:
+        logger.error(f"Error reading config file: {e}")
+    for key in os.environ.copy():
+        update(key, config, os.environ[key])
+    logger.debug(f"Config: {config}")
+    return config
+
+
+config = read_config()
+
 
 origins = [
     "http://localhost:5000",
@@ -39,6 +63,8 @@ origins = [
     "https://localhost",
     "http://localhost:8080",
 ]
+frontend_config = config.get("frontend", {})
+origins.append(f"http://{frontend_config.get("host", "0.0.0.0")}:{frontend_config.get("port", '8080')}")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -46,14 +72,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-def read_config():
-    with open(Path("__file__").parent.absolute() / "config.yml") as file:
-        return yaml.safe_load(file)
-
-
-config = read_config()
 
 # testing websocket
 html = """
@@ -110,13 +128,13 @@ class SseMessage(BaseModel):
 class BackendService:
     def __init__(self, db_config, mqtt_config):
         self.db = MongoDBConnector(
-            uri=db_config.get("uri", "mongodb://localhost:27017"),
+            uri=f"mongodb://{db_config.get("host", "localhost")}:{db_config.get("port", "27017")}",
             database=db_config.get("database", "inventory"),
         )
         self.mqtt_client_manager = MQTTClientManager(
             callback=self.handle_message,
-            host=mqtt_config.get("host", "localhost"),
-            port=mqtt_config.get("port", 1883),
+            host=mqtt_config.get("broker", {}).get("host", "localhost"),
+            port=mqtt_config.get("broker", {}).get("port", 1883),
         )
         self.readers: dict[str, list[dict]] = {}
 
@@ -131,8 +149,7 @@ class BackendService:
 
         self.readers[msg.reader_id].append(
             SseMessage(
-                data=SseMessage.SseMessageData(
-                    reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json"),
+                data=SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json"),
                 event=Event.REDIRECT,
             ).model_dump(mode="json")
         )
@@ -159,12 +176,14 @@ async def push_messages():
     while True:
         for client in backend_service.readers:
             message = SseMessage(
-                data=SseMessage.SseMessageData(reader_id=client, data={
-                                               "message": "connection alive"}).model_dump(mode="json"),
+                data=SseMessage.SseMessageData(reader_id=client, data={"message": "connection alive"}).model_dump(
+                    mode="json"
+                ),
                 event=Event.ALIVE,
             ).model_dump(mode="json")
             backend_service.readers[client].append(message)
         await asyncio.sleep(5)
+
 
 asyncio.create_task(push_messages())
 
@@ -201,8 +220,7 @@ async def update_item(item: Item):
     updated_rows = backend_service.db.update(
         collection_name="items",
         # match by either tag_uuid or old container_tag_id, only for id migration
-        query={"$or": [{"tag_uuid": item_data["tag_uuid"]}, {
-            "container_tag_id": item_data["container_tag_id"]}]},
+        query={"$or": [{"tag_uuid": item_data["tag_uuid"]}, {"container_tag_id": item_data["container_tag_id"]}]},
         update_values=item_data,
     )
     if updated_rows:
@@ -214,8 +232,7 @@ async def update_item(item: Item):
 @app.put("/item")
 async def create_item(item: Item):
     item_data = item.model_dump(mode="json")
-    updated_rows = backend_service.db.create(
-        collection_name="items", document=item_data)
+    updated_rows = backend_service.db.create(collection_name="items", document=item_data)
     if updated_rows:
         return {"message": "Item created successfully"}
     else:
@@ -278,8 +295,7 @@ async def get_items(query: str = None):
 async def patch_items():
     items = backend_service.db.read(collection_name="items")
     for item_data in items:
-        item = Item.model_validate(
-            item_data, strict=False, from_attributes=True)
+        item = Item.model_validate(item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
         _ = backend_service.db.update(
             collection_name="items",
@@ -297,8 +313,7 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
     photo = file
     query_params = dict(request.query_params)
     if "reader_id" not in query_params and "client_id" not in query_params:
-        raise HTTPException(
-            status_code=400, detail="Missing reader_id or client_id")
+        raise HTTPException(status_code=400, detail="Missing reader_id or client_id")
     sse_client = query_params.get("reader_id", query_params.get("client_id"))
 
     async def start_identification(start_time: float):
@@ -315,14 +330,12 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            backend_service.readers.setdefault(
-                sse_client, []).append(sse_message)
+            backend_service.readers.setdefault(sse_client, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
-                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() -
-                start_time
+                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() - start_time
             ).model_dump(mode="json"),
             event=Event.REDIRECT,
         ).model_dump(mode="json")
@@ -334,28 +347,27 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
 
 class IdentificationRequest(BaseModel):
     data: Json | None = None
-    images: List[UploadFile] = None
+    images: list[UploadFile] = None
 
 
 @app.post("/identification")
 async def identification(
-        # identificationRequest: IdentificationRequest):
-        data: Json = Form(...), images: List[UploadFile] = File(...)):
+    # identificationRequest: IdentificationRequest):
+    data: Json = Form(...),
+    images: list[UploadFile] = File(...),
+):
     try:
         query = data.get("query", None)
         client_id = data.get("client_id", [])
         encoded_images = []
         for image in images or []:
-            encoded_image = base64.b64encode(await image.read()).decode('utf-8')
+            encoded_image = base64.b64encode(await image.read()).decode("utf-8")
             encoded_images.append(encoded_image)
-        assert (
-            query or images) and client_id, "(Query or Image) and client_id is required"
+        assert (query or images) and client_id, "(Query or Image) and client_id is required"
     except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400, detail="Invalid JSON in document") from None
+        raise HTTPException(status_code=400, detail="Invalid JSON in document") from None
     except AssertionError:
-        raise HTTPException(
-            status_code=400, detail="Query or Image is required") from None
+        raise HTTPException(status_code=400, detail="Query or Image is required") from None
 
     async def start_identification(start_time: float):
         chatgpt_response = chatgpt.identify_object(query, encoded_images)
@@ -371,8 +383,7 @@ async def identification(
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            backend_service.readers.setdefault(
-                client_id, []).append(sse_message)
+            backend_service.readers.setdefault(client_id, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(

@@ -8,7 +8,6 @@
           type="text"
           class="form-control string-ident-input"
           placeholder="Add Item by Description or Name..."
-          v-model="stringIdentInput"
         />
       </div>
       <div class="col-md-2 mb-3">
@@ -27,7 +26,9 @@
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
 
-const stringIdentInput = ''
+import { ref } from 'vue'
+
+const stringIdentInput = ref("string-identification-input")
 const formData = new FormData()
 
 const fetchIdentification = async (query: string) => {

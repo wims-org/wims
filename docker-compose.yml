@@ -1,21 +1,48 @@
 services:
   frontend:
-    build: ./frontend
+    build: ./vue_frontend
+    networks:
+      app-network:
+        ipv4_address: 172.19.128.0
     ports:
-      - "5000:5000"
-  # backend:
-  #   build: ./backend
-  #   ports:
-  #     - "8000:8000"
+      - "5000:8080"
+    depends_on:
+      - backend
+    environment:
+      - VITE_APP_API_HOST=172.20.128.1
+      - VITE_APP_API_PORT=8000
+  backend:
+    build: ./backend
+    networks:
+      app-network:
+        ipv4_address: 172.19.128.1
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - mqtt.broker.host=172.19.128.3 # change to external broker
+      - mqtt.broker.port=1883
+      - mqtt.user=test
+      - mqtt.password=test
+      - database.host=172.19.128.2
+      - database.port=27017
+      - frontend.host=172.19.128.1
+      - frontend.port=8000
   db:
     image: mongodb/mongodb-community-server:latest
     restart: unless-stopped
+    networks:
+      app-network:
+        ipv4_address: 172.19.128.2
     volumes:
       - mongodb-data:/data/db
       - ./mongodb-docker-entrypoint-initdb.d/a_setup_database.js:/docker-entrypoint-initdb.d/a_setup_database.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-
 volumes:
   mongodb-data:
+
+networks:
+  app-network:

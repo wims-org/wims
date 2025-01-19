@@ -1,4 +1,4 @@
-host=127.0.0.1
+host=172.20.128.3
 TopicLevel1=foo
 TOPIC_FOO={{TopicLevel1}}/foo
 message=Hello, world!

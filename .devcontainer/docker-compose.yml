@@ -4,34 +4,41 @@ services:
     build: 
       dockerfile: .devcontainer/Dockerfile
     command: sleep infinity
-    # Runs app on the same network as the frontend container, allows "forwardPorts" in devcontainer.json function.
     network_mode: host
     volumes:
       - ..:/workspaces:cached
     privileged: true
   
   frontend:
-    # image: "mcr.microsoft.com/devcontainers/python:1-3.12"
-    # build:
-    #   context: ..
-    #   dockerfile: .devcontainer/Dockerfile
-    # Overrides default command so things don't shut down after the process ends.
-    network_mode: host
-    
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    networks:
+      dev-network:
+        ipv4_address: 172.20.128.0
+  backend:
+    networks:
+      dev-network:
+        ipv4_address: 172.20.128.1
   db:
-    network_mode: host
+    networks:
+      dev-network:
+        ipv4_address: 172.20.128.2
     volumes:
       - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
   # DEV Mqtt broker
   mqtt: # Todo mosquitto dies at startup
     image: eclipse-mosquitto:latest
     restart: unless-stopped
-    ports:
-      - "1883:1883"
     volumes:
       - ./.devcontainer/mqtt/mosquitto-data:/mosquitto/data
       - ./.devcontainer/mqtt/mosquitto-log:/mosquitto/log
       - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
- 
+    networks:
+      dev-network:
+        ipv4_address: 172.20.128.3
+      app-network:
+        ipv4_address: 172.19.128.3
+
+networks:
+  dev-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -16,7 +16,9 @@ const router = useRouter()
 
 onMounted(async () => {
   await router.isReady()
-  client_store.reader_id = router.currentRoute.value.query.reader
+  client_store.reader_id = Array.isArray(router.currentRoute.value.query.reader)
+    ? router.currentRoute.value.query.reader[0] || ''
+    : router.currentRoute.value.query.reader || ''
   server_stream.connect(client_store.client_id, 'client_id')
   if (client_store.reader_id) {
     server_stream.connect(client_store.reader_id, 'reader_id')

@@ -28,6 +28,7 @@ class MQTTClientManager:
         self.loop = asyncio.get_event_loop()
 
     def connect(self):
+        logger.debug(f"Connecting to MQTT broker {self.mqtt_broker}:{self.mqtt_port}")
         for _ in range(3):
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port)
             if self.mqtt_client.loop_start() == mqtt.MQTT_ERR_SUCCESS:

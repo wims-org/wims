@@ -1,4 +1,11 @@
+# Where Is My Stuff
 
+## Set up
+adapt `docker-compose.yml` and `vue_frontend/.env.production` (for now) and start all containers with
+
+    docker compose up -d
+
+visit frontend, check backend connection ( default [172.19.128.1:5000] )
 
 ## Use Cases:
 
