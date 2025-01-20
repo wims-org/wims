@@ -12,15 +12,15 @@ services:
   frontend:
     networks:
       dev-network:
-        ipv4_address: 172.20.128.0
+        ipv4_address: 172.20.128.2
   backend:
     networks:
       dev-network:
-        ipv4_address: 172.20.128.1
+        ipv4_address: 172.20.128.3
   db:
     networks:
       dev-network:
-        ipv4_address: 172.20.128.2
+        ipv4_address: 172.20.128.4
     volumes:
       - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
   # DEV Mqtt broker
@@ -33,9 +33,9 @@ services:
       - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
     networks:
       dev-network:
-        ipv4_address: 172.20.128.3
+        ipv4_address: 172.20.128.5
       app-network:
-        ipv4_address: 172.19.128.3
+        ipv4_address: 172.19.128.5
 
 networks:
   dev-network:

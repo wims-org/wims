@@ -4,6 +4,8 @@ def find(element, json):
     keys = element.split(".")
     rv = json
     for key in keys:
+        if key not in rv:
+            return None
         rv = rv[key]
     return rv
 
@@ -13,9 +15,10 @@ def update(element, json: dict, value):
     keys = element.split(".")
     rv = json
     for key in keys:
-        rv.setdefault(key, {})
         if key == keys[-1]:
             rv[key] = value
-        elif key in rv:
-            rv = rv[key]              
+            break
+        elif key not in rv:
+            rv[key] = {}
+        rv = rv[key]
     return json
