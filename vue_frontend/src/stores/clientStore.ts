@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { onMounted, onUnmounted } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -12,3 +12,6 @@ export const clientStore = defineStore('ClientStore', () => {
 
   return { reader_id, client_id }
 })
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(clientStore, import.meta.hot))
+}

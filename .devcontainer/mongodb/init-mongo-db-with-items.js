@@ -159,3 +159,7 @@ db.items.insert([
         ]
     }
 ])
+db.readers.insert([
+    { reader_id: "04-04-46-42-CD-66-81", reader_name: "Reader1" }, 
+    { reader_id: "04-04-46-42-CD-66-82", reader_name: "Reader2" },
+])

@@ -76,3 +76,7 @@ class MQTTClientManager:
     def start(self):
         # self.loop.run_forever()
         pass
+
+    def stop(self):
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()

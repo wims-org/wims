@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { RouterLink, RouterView, useRouter } from 'vue-router'
+<script lang="ts">
+import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
@@ -10,36 +10,50 @@ import { clientStore } from './stores/clientStore'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-const client_store = clientStore()
-const server_stream = serverStream()
-const router = useRouter()
-
-onMounted(async () => {
-  await router.isReady()
-  client_store.reader_id = Array.isArray(router.currentRoute.value.query.reader)
-    ? router.currentRoute.value.query.reader[0] || ''
-    : router.currentRoute.value.query.reader || ''
-  server_stream.connect(client_store.client_id, 'client_id')
-  if (client_store.reader_id) {
-    server_stream.connect(client_store.reader_id, 'reader_id')
-  }
-})
+export default {
+  name: 'App',
+  components: {
+    HelloWorld,
+  },
+  setup() {
+    const client_store = clientStore()
+    const server_stream = serverStream()
+    const router = useRouter()
+    onMounted(async () => {
+      await router.isReady()
+      client_store.reader_id = Array.isArray(router.currentRoute.value.query.reader)
+        ? router.currentRoute.value.query.reader[0] || ''
+        : router.currentRoute.value.query.reader || ''
+      server_stream.connect(client_store.client_id, 'client_id')
+      if (client_store.reader_id) {
+        server_stream.connect(client_store.reader_id, 'reader_id')
+      }
+    })
+    return {
+      client_store,
+      server_stream,
+    }
+  },
+}
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <HelloWorld msg="WIMS?" />
+  <div class="col-12">
+    <header>
+      <div class="wrapper">
+        <HelloWorld msg="WIMS?" />
 
-      <nav>
-        onMounted
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+        <nav>
+          <RouterLink to="/">Home</RouterLink>
+          <RouterLink to="/items">Items</RouterLink>
+          <RouterLink to="/readers">Readers</RouterLink>
+          <RouterLink to="/about">About</RouterLink>
+        </nav>
+      </div>
+    </header>
 
-  <RouterView />
+    <RouterView />
+  </div>
 </template>
 
 <style scoped></style>

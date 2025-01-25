@@ -29,7 +29,48 @@ a,
 
   #app {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
+  }
+}
+
+.block-item-list {
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li {
+    cursor: pointer;
+    padding: 1rem;
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  li:hover {
+    background-color: #e0e0e0;
+  }
+
+  li.active {
+    background-color: #007bff;
+    color: #ffffff;
+  }
+
+  li.active:hover {
+    background-color: #0056b3;
+  }
+
+  .text-muted {
+    color: #6c757d;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li {
+    cursor: pointer;
+    padding: 1rem;
   }
 }

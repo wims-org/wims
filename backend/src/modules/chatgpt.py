@@ -11,9 +11,7 @@ class LLMCompletion(BaseModel):
 
 
 class ChatGPT(LLMCompletion):
-    model_config: dict = {
-        "arbitrary_types_allowed": True
-    }
+    model_config: dict = {"arbitrary_types_allowed": True}
     client: OpenAI | None = None
     response_schema: dict | None = None
 
@@ -40,8 +38,7 @@ class ChatGPT(LLMCompletion):
                 {"role": "user", "content": files},
                 {"role": "user", "content": [{"type": "text", "text": query}]},
             ],
-            response_format={"type": "json_schema",
-                             "json_schema": self.response_schema},
+            response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
             max_completion_tokens=2048,
             top_p=1,
@@ -65,8 +62,7 @@ class ChatGPT(LLMCompletion):
                     ],
                 },
             ],
-            response_format={"type": "json_schema",
-                             "json_schema": self.response_schema},
+            response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
             max_completion_tokens=2048,
             top_p=1,
