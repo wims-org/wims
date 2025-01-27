@@ -20,4 +20,4 @@ EXPOSE 8080
 
 # Command to run the application
 RUN ["npm", "run", "build"]
-CMD [ "http-server", "-P", "http://0.0.0.0:8080?", "dist", "--cors" ]
+ENTRYPOINT [ "http-server", "-P", "http://0.0.0.0:8080?", "dist", "--cors" ]

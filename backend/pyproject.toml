@@ -1,32 +1,29 @@
 [project]
-name = "backend"
-version = "0.1.0"
+authors = [{name = "EeveesEyes", email = "a@kailus.dev"}]
 description = ""
-authors = [{ name = "EeveesEyes", email = "a@kailus.dev" }]
+name = "backend"
 readme = "README.md"
 requires-python = ">=3.12"
-
+version = "0.1.0"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 
 [tool.poetry]
-packages = [{ include = "frontend" }]
 package-mode = false
-
+packages = [{include = "frontend"}]
 
 [tool.poetry.dependencies]
-python = "^3.12"
-fastapi =  {extras = ["standard"], version = "^0.115.6"}
+fastapi = {extras = ["standard"], version = "^0.115.6"}
+openai = "^1.59.6"
 paho-mqtt = "^2.1.0"
-uvicorn = {extras = ["standard"], version = "^0.34.0"}
 pydantic = "^2.10.4"
 pymongo = "^4.10.1"
-sse-starlette = "^2.2.1"
-openai = "^1.59.6"
+python = "^3.12"
 python-multipart = "^0.0.20"
-
+sse-starlette = "^2.2.1"
+uvicorn = {extras = ["standard"], version = "^0.34.0"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

@@ -21,12 +21,13 @@
 import axios from 'axios'
 import { ref, onMounted, defineComponent } from 'vue'
 import { clientStore } from '@/stores/clientStore'
+import type Reader  from '@/interfaces/reader.interface'
 const clientStoreInstance = clientStore()
 
 export default defineComponent({
   name: 'ReaderView',
   setup() {
-    const readers = ref([])
+    const readers = ref<Reader[]>([])
 
     const fetchReaders = async (): Promise<void> => {
       try {

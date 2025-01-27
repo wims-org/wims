@@ -1,63 +1,63 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Python 3 & MQTT & somedb",
-	//"dockerComposeFile": "docker-compose.yml",
-	"dockerComposeFile": [
-		"../docker-compose.yml", // prod docker compose
-		"docker-compose.yml" // dev docker compose 
-	],
-	"service": "devcontainer",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"mounts": [
-		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-		//"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
-		//"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
-	],
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	// "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-	// Configure tool-specific properties.
-	"customizations": {
-		// Configure properties specific to VS Code.
-		"vscode": {
-			"settings": {
-				"remote.autoForwardPorts": false
-			},
-			"extensions": [
-				"streetsidesoftware.code-spell-checker",
-				"k--kato.intellij-idea-keybindings",
-				"ms-azuretools.vscode-docker",
-				"github.copilot",
-				"hediet.vscode-drawio",
-				"ms-vsliveshare.vsliveshare",
-				"humao.rest-client",
-				"kwkmp.mqttclient",
-				"mhutchie.git-graph",
-				"vue.volar",
-				"ms-python.python",
-				"holazz.vsc-reveal",
-				"",
-				"esbenp.prettier-vscode",
-				"charliermarsh.ruff",
-				"yzhang.markdown-all-in-one"
-			]
-		}
-	},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [
-		5000, 8000, 1883, 5002, 5005
-	],
-	// Use 'portsAttributes' to set default properties for specific forwarded ports. 
-	// More info: https://containers.dev/implementors/json_reference/#port-attributes
-	"portsAttributes": {
-		"5000": {
-			"label": "Hello Remote World",
-			"onAutoForward": "notify"
-		}
-	},
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": ""
-	// "remoteUser": "root"
+  "name": "Python 3 & MQTT & somedb",
+  //"dockerComposeFile": "docker-compose.yml",
+  "dockerComposeFile": [
+    "../docker-compose.yml", // prod docker compose
+    "docker-compose.yml" // dev docker compose
+  ],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    //"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
+    //"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
+  ],
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  // "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
+  // Configure tool-specific properties.
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      "settings": {
+        "remote.autoForwardPorts": false
+      },
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "k--kato.intellij-idea-keybindings",
+        "ms-azuretools.vscode-docker",
+        "github.copilot",
+        "hediet.vscode-drawio",
+        "ms-vsliveshare.vsliveshare",
+        "humao.rest-client",
+        "kwkmp.mqttclient",
+        "mhutchie.git-graph",
+        "vue.volar",
+        "ms-python.python",
+        "holazz.vsc-reveal",
+        "esbenp.prettier-vscode",
+        "charliermarsh.ruff",
+        "yzhang.markdown-all-in-one",
+        "be5invis.toml"
+      ]
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [5000, 8000, 1883, 5002, 5005],
+  // Use 'portsAttributes' to set default properties for specific forwarded ports.
+  // More info: https://containers.dev/implementors/json_reference/#port-attributes
+  "portsAttributes": {
+    "5000": {
+      "label": "Hello Remote World",
+      "onAutoForward": "notify"
+    }
+  },
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "",
+  // "remoteUser": "root"
+  // uncomment if any errors occur in one of the services
+  // "runServices": ["devcontainer"]
 }
