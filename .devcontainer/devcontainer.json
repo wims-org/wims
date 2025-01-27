@@ -56,7 +56,7 @@
     }
   },
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "",
+  // "postCreateCommand": "",
   // "remoteUser": "root"
   // uncomment if any errors occur in one of the services
   // "runServices": ["devcontainer"]

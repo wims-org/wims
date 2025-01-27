@@ -41,7 +41,7 @@ export default defineComponent({
 
     const selectReader = (readerId: string) => {
       console.log('Selected reader:', readerId)
-      clientStoreInstance.reader_id = readerId
+      clientStoreInstance.setReaderId(readerId)
       console.log('clientStoreInstance.reader_id:', clientStoreInstance)
     }
 

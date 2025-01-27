@@ -1,16 +1,27 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { onMounted, onUnmounted } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import {serverStream} from './serverStream'
+export const clientStore = defineStore('client', {
 
-export const clientStore = defineStore('ClientStore', () => {
-  const client_id: string = uuidv4()
-  const reader_id: string = ''
+  state: () => ({
+    client_id:  uuidv4(),
+    reader_id:  '',
+      serverStream : serverStream()
+  }),
+  getters: {
 
-  onMounted(() => {})
+  },
+  actions: {
+    setClientId(client_id: string) {
+      this.client_id = client_id
 
-  onUnmounted(() => {})
+    },
+    setReaderId(reader_id: string) {
+      this.reader_id = reader_id
+      this.serverStream.connect(this.reader_id, '')
+    },
+  },
 
-  return { reader_id, client_id }
 })
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(clientStore, import.meta.hot))

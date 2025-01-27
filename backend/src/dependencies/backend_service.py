@@ -1,11 +1,11 @@
 import asyncio
 import enum
 import json
+import logging
 import uuid
 from asyncio import Event
 from pathlib import Path
 
-from fastapi import logger
 from pydantic import BaseModel
 from wtforms import ValidationError
 
@@ -13,6 +13,10 @@ from database_connector import MongoDBConnector
 from modules import chatgpt
 from mqtt_client import MQTTClientManager, ReaderMessage
 from utils import find
+
+logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.DEBUG)
+
 
 MESSAGE_STREAM_DELAY = 1  # second
 MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # millisecondfrom utils import find
@@ -65,10 +69,9 @@ class BackendService:
         except (ValidationError, json.JSONDecodeError) as e:
             logger.error(f"Error parsing message: {e}, {message}")
             return
-
         self.readers[msg.reader_id].append(
             SseMessage(
-                data=SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json"),
+                data=SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json", exclude_none=True),
                 event=Event.REDIRECT,
             ).model_dump(mode="json")
         )

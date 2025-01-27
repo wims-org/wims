@@ -1,7 +1,11 @@
 # Where Is My Stuff
 
 ## Set up
-adapt `docker-compose.yml` and `vue_frontend/.env.production` (for now) and start all containers with
+1. Copy backend config
+
+    cp backend/src/config.dist.yml backend/src/config.yml
+
+2. adapt `docker-compose.yml` `backend/src/config.yml` and `vue_frontend/.env.production` (for now) and start all containers with
 
     docker compose up -d
 
