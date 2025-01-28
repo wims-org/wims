@@ -1,0 +1,22 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login kailus.dev -u "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
+
+    - name: Build Docker image
+      run: docker build -t kailus.dev/inventory-backend:latest ./backend
+
+    - name: Push Docker image
+      run: docker push kailus.dev/inventory-backend:latest
+
