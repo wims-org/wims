@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
         config=config,
     )
     app.state.backend_service.start_mqtt()
-    app.state.backend_service.add_mqtt_topic(find(config, "readers.topic") or "foo/bar")
+    app.state.backend_service.add_mqtt_topic(find("readers.topic", config) or "rfid")
     yield
     app.state.backend_service.close()
 
