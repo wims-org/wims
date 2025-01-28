@@ -6,6 +6,7 @@ RUN npm install -g http-server
 # Set the working directory in the container
 WORKDIR /app
 
+RUN apk add --no-cache bash curl vim jq wget
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
