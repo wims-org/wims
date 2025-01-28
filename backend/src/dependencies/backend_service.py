@@ -49,8 +49,7 @@ class BackendService:
         )
         self.mqtt_client_manager = MQTTClientManager(
             callback=self.handle_message,
-            host=mqtt_config.get("broker", {}).get("host", "localhost"),
-            port=mqtt_config.get("broker", {}).get("port", 1883),
+            mqtt_config=mqtt_config.get("broker", {})
         )
         self.readers: dict[str, list[dict]] = {}
 

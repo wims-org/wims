@@ -18,7 +18,8 @@ mqtt:
     broker: 
         host: "127.0.0.1"
         port: 1883
-
+        username: "test"
+        password: "test"
 logging:
     level: "INFO"
     file: "/var/log/backend_service.log"
