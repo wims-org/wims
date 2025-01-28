@@ -8,9 +8,7 @@ services:
       - "5000:8080"
     depends_on:
       - backend
-    environment:
-      - VITE_APP_API_HOST=172.20.128.3
-      - VITE_APP_API_PORT=8000
+    # environment: doesnt work for vite
   backend:
     build: ./backend
     networks:
