@@ -21,7 +21,7 @@ services:
     environment:
       - mqtt.broker.host=172.19.128.5 # change to external broker
       - mqtt.broker.port=1883
-      - mqtt.broker.user=test
+      - mqtt.broker.username=test
       - mqtt.broker.password=test
       - database.host=172.19.128.4
       - database.port=27017
