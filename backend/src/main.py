@@ -15,6 +15,7 @@ from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService, E
 from dependencies.config import read_config
 from models.database import Item
 from routers import readers
+from utils import find
 
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
@@ -62,7 +63,7 @@ async def lifespan(app: FastAPI):
         config=config,
     )
     app.state.backend_service.start_mqtt()
-    app.state.backend_service.add_mqtt_topic("foo/bar")
+    app.state.backend_service.add_mqtt_topic(find(config, "readers.topic") or "foo/bar")
     yield
     app.state.backend_service.close()
 
