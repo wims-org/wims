@@ -38,9 +38,8 @@ class MongoDBConnector:
                     {"$unwind": "$container"},
                 ]
             )
-        ].pop()
-
-        return res
+        ]
+        return res.pop() if res else None
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]

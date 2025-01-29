@@ -18,7 +18,7 @@ topic: {{TopicLevel1}}/scan/reader-4
 }
 
 # ##a Publish '{ "message": "Hello, world!" }'
-topic: {{TopicLevel1}}/scan
+topic: {{TopicLevel1}}/scan/reader-4
 
 {
     "reader_id": "04-04-46-42-CD-66-81",

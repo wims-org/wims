@@ -204,8 +204,13 @@ export default defineComponent({
         const response = await axios.get(`/item/${this.rfid}`)
         this.item = response.data
         console.log('Item:', this.item)
-      } catch (error) {
-        console.error('Error fetching item:', error)
+      } catch {
+        this.item = Object.keys(this.formFields).reduce((acc, key) => {
+          acc[key] = null
+          return acc
+        }, {} as Record<string, string | number | readonly string[] | null | undefined>)
+        this.item['container_tag_id'] = this.rfid
+        console.warn('Item not found, display empty item form')
       }
     },
     async handleSubmit() {
