@@ -63,7 +63,13 @@ async def lifespan(app: FastAPI):
         config=config,
     )
     app.state.backend_service.start_mqtt()
-    app.state.backend_service.add_mqtt_topic(find("readers.topic", config) or "rfid")
+    try:
+        app.state.backend_service.add_mqtt_topic(find(key := "mqtt.topics.scan", config) or "rfid/scan")
+    except (KeyError, TypeError) as e:
+        logger.error(
+            f"Error updating config key {
+                     key}, check config file and environment variables: {e}"
+        )
     yield
     app.state.backend_service.close()
 
@@ -105,8 +111,7 @@ async def update_item(item: Item):
     updated_rows = app.state.backend_service.db.update(
         collection_name="items",
         # match by either tag_uuid or old container_tag_id, only for id migration
-        query={"$or": [{"tag_uuid": item_data["tag_uuid"]}, {
-            "container_tag_id": item_data["container_tag_id"]}]},
+        query={"$or": [{"tag_uuid": item_data["tag_uuid"]}, {"container_tag_id": item_data["container_tag_id"]}]},
         update_values=item_data,
     )
     if updated_rows:
@@ -118,8 +123,7 @@ async def update_item(item: Item):
 @app.put("/item")
 async def create_item(item: Item):
     item_data = item.model_dump(mode="json")
-    updated_rows = app.state.backend_service.db.create(
-        collection_name="items", document=item_data)
+    updated_rows = app.state.backend_service.db.create(collection_name="items", document=item_data)
     if updated_rows:
         return {"message": "Item created successfully"}
     else:
@@ -140,8 +144,7 @@ async def delete_item(rfid: str):
 
 @app.get("/item/{rfid}")
 async def get_item(rfid: str):
-    item = app.state.backend_service.db.find_by_rfid(
-        collection_name="items", rfid=rfid)
+    item = app.state.backend_service.db.find_by_rfid(collection_name="items", rfid=rfid)
     if item:
         try:
             return Item.model_validate(item, strict=False, from_attributes=True)
@@ -183,8 +186,7 @@ async def get_items(query: str = None):
 async def patch_items():
     items = app.state.backend_service.db.read(collection_name="items")
     for item_data in items:
-        item = Item.model_validate(
-            item_data, strict=False, from_attributes=True)
+        item = Item.model_validate(item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
         _ = app.state.backend_service.db.update(
             collection_name="items",
@@ -202,8 +204,7 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
     photo = file
     query_params = dict(request.query_params)
     if "reader_id" not in query_params and "client_id" not in query_params:
-        raise HTTPException(
-            status_code=400, detail="Missing reader_id or client_id")
+        raise HTTPException(status_code=400, detail="Missing reader_id or client_id")
     sse_client = query_params.get("reader_id", query_params.get("client_id"))
 
     async def start_identification(start_time: float):
@@ -220,19 +221,16 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            app.state.backend_service.readers.setdefault(
-                sse_client, []).append(sse_message)
+            app.state.backend_service.readers.setdefault(sse_client, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
-                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() -
-                start_time
+                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() - start_time
             ).model_dump(mode="json"),
             event=Event.REDIRECT,
         ).model_dump(mode="json")
-        app.state.backend_service.readers.setdefault(
-            sse_client, []).append(sse_message)
+        app.state.backend_service.readers.setdefault(sse_client, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}
@@ -256,18 +254,14 @@ async def identification(
         for image in images or []:
             encoded_image = base64.b64encode(await image.read()).decode("utf-8")
             encoded_images.append(encoded_image)
-        assert (
-            query or images) and client_id, "(Query or Image) and client_id is required"
+        assert (query or images) and client_id, "(Query or Image) and client_id is required"
     except json.JSONDecodeError:
-        raise HTTPException(
-            status_code=400, detail="Invalid JSON in document") from None
+        raise HTTPException(status_code=400, detail="Invalid JSON in document") from None
     except AssertionError:
-        raise HTTPException(
-            status_code=400, detail="Query or Image is required") from None
+        raise HTTPException(status_code=400, detail="Query or Image is required") from None
 
     async def start_identification(start_time: float):
-        chatgpt_response = app.state.backend_service.llm_completion.identify_object(
-            query, encoded_images)
+        chatgpt_response = app.state.backend_service.llm_completion.identify_object(query, encoded_images)
         if (
             not chatgpt_response
             or not chatgpt_response.choices
@@ -280,8 +274,7 @@ async def identification(
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            app.state.backend_service.readers.setdefault(
-                client_id, []).append(sse_message)
+            app.state.backend_service.readers.setdefault(client_id, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
@@ -290,8 +283,7 @@ async def identification(
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        app.state.backend_service.readers.setdefault(
-            client_id, []).append(sse_message)
+        app.state.backend_service.readers.setdefault(client_id, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}

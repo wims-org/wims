@@ -2,10 +2,15 @@
     <div class="container">
         <h1 class="my-4">Item List</h1>
         <div class="list-group">
-            <a v-for="item in items" :key="item.tag_uuid" :href="'/item/' + item.tag_uuid" class="list-group-item list-group-item-action">
+            <router-link v-for="item in items" :key="item.tag_uuid" :to="'/item/' + item.tag_uuid"
+                class="list-group-item list-group-item-action">
                 <h5 class="mb-1">{{ item.name }}</h5>
                 <p class="mb-1">{{ item.description }}</p>
-            </a>
+            </router-link>
+            <div v-if="items.length === 0" class="list-group-item">
+                <div class="spinner-border spinner-border-sm" role="status"> </div>
+                Start typing...
+            </div>
         </div>
     </div>
 </template>

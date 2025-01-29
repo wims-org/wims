@@ -22,8 +22,25 @@ class MongoDBConnector:
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
         collection: Collection = self.db[collection_name]
-        document = collection.find_one({"tag_uuid": rfid})
-        return document
+        res = [
+            doc
+            for doc in collection.aggregate(
+                [
+                    {"$match": {"tag_uuid": rfid}},
+                    {
+                        "$lookup": {
+                            "from": "items",
+                            "localField": "container_tag_uuid",
+                            "foreignField": "tag_uuid",
+                            "as": "container",
+                        }
+                    },
+                    {"$unwind": "$container"},
+                ]
+            )
+        ].pop()
+
+        return res
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]

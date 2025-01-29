@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class User(BaseModel):
@@ -71,6 +73,7 @@ class Item(BaseModel):
     # Container Information
     # UUID of the parent item containing this item
     container_tag_uuid: str | None = None
+    container: Item | None = None
     # temporary uuid of the location, for moving items around
     current_location: str | None = None
     # User Information
@@ -78,3 +81,13 @@ class Item(BaseModel):
     borrowed_at: int | None = None  # Unix timestamp
     borrowed_until: int | None = None  # Unix timestamp
     owner: str | None = None  # UUID of the user owning the item
+
+    @computed_field
+    def borrowed(self) -> bool:
+        return self.borrowed_by is not None
+
+    @computed_field
+    def container_name(self) -> bool:
+        if self.container is None:
+            return None
+        return self.container.short_name or None

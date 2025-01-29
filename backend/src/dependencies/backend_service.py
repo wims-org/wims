@@ -3,13 +3,14 @@ import enum
 import json
 import logging
 import uuid
-from asyncio import Event
 from pathlib import Path
 
+import openai
 from pydantic import BaseModel
 from wtforms import ValidationError
 
 from database_connector import MongoDBConnector
+from models.database import Item
 from modules import chatgpt
 from mqtt_client import MQTTClientManager, ReaderMessage
 from utils import find
@@ -48,16 +49,24 @@ class BackendService:
             database=db_config.get("database", "inventory"),
         )
         self.mqtt_client_manager = MQTTClientManager(
-            callback=self.handle_message,
-            mqtt_config=mqtt_config.get("broker", {})
+            callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
         self.readers: dict[str, list[dict]] = {}
 
         # Read the schema from the file
         with open(Path(__file__).parent.parent.parent / "schemas" / "llm_schema.json") as schema_file:
             schema = json.load(schema_file)
-        self.llm_completion = chatgpt.ChatGPT(api_key=find("features.openai.api_key", config), response_schema=schema)
 
+        try:
+            self.item_data_topic = find(key := "mqtt.topics.result", config)
+            self.llm_completion = chatgpt.ChatGPT(
+                api_key=find(key := "features.openai.api_key", config), response_schema=schema
+            )
+        except (KeyError, TypeError, openai.OpenAIError) as e:
+            logger.error(
+                f"Error getting config key {
+                    key}, check config file and environment variables: {e}"
+            )
         asyncio.create_task(self.push_messages())
 
     async def handle_message(self, message, topic):
@@ -68,12 +77,34 @@ class BackendService:
         except (ValidationError, json.JSONDecodeError) as e:
             logger.error(f"Error parsing message: {e}, {message}")
             return
-        self.readers[msg.reader_id].append(
-            SseMessage(
-                data=SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.rfid).model_dump(mode="json", exclude_none=True),
-                event=Event.REDIRECT,
-            ).model_dump(mode="json")
+        result = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
+            mode="json", exclude_none=True
         )
+        self.readers[msg.reader_id].append(SseMessage(data=result, event=Event.REDIRECT).model_dump(mode="json"))
+
+        # todo don't fetch data from db twice
+        item_raw = self.db.find_by_rfid("items", msg.tag_id)
+        if item_raw is None:
+            self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
+        else:
+            item = Item.model_validate(item_raw, strict=False, from_attributes=True)
+            self.mqtt_client_manager.publish(
+                self.item_data_topic + f"/{msg.reader_id}",
+                str(
+                    item.model_dump(
+                        mode="json",
+                        include={
+                            "tag_uuid",
+                            "short_name",
+                            "amount",
+                            "item_type",
+                            "borrowed",
+                            "container_tag_uuid",
+                            "container_name",
+                        },
+                    )
+                ),
+            )
 
     def start_mqtt(self):
         self.mqtt_client_manager.connect()

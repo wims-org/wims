@@ -1,0 +1,78 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Config",
+    "type": "object",
+    "$version": 1.0,
+    "properties": {
+        "server": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                }
+            },
+            "required": ["host", "port"]
+        },
+        "database": {
+            "type": "object",
+            "properties": {
+                "host": {
+                    "type": "string",
+                    "format": "ipv4"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "database": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "required": ["host", "port", "name", "database", "user", "password"]
+        },
+        "mqtt": {
+            "type": "object",
+            "properties": {
+                "broker": {
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "type": "string"
+                        },
+                        "port": {
+                            "type": "integer"
+                        },
+                        "username": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["host", "port"]
+                },
+                "topics": {
+                    "type": "object",
+                    "properties": {
+                        "scan": {
+                            "type": "string"
+                        },
+                        "result": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "required": ["broker", "topics"]
+        }
+    },
+    "required": ["schema_version",  "server", "database", "mqtt"]
+}

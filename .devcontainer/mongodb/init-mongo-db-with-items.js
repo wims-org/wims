@@ -157,7 +157,30 @@ db.items.insert([
                 description: "Related to Hammer"
             }
         ]
+    },
+    {
+        tag_uuid: "123e4567-e89b-12d3-a456-426614174003",
+        short_name: "Eurobox 3",
+        amount: 1,
+        item_type: "eurobox",
+        consumable: false,
+        created_at: "2023-10-04T12:00:00Z",
+        created_by: "user4",
+        changes: [],
+        ai_generated: [],
+        description: "A large eurobox",
+        min_amount: 1,
+        tags: ["container", "eurobox"],
+        images: ["image7_id", "image8_id"],
+        cost_new: 50.0,
+        acquisition_date: 1672793002,
+        cost_used: 30.0,
+        manufacturer: "EuroboxCorp",
+        model_number: "EB-3",
+        manufacturing_date: 1672793002,
+        upc: "123456789015",
     }
+
 ])
 db.readers.insert([
     { reader_id: "04-04-46-42-CD-66-81", reader_name: "Reader1" }, 

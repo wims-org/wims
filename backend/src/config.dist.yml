@@ -1,6 +1,5 @@
 # backend/configuration/config.yaml
-readers:
-    topic: "rfid"
+schema_version: 1.0
 
 server:
     host: "0.0.0.0"
@@ -20,6 +19,9 @@ mqtt:
         port: 1883
         username: "test"
         password: "test"
+    topics:
+        scan: "rfid/scan"
+        result: "rfid/itemdata"
 logging:
     level: "INFO"
     file: "/var/log/backend_service.log"

@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 class ReaderMessage(BaseModel):
     reader_id: str
-    rfid: str
+    tag_id: str
 
 
 class MQTTClientManager:
@@ -22,17 +22,17 @@ class MQTTClientManager:
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.on_disconnect = self.on_disconnect
-        self.mqtt_client.username_pw_set(
-            mqtt_config.get("username", None), mqtt_config.get(
-                "password",      None))
+        self.mqtt_client.username_pw_set(mqtt_config.get("username", None), mqtt_config.get("password", None))
         self.topics = set()
         self.callback = callback
         self.reconnect_delay = 1
         self.loop = asyncio.get_event_loop()
 
     def connect(self):
-        logger.debug(f"Connecting to MQTT broker {
-                     self.mqtt_broker}:{self.mqtt_port}")
+        logger.debug(
+            f"Connecting to MQTT broker {
+                self.mqtt_broker}:{self.mqtt_port}"
+        )
         for _ in range(3):
             self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port)
             if self.mqtt_client.loop_start() == mqtt.MQTT_ERR_SUCCESS:
@@ -51,6 +51,9 @@ class MQTTClientManager:
                 msg.payload.decode()} on topic {msg.topic}"
         )
         asyncio.run(self.callback(msg.payload.decode(), msg.topic))
+
+    def publish(self, topic: str, message: str | bytearray | int | float | None):
+        self.mqtt_client.publish(topic, message)
 
     def on_disconnect(self, client, userdata, rc):
         if rc != 0:

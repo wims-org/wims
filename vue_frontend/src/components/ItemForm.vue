@@ -5,29 +5,23 @@
     </button>
     <h1 class="mb-4">Item Details</h1>
     <form v-if="item" @submit.prevent="handleSubmit">
-      <div
-        class="form-group"
-        v-for="(field, key) in formFields"
-        :key="key"
-        v-show="!field.hidden && (!field.details || (showDetails && field.details))"
-      >
+      <div class="form-group" v-for="(field, key) in formFields" :key="key"
+        v-show="!field.hidden && (!field.details || (showDetails && field.details))">
         <label :for="String(key)">{{ field.label }}</label>
-        <input
-          v-if="field.type !== 'textarea'"
-          :type="field.type"
-          :name="String(key)"
-          :disabled="field.disabled ?? undefined"
-          :value="getFieldModel(String(key), field.type)"
-          @input="updateFieldModel($event, String(key), field.type)"
-          class="form-control"
-        />
-        <textarea
-          v-else
-          :name="String(key)"
-          :disabled="field.disabled ?? undefined"
-          v-model="item[key]"
-          class="form-control"
-        ></textarea>
+        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type" :name="String(key)"
+          :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
+          @input="updateFieldModel($event, String(key), field.type)" class="form-control" />
+        <div v-else-if="field.type === 'object'" class="card p-3">
+          <div v-for="(subField, subKey) in item[key]" :key="subKey" class="form-group"
+            v-show="subField !== null && subField !== undefined">
+            <label :for="`${key}-${subKey}`">{{ subKey }}</label>
+            <input :type="typeof subField === 'number' ? 'number' : 'text'" :name="`${key}-${subKey}`" :value="subField"
+              :disabled="field.disabled ?? undefined"
+              @input="updateFieldModel($event, `${key}.${subKey}`, typeof subField)" class="form-control" />
+          </div>
+        </div>
+        <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" v-model="item[key]"
+          class="form-control"></textarea>
       </div>
       <button type="submit" class="btn btn-primary mt-3">Submit</button>
     </form>
@@ -47,7 +41,7 @@ import type { PropType } from 'vue'
 import type FormField from '@/interfaces/FormField.interface'
 
 const formFields: Record<string, FormField> = {
-  tag_uuid: { label: 'Tag UUID', type: 'text', disabled: true, hidden: false, details: false },
+  container_tag_id: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: true },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false },
   item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false },
@@ -144,7 +138,14 @@ const formFields: Record<string, FormField> = {
     label: 'Container Tag UUID',
     type: 'text',
     disabled: false,
-    hidden: true,
+    hidden: false,
+    details: false,
+  },
+  container: {
+    label: 'Container',
+    type: 'object',
+    disabled: true,
+    hidden: false,
     details: false,
   },
   current_location: {
