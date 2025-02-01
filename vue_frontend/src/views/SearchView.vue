@@ -1,3 +1,15 @@
+<template>
+  <main>
+    <h1>Search</h1>
+    <input ref="search-input" type="text" placeholder="Search..." v-model="searchQuery" />
+    <div v-if="items.length === 0" class="list-group-item">
+      <div class="spinner-border spinner-border-sm" role="status"></div>
+      Start typing...
+    </div>
+    <ItemList v-else :items="items" />
+  </main>
+</template>
+
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
@@ -36,11 +48,3 @@ watch(searchQuery, (newQuery: string) => {
   }
 })
 </script>
-
-<template>
-  <main>
-    <h1>Search</h1>
-    <input ref="search-input" type="text" placeholder="Search..." v-model="searchQuery" />
-    <ItemList :items="items" />
-  </main>
-</template>

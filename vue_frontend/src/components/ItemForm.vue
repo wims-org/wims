@@ -43,6 +43,13 @@ import type FormField from '@/interfaces/FormField.interface'
 const formFields: Record<string, FormField> = {
   container_tag_id: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: true },
+  description: {
+    label: 'Description',
+    type: 'textarea',
+    disabled: false,
+    hidden: false,
+    details: true,
+  },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false },
   item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false },
   consumable: {
@@ -61,13 +68,6 @@ const formFields: Record<string, FormField> = {
     disabled: true,
     hidden: true,
     details: false,
-  },
-  description: {
-    label: 'Description',
-    type: 'textarea',
-    disabled: false,
-    hidden: false,
-    details: true,
   },
   min_amount: {
     label: 'Minimum Amount',

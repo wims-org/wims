@@ -108,7 +108,7 @@ def read_root():
 
 
 @app.post("/item")
-async def update_item(item: Item):
+async def post_item(item: Item):
     item_data = item.model_dump(mode="json")
     updated_rows = app.state.backend_service.db.update(
         collection_name="items",

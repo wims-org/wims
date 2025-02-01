@@ -7,10 +7,6 @@
                 <h5 class="mb-1">{{ item.name }}</h5>
                 <p class="mb-1">{{ item.description }}</p>
             </router-link>
-            <div v-if="items.length === 0" class="list-group-item">
-                <div class="spinner-border spinner-border-sm" role="status"> </div>
-                Start typing...
-            </div>
         </div>
     </div>
 </template>
