@@ -10,7 +10,8 @@
         <label :for="String(key)">{{ field.label }}</label>
         <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type" :name="String(key)"
           :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
-          @input="updateFieldModel($event, String(key), field.type)" class="form-control" />
+          :required="field.required" @input="updateFieldModel($event, String(key), field.type)" class="form-control"
+          :class="{ 'is-invalid': field.required && !item[key] }" />
         <div v-else-if="field.type === 'object'" class="card p-3">
           <div v-for="(subField, subKey) in item[key]" :key="subKey" class="form-group"
             v-show="subField !== null && subField !== undefined">
@@ -21,7 +22,7 @@
           </div>
         </div>
         <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" v-model="item[key]"
-          class="form-control"></textarea>
+          class="form-control" :class="{ 'is-invalid': field.required && !item[key] }"></textarea>
       </div>
       <button type="submit" class="btn btn-primary mt-3">Submit</button>
     </form>
@@ -39,144 +40,41 @@ import type { ValidationArgs } from '@vuelidate/core'
 import type { PropType } from 'vue'
 
 import type FormField from '@/interfaces/FormField.interface'
-
 const formFields: Record<string, FormField> = {
-  container_tag_id: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false },
-  short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: true },
-  description: {
-    label: 'Description',
-    type: 'textarea',
-    disabled: false,
-    hidden: false,
-    details: true,
-  },
-  amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false },
-  item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false },
-  consumable: {
-    label: 'Consumable',
-    type: 'checkbox',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false },
-  created_by: { label: 'Created By', type: 'text', disabled: true, hidden: false, details: false },
-  changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false },
-  ai_generated: {
-    label: 'AI Generated',
-    type: 'array',
-    disabled: true,
-    hidden: true,
-    details: false,
-  },
-  min_amount: {
-    label: 'Minimum Amount',
-    type: 'number',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false },
-  images: { label: 'Images', type: 'array', disabled: false, hidden: false, details: true },
-  cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false },
-  acquisition_date: {
-    label: 'Acquisition Date',
-    type: 'epoch',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  cost_used: { label: 'Cost Used', type: 'number', disabled: false, hidden: false, details: false },
-  manufacturer: {
-    label: 'Manufacturer',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  model_number: {
-    label: 'Model Number',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  manufacturing_date: {
-    label: 'Manufacturing Date',
-    type: 'epoch',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  upc: { label: 'UPC', type: 'text', disabled: false, hidden: false, details: false },
-  asin: { label: 'ASIN', type: 'text', disabled: false, hidden: false, details: false },
-  serial_number: {
-    label: 'Serial Number',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  vendors: { label: 'Vendors', type: 'array', disabled: false, hidden: false, details: true },
-  shop_url: { label: 'Shop URL', type: 'array', disabled: false, hidden: false, details: true },
-  size: { label: 'Size', type: 'object', disabled: false, hidden: false, details: false },
-  documentation: {
-    label: 'Documentation',
-    type: 'array',
-    disabled: false,
-    hidden: false,
-    details: true,
-  },
-  related_items: {
-    label: 'Related Items',
-    type: 'array',
-    disabled: false,
-    hidden: false,
-    details: true,
-  },
-  container_tag_uuid: {
-    label: 'Container Tag UUID',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  container: {
-    label: 'Container',
-    type: 'object',
-    disabled: true,
-    hidden: false,
-    details: false,
-  },
-  current_location: {
-    label: 'Current Location',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  borrowed_by: {
-    label: 'Borrowed By',
-    type: 'text',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  borrowed_at: {
-    label: 'Borrowed At',
-    type: 'epoch',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  borrowed_until: {
-    label: 'Borrowed Until',
-    type: 'epoch',
-    disabled: false,
-    hidden: false,
-    details: false,
-  },
-  owner: { label: 'Owner', type: 'text', disabled: false, hidden: false, details: false },
+  container_tag_id: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
+  short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
+  description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: true, required: false },
+  amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
+  item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false, required: true },
+  consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: true },
+  created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false, required: false },
+  created_by: { label: 'Created By', type: 'text', disabled: true, hidden: false, details: false, required: false },
+  changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false, required: false },
+  ai_generated: { label: 'AI Generated', type: 'array', disabled: true, hidden: true, details: false, required: false },
+  min_amount: { label: 'Minimum Amount', type: 'number', disabled: false, hidden: false, details: false, required: false },
+  tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: true },
+  images: { label: 'Images', type: 'array', disabled: false, hidden: false, details: true, required: false },
+  cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false, required: false },
+  acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
+  cost_used: { label: 'Cost Used', type: 'number', disabled: false, hidden: false, details: false, required: false },
+  manufacturer: { label: 'Manufacturer', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  model_number: { label: 'Model Number', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  manufacturing_date: { label: 'Manufacturing Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
+  upc: { label: 'UPC', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  asin: { label: 'ASIN', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  serial_number: { label: 'Serial Number', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  vendors: { label: 'Vendors', type: 'array', disabled: false, hidden: false, details: true, required: false },
+  shop_url: { label: 'Shop URL', type: 'array', disabled: false, hidden: false, details: true, required: false },
+  size: { label: 'Size', type: 'object', disabled: false, hidden: false, details: false, required: false },
+  documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
+  related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
+  container_tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  container: { label: 'Container', type: 'object', disabled: true, hidden: false, details: false, required: false },
+  current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  borrowed_by: { label: 'Borrowed By', type: 'text', disabled: false, hidden: false, details: false, required: false },
+  borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
+  borrowed_until: { label: 'Borrowed Until', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
+  owner: { label: 'Owner', type: 'text', disabled: false, hidden: false, details: false, required: false },
 }
 
 export default defineComponent({
@@ -189,9 +87,10 @@ export default defineComponent({
   data() {
     return {
       rfid: this.$route.params.rfid,
-      item: {} as Record<string, string | number | readonly string[] | null | undefined>,
+      item: {} as Record<string, string | number | readonly string[] | boolean | null | undefined>,
       showDetails: false,
       formFields: {} as Record<string, FormField>,
+      newItem: false,
     }
   },
   created() {
@@ -205,17 +104,22 @@ export default defineComponent({
         this.item = response.data
         console.log('Item:', this.item)
       } catch {
+        this.newItem = true
         this.item = Object.keys(this.formFields).reduce((acc, key) => {
           acc[key] = null
           return acc
-        }, {} as Record<string, string | number | readonly string[] | null | undefined>)
+        }, {} as Record<string, string | number | readonly string[] | boolean | null | undefined>)
         this.item['container_tag_id'] = this.rfid
         console.warn('Item not found, display empty item form')
       }
     },
     async handleSubmit() {
       try {
-        await axios.post(`/item`, this.item)
+        if (this.newItem) {
+          await axios.put(`/item`, Object(this.item))
+        } else {
+          await axios.post(`/item`, Object(this.item))
+        }
         alert('Item updated successfully')
       } catch (error) {
         console.error('Error updating item:', error)
@@ -237,11 +141,15 @@ export default defineComponent({
     },
     updateFieldModel(event: Event, key: string, type: string) {
       const target = event.target as HTMLInputElement
+      const fieldType = this.formFields[key].type
       if (type === 'checkbox') {
-        this.item[key] = '' + target.checked
-      }
-      if (type === 'epoch') {
+        this.item[key] = target.checked
+      } else if (type === 'epoch') {
         this.item[key] = new Date(target.value).getTime() / 1000
+      } else if (fieldType === 'number') {
+        this.item[key] = Number(target.value)
+      } else if (fieldType === 'array') {
+        this.item[key] = target.value.split(',').map(item => item.trim())
       } else {
         this.item[key] = target.value
       }

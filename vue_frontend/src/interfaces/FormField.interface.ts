@@ -7,4 +7,5 @@ export default interface FormField {
   disabled?: boolean 
   hidden?: boolean 
   details?: boolean 
+  required?: boolean 
 }

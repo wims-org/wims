@@ -1,13 +1,19 @@
-from pydantic import BaseModel
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ItemRequest(BaseModel):
-    container_tag_id: str
+
+    model_config = ConfigDict(
+
+        populate_by_name=True,
+    )
+    container_tag_id: Annotated[str, Field(alias="tag_uuid")]
     short_name: str
     description: str | None = None
     amount: int
-    category_tags: list[str]
-    images: list[str] = []
+    tags: list[str]
+    images: list[str] | None = None
     storage_location: str | None = None
     storage_location_tag_id: str | None = None
     current_location: str | None = None

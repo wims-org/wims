@@ -27,6 +27,7 @@ class Event(enum.Enum):
     REDIRECT = "REDIRECT"
     COMPLETION = "COMPLETION"
     ALIVE = "ALIVE"
+    CONTAINER_ASSIGNMENT = "CONTAINER_ASSIGNMENT"
 
 
 class SseMessage(BaseModel):
@@ -37,7 +38,7 @@ class SseMessage(BaseModel):
 
     class SseMessageData(BaseModel):
         reader_id: str
-        rfid: str = None
+        rfid: str = None  # Todo rename RFID to tag id
         data: dict = None
 
 
@@ -51,7 +52,7 @@ class BackendService:
         self.mqtt_client_manager = MQTTClientManager(
             callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
-        self.readers: dict[str, list[dict]] = {}
+        self.readers: dict[str, list[dict]] = {} # todo refactor to clients or sth 
 
         # Read the schema from the file
         with open(Path(__file__).parent.parent.parent / "schemas" / "llm_schema.json") as schema_file:
@@ -67,7 +68,7 @@ class BackendService:
                 f"Error getting config key {
                     key}, check config file and environment variables: {e}"
             )
-        asyncio.create_task(self.push_messages())
+        asyncio.create_task(self.push_heartbeats())
 
     async def handle_message(self, message, topic):
         logger.debug(f"Handle message: {message} on topic {topic}")
@@ -77,14 +78,16 @@ class BackendService:
         except (ValidationError, json.JSONDecodeError) as e:
             logger.error(f"Error parsing message: {e}, {message}")
             return
-        result = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
+        data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
             mode="json", exclude_none=True
         )
-        self.readers[msg.reader_id].append(SseMessage(data=result, event=Event.REDIRECT).model_dump(mode="json"))
+        self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.REDIRECT).model_dump(mode="json"))
 
+        # Send db data to reader 
         # todo don't fetch data from db twice
         item_raw = self.db.find_by_rfid("items", msg.tag_id)
         if item_raw is None:
+            # Item not found
             self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
         else:
             item = Item.model_validate(item_raw, strict=False, from_attributes=True)
@@ -116,7 +119,7 @@ class BackendService:
         self.db.close()
         self.mqtt_client_manager.stop()
 
-    async def push_messages(self):
+    async def push_heartbeats(self):
         while True:
             for client in self.readers:
                 message = SseMessage(

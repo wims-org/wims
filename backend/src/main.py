@@ -14,6 +14,7 @@ from sse_starlette.sse import EventSourceResponse
 from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService, Event, SseMessage
 from dependencies.config import read_config
 from models.database import Item
+from models.requests import ItemRequest
 from routers import readers
 from utils import find
 
@@ -65,7 +66,6 @@ async def lifespan(app: FastAPI):
     app.state.backend_service.start_mqtt()
     try:
         scan_topic = find(key := "mqtt.topics.scan", config)
-
     except (KeyError, TypeError) as e:
         logger.error(
             f"Error updating config key {
@@ -108,14 +108,17 @@ def read_root():
 
 
 @app.post("/item")
-async def post_item(item: Item):
-    item_data = item.model_dump(mode="json")
+async def post_item(request: Request):
+    item = await request.json()
+    item_data = ItemRequest.model_validate(item, strict=False, from_attributes=True)
+
+    # item_data = item.model_dump(mode="json")
     updated_rows = app.state.backend_service.db.update(
         collection_name="items",
         # match by either tag_uuid or old container_tag_id, only for id migration
-        query={"$or": [{"tag_uuid": item_data["tag_uuid"]}, {
-            "container_tag_id": item_data["container_tag_id"]}]},
-        update_values=item_data,
+        query={"$or": [{"tag_uuid": item_data.container_tag_id}, {
+            "container_tag_id": item_data.container_tag_id}]},
+        update_values=item_data.model_dump(mode="json", by_alias=True),
     )
     if updated_rows:
         return {"message": "Item updated successfully"}
@@ -124,11 +127,14 @@ async def post_item(item: Item):
 
 
 @app.put("/item")
-async def create_item(item: Item):
-    item_data = item.model_dump(mode="json")
+async def create_item(request: Request):
+    item = await request.json()
+    item = ItemRequest.model_validate(item, strict=False, from_attributes=True)
+    item_data = item.model_dump(mode="json", by_alias=True)
     updated_rows = app.state.backend_service.db.create(
         collection_name="items", document=item_data)
     if updated_rows:
+        logger.debug(f"Item created: {item_data}, {updated_rows}")
         return {"message": "Item created successfully"}
     else:
         return {"message": "Failed to update item"}
@@ -138,7 +144,7 @@ async def create_item(item: Item):
 async def delete_item(rfid: str):
     updated_rows = app.state.backend_service.db.delete(
         collection_name="items",
-        query={"container_tag_id": rfid},
+        query={"tag_uuid": rfid},
     )
     if updated_rows:
         return {"message": "Item deleted successfully"}

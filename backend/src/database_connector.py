@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
+logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.DEBUG)
 
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
@@ -22,11 +25,14 @@ class MongoDBConnector:
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
         collection: Collection = self.db[collection_name]
+        res = collection.find_one({"tag_uuid": rfid})
+        return res
+        # todo
+        logger.info(f"Found item with RFID {rfid}: {res}")
         res = [
             doc
             for doc in collection.aggregate(
                 [
-                    {"$match": {"tag_uuid": rfid}},
                     {
                         "$lookup": {
                             "from": "items",
@@ -35,7 +41,9 @@ class MongoDBConnector:
                             "as": "container",
                         }
                     },
-                    {"$unwind": "$container"},
+                    {"$unwind": {"path": "$container",
+                                 "preserveNullAndEmptyArrays": True}},
+                    {"$match": {"tag_uuid": rfid}},
                 ]
             )
         ]
