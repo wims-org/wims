@@ -52,7 +52,7 @@ class BackendService:
         self.mqtt_client_manager = MQTTClientManager(
             callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
-        self.readers: dict[str, list[dict]] = {} # todo refactor to clients or sth 
+        self.readers: dict[str, list[dict]] = {}  # todo refactor to clients or sth
 
         # Read the schema from the file
         with open(Path(__file__).parent.parent.parent / "schemas" / "llm_schema.json") as schema_file:
@@ -83,7 +83,7 @@ class BackendService:
         )
         self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.REDIRECT).model_dump(mode="json"))
 
-        # Send db data to reader 
+        # Send db data to reader
         # todo don't fetch data from db twice
         item_raw = self.db.find_by_rfid("items", msg.tag_id)
         if item_raw is None:

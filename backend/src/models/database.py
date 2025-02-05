@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
@@ -35,19 +36,19 @@ class Relation(BaseModel):
 # Field Alias is used to map the old field name to new field name during database migration after changes
 class Item(BaseModel):
     model_config = ConfigDict(populate_by_name=True)  # noqa: F821
-    tag_uuid: Annotated[str, Field(alias="container_tag_id")]  # UUID of the item
+    tag_uuid: Annotated[str, Field(alias="tag_uuid")]  # UUID of the item
 
     # Mandatory Item Information
     short_name: str
-    amount: int
-    item_type: str  # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
-    consumable: bool
+    amount: int | None = None
+    item_type: str | None = None  # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
+    consumable: bool | None = None
 
     # meta data
-    created_at: str
-    created_by: str
+    created_at: str | datetime = Field(default_factory=datetime.now)
+    created_by: str | None = None
     changes: list[Change] = []
-    ai_generated: set[str] = {}  # List of AI generated tags
+    ai_generated: set[str] = Field(default_factory=set)  # List of AI generated tags
 
     # Item Details
     description: str | None = None

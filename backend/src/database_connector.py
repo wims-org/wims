@@ -7,6 +7,7 @@ from pymongo.collection import Collection
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
 
+
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
         self.client = MongoClient(
@@ -41,8 +42,7 @@ class MongoDBConnector:
                             "as": "container",
                         }
                     },
-                    {"$unwind": {"path": "$container",
-                                 "preserveNullAndEmptyArrays": True}},
+                    {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
                     {"$match": {"tag_uuid": rfid}},
                 ]
             )

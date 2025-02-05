@@ -41,7 +41,7 @@ import type { PropType } from 'vue'
 
 import type FormField from '@/interfaces/FormField.interface'
 const formFields: Record<string, FormField> = {
-  container_tag_id: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
+  tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: true, required: false },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
@@ -109,16 +109,16 @@ export default defineComponent({
           acc[key] = null
           return acc
         }, {} as Record<string, string | number | readonly string[] | boolean | null | undefined>)
-        this.item['container_tag_id'] = this.rfid
+        this.item['tag_uuid'] = this.rfid
         console.warn('Item not found, display empty item form')
       }
     },
     async handleSubmit() {
       try {
         if (this.newItem) {
-          await axios.put(`/item`, Object(this.item))
-        } else {
           await axios.post(`/item`, Object(this.item))
+        } else {
+          await axios.put(`/item`, Object(this.item))
         }
         alert('Item updated successfully')
       } catch (error) {
