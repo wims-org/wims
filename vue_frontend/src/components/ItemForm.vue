@@ -21,7 +21,7 @@
               @input="updateFieldModel($event, `${key}.${subKey}`, typeof subField)" class="form-control" />
           </div>
         </div>
-        <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" v-model="item[key]"
+        <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" :v-model="item[key]"
           class="form-control" :class="{ 'is-invalid': field.required && !item[key] }"></textarea>
       </div>
       <button type="submit" class="btn btn-primary mt-3">Submit</button>
