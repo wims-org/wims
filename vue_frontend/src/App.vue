@@ -9,6 +9,8 @@ import { clientStore } from './stores/clientStore'
 // Import Bootstrap and BootstrapVue CSS files (order is important)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import eventBus from './stores/eventBus'
+import { EventAction } from './interfaces/EventAction'
 
 export default {
   name: 'App',
@@ -30,6 +32,14 @@ export default {
       if (client_store.reader_id) {
         server_stream.connect(client_store.reader_id, 'reader_id')
       }
+
+      // Handle scan event from event bus
+      eventBus.on('scan', (data) => {
+        const parsedData = JSON.parse(data.replace(/'/g, '"'));
+        if (client_store.expected_event_action === EventAction.REDIRECT) {
+          router.push('/item/' + parsedData.rfid);
+        }
+      });
     })
     return {
       client_store,

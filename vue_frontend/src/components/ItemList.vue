@@ -2,17 +2,16 @@
     <div class="container">
         <h1 class="my-4">Item List</h1>
         <div class="list-group">
-            <router-link v-for="item in items" :key="item.tag_uuid" :to="'/item/' + item.tag_uuid"
-                class="list-group-item list-group-item-action">
+            <div v-for="item in items" :key="item.tag_uuid" 
+                class="list-group-item list-group-item-action" @click="selectItem(item)">
                 <h5 class="mb-1">{{ item.name }}</h5>
                 <p class="mb-1">{{ item.description }}</p>
-            </router-link>
+        </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
 
@@ -27,6 +26,12 @@ export default defineComponent({
         items: {
             type: Array as PropType<Item[]>,
             required: true
+        }
+    },
+    emits: ['select'],
+    methods: {
+        selectItem(item: Item) {
+            this.$emit('select', item);
         }
     }
 });

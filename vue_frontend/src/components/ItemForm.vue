@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-5">
+  <div class="container mt-5" ref="itemForm">
     <button @click="toggleDetails" class="btn btn-secondary mb-3">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
@@ -8,10 +8,10 @@
       <div class="form-group" v-for="(field, key) in formFields" :key="key"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))">
         <label :for="String(key)">{{ field.label || key }}</label>
-        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type || 'text'" :name="String(key)"
-          :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
-          :required="field.required" @input="updateFieldModel($event, String(key), field.type)" class="form-control"
-          :class="{ 'is-invalid': field.required && !item[key] }" />
+        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type || 'text'"
+          :name="String(key)" :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
+          :required="field.required" @input="updateFieldModel($event, String(key), field.type)"
+          @click="handleInputClick(key)" class="form-control" :class="{ 'is-invalid': field.required && !item[key] }" />
         <div v-else-if="field.type === 'object'" class="card p-3">
           <div v-for="(subValue, subKey) in item[key]" :key="subKey" class="form-group"
             v-show="subValue !== null && subValue !== undefined">
@@ -29,12 +29,16 @@
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
     </div>
+    <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
 import type FormField from '@/interfaces/FormField.interface';
+import SearchModal from './SearchModal.vue';
+import { EventAction } from '@/interfaces/EventAction';
+import { clientStore as useClientStore } from '@/stores/clientStore';
 
 const formFields: Record<string, FormField> = {
   tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
@@ -75,9 +79,12 @@ const formFields: Record<string, FormField> = {
 
 export default defineComponent({
   name: 'ItemForm',
+  components: {
+    SearchModal,
+  },
   props: {
     item: {
-      type: Object as () => Record<string, unknown>,
+      type: Object as () => Record<string, any>,
       required: true,
     },
     newItem: {
@@ -87,6 +94,8 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const formData = ref({ ...props.item });
+    const showModal = ref(false);
+    const clientStore = useClientStore();
 
     watch(
       () => props.item,
@@ -136,6 +145,21 @@ export default defineComponent({
       }
     };
 
+    const handleInputClick = (key: string) => {
+      if (key === 'container_tag_uuid') {
+        showModal.value = true;
+      }
+    };
+
+    const handleSelect = (tag: string) => {
+      formData.value.container_tag_uuid = tag;
+    };
+
+    const closeModal = () => {
+      showModal.value = false;
+      clientStore.expected_event_action = EventAction.REDIRECT
+    };
+
     return {
       formData,
       formFields,
@@ -144,6 +168,10 @@ export default defineComponent({
       handleSubmit,
       getFieldModel,
       updateFieldModel,
+      showModal,
+      handleInputClick,
+      handleSelect,
+      closeModal,
     };
   },
 });

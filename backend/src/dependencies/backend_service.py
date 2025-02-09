@@ -24,10 +24,9 @@ MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # millisecondfrom utils import find
 
 
 class Event(enum.Enum):
-    REDIRECT = "REDIRECT"
+    SCAN = "SCAN"
     COMPLETION = "COMPLETION"
     ALIVE = "ALIVE"
-    CONTAINER_ASSIGNMENT = "CONTAINER_ASSIGNMENT"
 
 
 class SseMessage(BaseModel):
@@ -81,7 +80,7 @@ class BackendService:
         data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
             mode="json", exclude_none=True
         )
-        self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.REDIRECT).model_dump(mode="json"))
+        self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.SCAN).model_dump(mode="json"))
 
         # Send db data to reader
         # todo don't fetch data from db twice

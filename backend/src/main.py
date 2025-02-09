@@ -246,7 +246,7 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
             data=SseMessage.SseMessageData(
                 reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() - start_time
             ).model_dump(mode="json"),
-            event=Event.REDIRECT,
+            event=Event.COMPLETION,
         ).model_dump(mode="json")
         app.state.backend_service.readers.setdefault(sse_client, []).append(sse_message)
 
