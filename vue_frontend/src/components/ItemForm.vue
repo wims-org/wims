@@ -33,11 +33,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import axios from 'axios'
+import { defineComponent, ref, watch } from 'vue';
 
-import type { ValidationArgs } from '@vuelidate/core'
-import type { PropType } from 'vue'
 
 import type FormField from '@/interfaces/FormField.interface'
 const formFields: Record<string, FormField> = {
@@ -78,54 +75,57 @@ const formFields: Record<string, FormField> = {
 }
 
 export default defineComponent({
+  name: 'ItemForm',
   props: {
-    schema: {
-      type: Object as PropType<ValidationArgs>,
+    item: {
+      type: Object as () => { [key: string]: string | number | readonly string[] | boolean | null | undefined },
       required: true,
     },
+    newItem: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  setup(props, { emit }) {
+    const formData = ref<{ [key: string]: string | number | boolean | readonly string[] | null | undefined }>({});
+
+    watch(
+      () => props.item,
+      (newFields) => {
+        formData.value = { ...newFields };
+      },
+      { immediate: true }
+    );
+
+    const showSubFields = ref<{ [key: string]: boolean }>({});
+
+    const toggleSubFields = (key: string) => {
+      showSubFields.value[key] = !showSubFields.value[key];
+    };
+
+    const handleSubmit = () => {
+      emit('submit', formData.value);
+    };
+
+    return {
+      formData,
+      showSubFields,
+      toggleSubFields,
+      handleSubmit,
+    };
   },
   data() {
     return {
       rfid: this.$route.params.rfid,
-      item: {} as Record<string, string | number | readonly string[] | boolean | null | undefined>,
-      showDetails: false,
       formFields: {} as Record<string, FormField>,
-      newItem: false,
+      showDetails: false,
     }
-  },
+  }, 
   created() {
-    this.fetchItem()
     this.formFields = formFields
   },
-  methods: {
-    async fetchItem() {
-      try {
-        const response = await axios.get(`/item/${this.rfid}`)
-        this.item = response.data
-        console.log('Item:', this.item)
-      } catch {
-        this.newItem = true
-        this.item = Object.keys(this.formFields).reduce((acc, key) => {
-          acc[key] = null
-          return acc
-        }, {} as Record<string, string | number | readonly string[] | boolean | null | undefined>)
-        this.item['tag_uuid'] = this.rfid
-        console.warn('Item not found, display empty item form')
-      }
-    },
-    async handleSubmit() {
-      try {
-        if (this.newItem) {
-          await axios.post(`/item`, Object(this.item))
-        } else {
-          await axios.put(`/item`, Object(this.item))
-        }
-        alert('Item updated successfully')
-      } catch (error) {
-        console.error('Error updating item:', error)
-      }
-    },
 
+  methods: {
     formatDate(timestamp: number): string {
       if (!timestamp) return ''
       const date = new Date(timestamp * 1000)
@@ -143,15 +143,15 @@ export default defineComponent({
       const target = event.target as HTMLInputElement
       const fieldType = this.formFields[key].type
       if (type === 'checkbox') {
-        this.item[key] = target.checked
+        this.formData[key] = target.checked
       } else if (type === 'epoch') {
-        this.item[key] = new Date(target.value).getTime() / 1000
+        this.formData[key] = new Date(target.value).getTime() / 1000
       } else if (fieldType === 'number') {
-        this.item[key] = Number(target.value)
+        this.formData[key] = Number(target.value)
       } else if (fieldType === 'array') {
-        this.item[key] = target.value.split(',').map(item => item.trim())
+        this.formData[key] = target.value.split(',').map(item => item.trim())
       } else {
-        this.item[key] = target.value
+        this.formData[key] = target.value
       }
     },
     toggleDetails() {
@@ -162,5 +162,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Add your styles here */
+.sub-fields {
+  margin-left: 20px;
+}
 </style>

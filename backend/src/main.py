@@ -108,7 +108,7 @@ def read_root():
 # Database Proxy
 
 
-@app.put("/item")
+@app.put("/item/{rfid}")
 async def put_item(request: Request):
     # update item
     item = await request.json()
@@ -129,7 +129,7 @@ async def put_item(request: Request):
 
 @app.post("/item")
 async def post_item(request: Request):
-    # update item
+    # create item
     item = await request.json()
     item = {k: v for k, v in item.items() if v is not None}
     item_data = ItemRequest.model_validate(item, strict=False, from_attributes=True)
