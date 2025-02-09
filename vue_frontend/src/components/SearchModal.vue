@@ -23,7 +23,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import SearchComponent from './SearchComponent.vue';
-import eventBus from '@/stores/eventBus';
+import eventBus, { type Events } from '@/stores/eventBus';
 
 export default defineComponent({
     name: 'SearchModal',
@@ -42,9 +42,8 @@ export default defineComponent({
     },
     methods: {
         listenToScanEvent() {
-            eventBus.on('scan', (event: unknown) => {
-                const parsedData = JSON.parse(event.replace(/'/g, '"'));
-                this.handleSelect(parsedData.rfid);
+            eventBus.on('scan', (event: Events["scan"]) => {
+                this.handleSelect(event.tag_uuid);
             });
         },
         closeModal() {

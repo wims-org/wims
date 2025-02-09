@@ -84,7 +84,7 @@ export default defineComponent({
   },
   props: {
     item: {
-      type: Object as () => Record<string, any>,
+      type: Object as () => Record<string, unknown>,
       required: true,
     },
     newItem: {

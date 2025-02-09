@@ -2,20 +2,20 @@
 import LLMCompletion from '@/components/LLMCompletion.vue';
 import ItemForm from '../components/ItemForm.vue';
 
-import { onMounted, ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
-const item = ref<Record<string, never>>({});
+const route = useRoute();
+const itemId = ref(route.params.tag_uuid);
+const item = ref({});
 const newItem = ref(false);
 
-const route = useRoute();
-const itemId = route.params.tag_uuid; // Assuming the URL parameter is named 'id'
-
-onMounted(async () => {
+const fetchItem = async () => {
   try {
-    const response = await axios.get(`/item/${itemId}`);
+    const response = await axios.get(`/item/${itemId.value}`);
     item.value = response.data;
+    newItem.value = false;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response && error.response.status === 404) {
       newItem.value = true;
@@ -25,6 +25,13 @@ onMounted(async () => {
       console.error('Error fetching item:', error);
     }
   }
+};
+
+onMounted(fetchItem);
+
+watch(() => route.params.id, async (newId) => {
+  itemId.value = newId;
+  await fetchItem();
 });
 
 const handleFormSubmit = async (formData: Record<string, never>) => {
@@ -33,7 +40,7 @@ const handleFormSubmit = async (formData: Record<string, never>) => {
       await axios.post('/item', formData);
       alert('Item created successfully');
     } else {
-      await axios.put(`/item/${itemId}`, formData);
+      await axios.put(`/item/${itemId.value}`, formData);
       alert('Item updated successfully');
     }
   } catch (error) {
