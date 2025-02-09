@@ -7,18 +7,18 @@
     <form v-if="item" @submit.prevent="handleSubmit">
       <div class="form-group" v-for="(field, key) in formFields" :key="key"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))">
-        <label :for="String(key)">{{ field.label }}</label>
-        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type" :name="String(key)"
+        <label :for="String(key)">{{ field.label || key }}</label>
+        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type || 'text'" :name="String(key)"
           :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
           :required="field.required" @input="updateFieldModel($event, String(key), field.type)" class="form-control"
           :class="{ 'is-invalid': field.required && !item[key] }" />
         <div v-else-if="field.type === 'object'" class="card p-3">
-          <div v-for="(subField, subKey) in item[key]" :key="subKey" class="form-group"
-            v-show="subField !== null && subField !== undefined">
+          <div v-for="(subValue, subKey) in item[key]" :key="subKey" class="form-group"
+            v-show="subValue !== null && subValue !== undefined">
             <label :for="`${key}-${subKey}`">{{ subKey }}</label>
-            <input :type="typeof subField === 'number' ? 'number' : 'text'" :name="`${key}-${subKey}`" :value="subField"
+            <input :type="typeof subValue === 'number' ? 'number' : 'text'" :name="`${key}-${subKey}`" :value="subValue"
               :disabled="field.disabled ?? undefined"
-              @input="updateFieldModel($event, `${key}.${subKey}`, typeof subField)" class="form-control" />
+              @input="updateFieldModel($event, `${key}.${subKey}`, typeof subValue)" class="form-control" />
           </div>
         </div>
         <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" :v-model="item[key]"
@@ -34,16 +34,15 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
+import type FormField from '@/interfaces/FormField.interface';
 
-
-import type FormField from '@/interfaces/FormField.interface'
 const formFields: Record<string, FormField> = {
   tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: true, required: false },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
   item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false, required: true },
-  consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: true },
+  consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: false },
   created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false, required: false },
   created_by: { label: 'Created By', type: 'text', disabled: true, hidden: false, details: false, required: false },
   changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false, required: false },
@@ -78,7 +77,7 @@ export default defineComponent({
   name: 'ItemForm',
   props: {
     item: {
-      type: Object as () => { [key: string]: string | number | readonly string[] | boolean | null | undefined },
+      type: Object as () => Record<string, unknown>,
       required: true,
     },
     newItem: {
@@ -87,78 +86,67 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const formData = ref<{ [key: string]: string | number | boolean | readonly string[] | null | undefined }>({});
+    const formData = ref({ ...props.item });
 
     watch(
       () => props.item,
-      (newFields) => {
-        formData.value = { ...newFields };
+      (newItem) => {
+        formData.value = { ...newItem };
       },
       { immediate: true }
     );
 
-    const showSubFields = ref<{ [key: string]: boolean }>({});
+    const showDetails = ref(false);
 
-    const toggleSubFields = (key: string) => {
-      showSubFields.value[key] = !showSubFields.value[key];
+    const toggleDetails = () => {
+      showDetails.value = !showDetails.value;
     };
 
     const handleSubmit = () => {
       emit('submit', formData.value);
     };
 
+    const formatDate = (timestamp: number): string => {
+      if (!timestamp) return '';
+      const date = new Date(timestamp * 1000);
+      return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0];
+    };
+
+    const getFieldModel = (key: string, type: string) => {
+      if (type === 'checkbox') {
+        return formData.value[key] ? 'checked' : '';
+      } else if (type === 'epoch') {
+        return formatDate(formData.value[key] as number);
+      }
+      return formData.value[key];
+    };
+
+    const updateFieldModel = (event: Event, key: string, type: string) => {
+      const target = event.target as HTMLInputElement;
+      if (type === 'checkbox') {
+        formData.value[key] = target.checked;
+      } else if (type === 'epoch') {
+        formData.value[key] = new Date(target.value).getTime() / 1000;
+      } else if (type === 'number') {
+        formData.value[key] = Number(target.value);
+      } else if (type === 'array') {
+        formData.value[key] = target.value.split(',|;').map(item => item.trim());
+      } else {
+        formData.value[key] = target.value;
+      }
+    };
+
     return {
       formData,
-      showSubFields,
-      toggleSubFields,
+      formFields,
+      showDetails,
+      toggleDetails,
       handleSubmit,
+      getFieldModel,
+      updateFieldModel,
     };
   },
-  data() {
-    return {
-      rfid: this.$route.params.rfid,
-      formFields: {} as Record<string, FormField>,
-      showDetails: false,
-    }
-  }, 
-  created() {
-    this.formFields = formFields
-  },
-
-  methods: {
-    formatDate(timestamp: number): string {
-      if (!timestamp) return ''
-      const date = new Date(timestamp * 1000)
-      return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0]
-    },
-    getFieldModel(key: string, type: string) {
-      if (type === 'checkbox') {
-        return this.item[key] ? 'checked' : ''
-      } else if (type === 'epoch') {
-        return this.formatDate(this.item[key] as number)
-      }
-      return this.item[key]
-    },
-    updateFieldModel(event: Event, key: string, type: string) {
-      const target = event.target as HTMLInputElement
-      const fieldType = this.formFields[key].type
-      if (type === 'checkbox') {
-        this.formData[key] = target.checked
-      } else if (type === 'epoch') {
-        this.formData[key] = new Date(target.value).getTime() / 1000
-      } else if (fieldType === 'number') {
-        this.formData[key] = Number(target.value)
-      } else if (fieldType === 'array') {
-        this.formData[key] = target.value.split(',').map(item => item.trim())
-      } else {
-        this.formData[key] = target.value
-      }
-    },
-    toggleDetails() {
-      this.showDetails = !this.showDetails
-    },
-  },
-})
+});
 </script>
 
 <style scoped>

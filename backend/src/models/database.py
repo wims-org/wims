@@ -42,7 +42,7 @@ class Item(BaseModel):
     short_name: str
     amount: int | None = None
     item_type: str | None = None  # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
-    consumable: bool | None = None
+    consumable: bool = False
 
     # meta data
     created_at: str | datetime = Field(default_factory=datetime.now)
