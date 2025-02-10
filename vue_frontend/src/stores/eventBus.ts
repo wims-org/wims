@@ -1,7 +1,7 @@
 import mitt from 'mitt';
 
 type Events = {
-    scan: { tag_uuid: string };
+    scan: { rfid: string, reader_id: string };
     completion: { data: unknown };
   };
 

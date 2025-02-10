@@ -35,8 +35,10 @@ export default {
 
       // Handle scan event from event bus
       eventBus.on('scan', (data: Events['scan']) => {
+        const parsedData = JSON.parse(data.replace(/'/g, '"'));
+        console.log('Scan event:', data)
         if (client_store.expected_event_action === EventAction.REDIRECT) {
-          router.push('/item/' + data.tag_uuid);
+          router.push('/item/' + parsedData.rfid);
         }
       });
     })

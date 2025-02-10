@@ -13,6 +13,7 @@
                     <SearchComponent @select="handleSelect" />
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" @click="returnNone">Clear</button>
                     <button type="button" class="btn btn-secondary" @click="closeModal">Close</button>
                 </div>
             </div>
@@ -42,9 +43,14 @@ export default defineComponent({
     },
     methods: {
         listenToScanEvent() {
-            eventBus.on('scan', (event: Events["scan"]) => {
-                this.handleSelect(event.tag_uuid);
+            eventBus.on('scan', (data: Events["scan"]) => {
+                const parsedData = JSON.parse(data.replace(/'/g, '"'));
+                this.handleSelect(parsedData.rfid);
             });
+        },
+        returnNone() {
+            this.$emit('select', '');
+            this.closeModal();
         },
         closeModal() {
             this.$emit('close');
