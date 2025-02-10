@@ -44,8 +44,7 @@ export default defineComponent({
     methods: {
         listenToScanEvent() {
             eventBus.on('scan', (data: Events["scan"]) => {
-                const parsedData = JSON.parse(data.replace(/'/g, '"'));
-                this.handleSelect(parsedData.rfid);
+                this.handleSelect(data.rfid);
             });
         },
         returnNone() {

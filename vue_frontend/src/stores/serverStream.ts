@@ -31,7 +31,8 @@ export const serverStream = defineStore('ServerStream', {
 
       this.eventSource.addEventListener('SCAN', (event) => {
         console.log('scanned %s', event.data);
-        eventBus.emit('scan', event.data);
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'));
+        eventBus.emit('scan', parsedData);
       });
       this.eventSource.addEventListener('COMPLETION', (event) => {
         console.log('completion %s', event.data);
