@@ -26,6 +26,7 @@ sse-starlette = "^2.2.1"
 uvicorn = "^0.34.0"
 wtforms = "^3.2.1"
 jsonschema = "^4.23.0"
+pyyaml = "^6.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
