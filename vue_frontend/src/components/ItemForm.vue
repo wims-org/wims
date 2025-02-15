@@ -3,15 +3,16 @@
     <button @click="toggleDetails" class="btn btn-secondary mb-3">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
-    <h1 class="mb-4">Item Details</h1>
+    <h1 class="mb-4">{{ item.short_name }}</h1>
     <form v-if="item" @submit.prevent="handleSubmit">
       <div class="form-group" v-for="(field, key) in formFields" :key="key"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))">
         <label :for="String(key)">{{ field.label || key }}</label>
-        <input v-if="field.type !== 'textarea' && field.type !== 'object'" :type="field.type || 'text'"
-          :name="String(key)" :disabled="field.disabled ?? undefined" :value="getFieldModel(String(key), field.type)"
-          :required="field.required" @input="updateFieldModel($event, String(key), field.type)"
-          @click="handleInputClick(key)" class="form-control" :class="{ 'is-invalid': field.required && !item[key] }" />
+        <input v-if="field.type !== 'textarea' && field.type !== 'object' && field.type !== 'loading'"
+          :type="field.type || 'text'" :name="String(key)" :disabled="field.disabled ?? undefined"
+          :value="getFieldModel(String(key), field.type)" :required="field.required"
+          @input="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)" class="form-control"
+          :class="{ 'is-invalid': field.required && !item[key] }" />
         <div v-else-if="field.type === 'object'" class="card p-3">
           <div v-for="(subValue, subKey) in item[key]" :key="subKey" class="form-group"
             v-show="subValue !== null && subValue !== undefined">
@@ -21,6 +22,12 @@
               @input="updateFieldModel($event, `${key}.${subKey}`, typeof subValue)" class="form-control" />
           </div>
         </div>
+        <div v-else-if="field.type === 'loading'" class="card">
+          <div class="d-flex flex-column justify-content-center align-items-center" style="height: 100px;">
+            <div class="m-2 spinner-border text-primary" role="status"> </div>
+            <span>Container will be fetched after saving...</span>
+          </div>
+        </div>
         <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" :v-model="item[key]"
           class="form-control" :class="{ 'is-invalid': field.required && !item[key] }"></textarea>
       </div>
@@ -28,6 +35,12 @@
     </form>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
+    </div>
+    <div v-if="Array.isArray(item.errors) && item.errors.length" class="alert alert-danger mt-3">
+      <p>There were errors in the data model from the database:</p>
+      <ul>
+        <li v-for="(error, index) in item.errors" :key="index">{{ error }}</li>
+      </ul>
     </div>
     <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
   </div>
@@ -102,7 +115,7 @@ export default defineComponent({
       (newItem) => {
         formData.value = { ...newItem };
       },
-      { immediate: true }
+      { immediate: true, deep: true }
     );
 
     const showDetails = ref(false);
@@ -113,6 +126,7 @@ export default defineComponent({
 
     const handleSubmit = () => {
       emit('submit', formData.value);
+      formFields.container.type = 'object'; // After saving, the container will be fetched
     };
 
     const formatDate = (timestamp: number): string => {
@@ -153,6 +167,7 @@ export default defineComponent({
 
     const handleSelect = (tag: string) => {
       formData.value.container_tag_uuid = tag;
+      formFields.container.type = 'loading'; // show loading spinner
     };
 
     const closeModal = () => {

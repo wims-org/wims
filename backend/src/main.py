@@ -112,13 +112,15 @@ def read_root():
 async def put_item(request: Request):
     # update item
     item = await request.json()
-    item_data = ItemRequest.model_validate(item, strict=False, from_attributes=True)
-    item_data = Item.model_validate(item_data, strict=False, from_attributes=True)
+    item_data = ItemRequest.model_validate(
+        item, strict=False, from_attributes=True)
+    item_data = Item.model_validate(
+        item_data, strict=False, from_attributes=True)
     # item_data = item.model_dump(mode="json")
     updated_rows = app.state.backend_service.db.update(
         collection_name="items",
         # match by either tag_uuid or old container_tag_uuid, only for id migration
-        query={"$or": [{"tag_uuid": item_data.tag_uuid}, {"container_tag_uuid": item_data.tag_uuid}]},
+        query={"$or": [{"tag_uuid": item_data.tag_uuid}]},
         update_values=item_data.model_dump(mode="json", by_alias=True),
     )
     if updated_rows:
@@ -132,7 +134,8 @@ async def post_item(request: Request):
     # create item
     item = await request.json()
     item = {k: v for k, v in item.items() if v is not None}
-    item_data = ItemRequest.model_validate(item, strict=False, from_attributes=True)
+    item_data = ItemRequest.model_validate(
+        item, strict=False, from_attributes=True)
     item = Item.model_validate(item_data, strict=False, from_attributes=True)
     try:
         updated_rows = app.state.backend_service.db.create(
@@ -140,7 +143,8 @@ async def post_item(request: Request):
             document=item.model_dump(mode="json", by_alias=True),
         )
     except pymongo.errors.DuplicateKeyError as e:
-        raise HTTPException(status_code=400, detail="Item already exists") from e
+        raise HTTPException(
+            status_code=400, detail="Item already exists") from e
     if updated_rows:
         logger.debug(f"Item created: {item_data}, {updated_rows}")
         return {"message": "Item created successfully"}
@@ -162,13 +166,21 @@ async def delete_item(rfid: str):
 
 @app.get("/item/{rfid}")
 async def get_item(rfid: str):
-    item = app.state.backend_service.db.find_by_rfid(collection_name="items", rfid=rfid)
+    item = app.state.backend_service.db.find_by_rfid(
+        collection_name="items", rfid=rfid)
     if item:
         try:
             return Item.model_validate(item, strict=False, from_attributes=True)
         except ValidationError as e:
             logger.error(f"Error validating item: {item=}, {e}")
-            return HTTPException(status_code=500, detail="found, but error validating database content")
+            errors = [
+                f"{'.'.join(err.get('loc', []))} {err.get('type')}: {err.get('msg')}" for err in e.errors()]
+            valid_item = Item.model_construct(**item)
+            res = valid_item.model_dump(
+                exclude_unset=True, exclude_defaults=True, exclude_none=True)
+            res["errors"] = errors
+            return res
+
     else:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -204,7 +216,8 @@ async def get_items(query: str = None):
 async def patch_items():
     items = app.state.backend_service.db.read(collection_name="items")
     for item_data in items:
-        item = Item.model_validate(item_data, strict=False, from_attributes=True)
+        item = Item.model_validate(
+            item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
         _ = app.state.backend_service.db.update(
             collection_name="items",
@@ -222,7 +235,8 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
     photo = file
     query_params = dict(request.query_params)
     if "reader_id" not in query_params and "client_id" not in query_params:
-        raise HTTPException(status_code=400, detail="Missing reader_id or client_id")
+        raise HTTPException(
+            status_code=400, detail="Missing reader_id or client_id")
     sse_client = query_params.get("reader_id", query_params.get("client_id"))
 
     async def start_identification(start_time: float):
@@ -239,16 +253,19 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            app.state.backend_service.readers.setdefault(sse_client, []).append(sse_message)
+            app.state.backend_service.readers.setdefault(
+                sse_client, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
-                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() - start_time
+                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() -
+                start_time
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        app.state.backend_service.readers.setdefault(sse_client, []).append(sse_message)
+        app.state.backend_service.readers.setdefault(
+            sse_client, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}
@@ -272,14 +289,18 @@ async def identification(
         for image in images or []:
             encoded_image = base64.b64encode(await image.read()).decode("utf-8")
             encoded_images.append(encoded_image)
-        assert (query or images) and client_id, "(Query or Image) and client_id is required"
+        assert (
+            query or images) and client_id, "(Query or Image) and client_id is required"
     except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON in document") from None
+        raise HTTPException(
+            status_code=400, detail="Invalid JSON in document") from None
     except AssertionError:
-        raise HTTPException(status_code=400, detail="Query or Image is required") from None
+        raise HTTPException(
+            status_code=400, detail="Query or Image is required") from None
 
     async def start_identification(start_time: float):
-        chatgpt_response = app.state.backend_service.llm_completion.identify_object(query, encoded_images)
+        chatgpt_response = app.state.backend_service.llm_completion.identify_object(
+            query, encoded_images)
         if (
             not chatgpt_response
             or not chatgpt_response.choices
@@ -292,7 +313,8 @@ async def identification(
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            app.state.backend_service.readers.setdefault(client_id, []).append(sse_message)
+            app.state.backend_service.readers.setdefault(
+                client_id, []).append(sse_message)
             return
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
@@ -301,7 +323,8 @@ async def identification(
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        app.state.backend_service.readers.setdefault(client_id, []).append(sse_message)
+        app.state.backend_service.readers.setdefault(
+            client_id, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}
@@ -330,7 +353,8 @@ async def message_stream(request: Request, reader: str):
             # Checks for new messages and return them to client if any
             if new_messages():
                 message = app.state.backend_service.readers[reader].pop(0)
-                logger.debug(f"Sending message: {message}")
+                if message["event"] != Event.ALIVE.value:
+                    logger.debug(f"Sending message: {message}")
                 yield message
             await asyncio.sleep(MESSAGE_STREAM_DELAY)
 

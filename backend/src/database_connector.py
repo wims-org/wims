@@ -26,28 +26,27 @@ class MongoDBConnector:
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
         collection: Collection = self.db[collection_name]
-        res = collection.find_one({"tag_uuid": rfid})
-        return res
         # todo
-        logger.info(f"Found item with RFID {rfid}: {res}")
-        res = [
-            doc
-            for doc in collection.aggregate(
-                [
-                    {
-                        "$lookup": {
-                            "from": "items",
-                            "localField": "container_tag_uuid",
-                            "foreignField": "tag_uuid",
-                            "as": "container",
-                        }
-                    },
-                    {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
-                    {"$match": {"tag_uuid": rfid}},
-                ]
-            )
+        pipeline = [
+            {"$match": {"tag_uuid": rfid}},
+            {
+                "$addFields": {
+                    "container_tag_exists": {"$ne": ["$container_tag_uuid", None]},
+                    "container_tag_uuid_copy": "$container_tag_uuid",
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "items",
+                    "localField": "container_tag_uuid_copy",
+                    "foreignField": "tag_uuid",
+                    "as": "container",
+                }
+            },
+            {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
+            {"$project": {"_id": 0, "container._id": 0}},
         ]
-        return res.pop() if res else None
+        return next(collection.aggregate(pipeline), None)
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]

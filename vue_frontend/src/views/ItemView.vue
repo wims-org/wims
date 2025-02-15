@@ -29,7 +29,7 @@ const fetchItem = async () => {
 
 onMounted(fetchItem);
 
-watch(() => route.params.id, async (newId) => {
+watch(() => route.params.tag_uuid, async (newId) => {
   itemId.value = newId;
   await fetchItem();
 });
@@ -43,6 +43,7 @@ const handleFormSubmit = async (formData: Record<string, never>) => {
       await axios.put(`/item/${itemId.value}`, formData);
       alert('Item updated successfully');
     }
+    fetchItem();
   } catch (error) {
     console.error('Error submitting form:', error);
   }

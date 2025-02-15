@@ -41,7 +41,8 @@ class Item(BaseModel):
     # Mandatory Item Information
     short_name: str
     amount: int | None = None
-    item_type: str | None = None  # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
+    # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
+    item_type: str | None = None
     consumable: bool = False
 
     # meta data
@@ -91,4 +92,6 @@ class Item(BaseModel):
     def container_name(self) -> bool:
         if self.container is None:
             return None
-        return self.container.short_name or None
+        elif isinstance(self.container, Item):
+            return self.container.short_name or None
+        return self.container.get("short_name", None)

@@ -6,8 +6,7 @@ import uuid
 from pathlib import Path
 
 import openai
-from pydantic import BaseModel
-from wtforms import ValidationError
+import pydantic
 
 from database_connector import MongoDBConnector
 from models.database import Item
@@ -20,7 +19,7 @@ logger.setLevel(logging.DEBUG)
 
 
 MESSAGE_STREAM_DELAY = 1  # second
-MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # millisecondfrom utils import find
+MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # millisecond from utils import find
 
 
 class Event(enum.Enum):
@@ -29,13 +28,13 @@ class Event(enum.Enum):
     ALIVE = "ALIVE"
 
 
-class SseMessage(BaseModel):
+class SseMessage(pydantic.BaseModel):
     event: Event
     data: dict
     id: str = str(uuid.uuid4())
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
-    class SseMessageData(BaseModel):
+    class SseMessageData(pydantic.BaseModel):
         reader_id: str
         rfid: str = None  # Todo rename RFID to tag id
         data: dict = None
@@ -74,7 +73,7 @@ class BackendService:
         try:
             msg = ReaderMessage(**json.loads(message))
             self.readers.setdefault(msg.reader_id, [])
-        except (ValidationError, json.JSONDecodeError) as e:
+        except (pydantic.ValidationError, json.JSONDecodeError) as e:
             logger.error(f"Error parsing message: {e}, {message}")
             return
         data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
@@ -89,24 +88,28 @@ class BackendService:
             # Item not found
             self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
         else:
-            item = Item.model_validate(item_raw, strict=False, from_attributes=True)
-            self.mqtt_client_manager.publish(
-                self.item_data_topic + f"/{msg.reader_id}",
-                str(
-                    item.model_dump(
-                        mode="json",
-                        include={
-                            "tag_uuid",
-                            "short_name",
-                            "amount",
-                            "item_type",
-                            "borrowed",
-                            "container_tag_uuid",
-                            "container_name",
-                        },
-                    )
-                ),
-            )
+            try:
+                item = Item.model_validate(item_raw, strict=False, from_attributes=True)
+                self.mqtt_client_manager.publish(
+                    self.item_data_topic + f"/{msg.reader_id}",
+                    str(
+                        item.model_dump(
+                            mode="json",
+                            include={
+                                "tag_uuid",
+                                "short_name",
+                                "amount",
+                                "item_type",
+                                "borrowed",
+                                "container_tag_uuid",
+                                "container_name",
+                            },
+                        )
+                    ),
+                )
+            except pydantic.ValidationError as e:
+                logger.error(f"Error validating item: {e}")
+                self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
 
     def start_mqtt(self):
         self.mqtt_client_manager.connect()
