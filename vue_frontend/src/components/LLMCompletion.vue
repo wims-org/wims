@@ -11,7 +11,8 @@
         />
       </div>
       <div class="col-md-2 mb-3">
-        <input type="file" class="form-control-file" @change="uploadPhoto" />
+        <input ref="fileInput" type="file" class="form-control-file" @change="uploadPhoto" />
+        <button class="btn btn-secondary mt-2" @click="clearFileInput">Clear File</button>
       </div>
       <div class="col-md-2">
         <button class="btn btn-primary" @click="fetchIdentification(stringIdentInput)">
@@ -25,25 +26,17 @@
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
-
 import { ref } from 'vue'
 
 const stringIdentInput = ref("string-identification-input")
 const formData = new FormData()
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const fetchIdentification = async (query: string) => {
   try {
     const body = { query, client_id: clientStore().client_id }
-    //   const json = JSON.stringify(body)
-    //  const blob = new Blob([json], {
-    //   type: 'application/json',
-    // })
-
     formData.append('data', JSON.stringify(body))
-    //formData.append('query', query)
-    //formData.append('client_id', clientStore().client_id)
-    console.log(formData)
-    const response = await axios({ method: 'post', url: '/identification', data: formData })
+    const response = await axios({ method: 'post', url: '/completion/identification', data: formData })
     console.log({ ...response.data })
   } catch (error) {
     console.error('Error posting ident data:', error)
@@ -51,17 +44,23 @@ const fetchIdentification = async (query: string) => {
 }
 
 const uploadPhoto = async (event: Event) => {
-  const fileInput = event.target as HTMLInputElement
+  const input = event.target as HTMLInputElement
   const maxSize = 5 * 1024 * 1024 // 5MB in bytes
-  if (fileInput.files && fileInput.files.length > 0) {
-    for (const file of fileInput.files) {
+  if (input.files && input.files.length > 0) {
+    for (const file of input.files) {
       if (file.size > maxSize) {
         alert('File size exceeds 5MB limit.')
         return
       }
-
       formData.append('images', file)
     }
+  }
+}
+
+const clearFileInput = () => {
+  if (fileInput.value) {
+    fileInput.value.value = ''
+    formData.delete('images')
   }
 }
 </script>

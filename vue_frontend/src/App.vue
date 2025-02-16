@@ -37,7 +37,7 @@ export default {
       eventBus.on('scan', (data: Events['scan']) => {
         console.log('Scan event:', data)
         if (client_store.expected_event_action === EventAction.REDIRECT) {
-          router.push('/item/' + data.rfid);
+          router.push('/items/' + data.rfid);
         }
       });
     })

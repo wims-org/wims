@@ -13,7 +13,7 @@ const newItem = ref(false);
 
 const fetchItem = async () => {
   try {
-    const response = await axios.get(`/item/${itemId.value}`);
+    const response = await axios.get(`/items/${itemId.value}`);
     item.value = response.data;
     newItem.value = false;
   } catch (error) {
@@ -37,10 +37,10 @@ watch(() => route.params.tag_uuid, async (newId) => {
 const handleFormSubmit = async (formData: Record<string, never>) => {
   try {
     if (newItem.value) {
-      await axios.post('/item', formData);
+      await axios.post('/items', formData);
       alert('Item created successfully');
     } else {
-      await axios.put(`/item/${itemId.value}`, formData);
+      await axios.put(`/items/${itemId.value}`, formData);
       alert('Item updated successfully');
     }
     fetchItem();

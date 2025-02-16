@@ -62,7 +62,7 @@ sequenceDiagram
     Backend->>MQTT: Send Item Details
     MQTT->>Reader: Display Item Details
     Backend->>Frontend: Send Server Stream Event with Scan Event
-    Frontend->>Backend: Request /item/{rfid}
+    Frontend->>Backend: Request /items/{rfid}
     Backend->>DB: Query Item Details by Tag
     DB-->>Backend: Return Item Details
     Backend-->>Frontend: Response
