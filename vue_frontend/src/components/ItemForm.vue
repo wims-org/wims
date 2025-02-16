@@ -3,6 +3,7 @@
     <button @click="toggleDetails" class="btn btn-secondary mb-3">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
     <h1 class="mb-4">{{ item.short_name }}</h1>
     <form v-if="item" @submit.prevent="handleSubmit">
       <div class="form-group" v-for="(field, key) in formFields" :key="key"
