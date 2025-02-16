@@ -1,5 +1,74 @@
 # Where Is My Stuff
 
+You might know your stuff, but do you know mine?
+
+_Where Is My Stuff_ is a makerspace-inventory-tool, meant to be used by a lot of people with no clue what is available and where.
+
+## Architecture
+
+```mermaid
+graph TD
+    subgraph Docker
+        subgraph Frontend
+            A[Vue Frontend]
+        end
+
+        subgraph Backend
+            B[FastAPI Backend]
+        end
+
+        subgraph Database
+            C[MongoDB]
+        end
+
+        subgraph MQTT
+            D[MQTT Broker]
+        end
+    end
+
+
+    subgraph Reader
+        E[MQTT Client]
+
+    end
+
+
+    A --> |HTTP| B
+    B --> |MongoDB| C
+    B <--> |MQTT| D
+    E <--> |MQTT| D
+    B --> |Server Stream| A
+```
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Reader as Reader Device
+    participant MQTT as MQTT Broker
+    participant Backend as FastAPI Backend
+    participant DB as MongoDB
+    participant Frontend as Vue Frontend
+
+    Reader-->>Frontend: QR Code Scan   
+    Frontend->>Backend: Request SSE /stream/{client-id}
+    Backend-->>Frontend: Server Stream
+    Frontend->>Backend: Request Reader SSE /stream/{reader-id}
+    Backend-->>Frontend: Server Stream    
+    Reader->>MQTT: Scan Tag and Send Data
+    MQTT->>Backend: Forward Tag Data
+    Backend->>DB: Query Item Details by Tag
+    DB-->>Backend: Return Item Details
+    Backend->>MQTT: Send Item Details
+    MQTT->>Reader: Display Item Details
+    Backend->>Frontend: Send Server Stream Event with Scan Event
+    Frontend->>Backend: Request /item/{rfid}
+    Backend->>DB: Query Item Details by Tag
+    DB-->>Backend: Return Item Details
+    Backend-->>Frontend: Response
+    Frontend->>Frontend: Update UI with Item Details
+```
+
 ## Set up
 1. Copy backend config
 

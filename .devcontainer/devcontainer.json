@@ -41,7 +41,8 @@
         "esbenp.prettier-vscode",
         "charliermarsh.ruff",
         "yzhang.markdown-all-in-one",
-        "be5invis.toml"
+        "be5invis.toml",
+        "bierner.markdown-mermaid"
       ]
     }
   },
