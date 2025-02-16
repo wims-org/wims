@@ -10,8 +10,8 @@ from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
 from dependencies.backend_service import BackendService, Event, SseMessage
 
-router = APIRouter(
-    prefix="/completion", tags=["completion"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/completion",
+                   tags=["completion"], responses={404: {"description": "Not found"}})
 
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
@@ -22,6 +22,7 @@ def get_bs(request: Request) -> BackendService:
 
 
 # Database Proxy
+
 
 @router.post("/object-identification")
 async def identify_item(request: Request, file: Annotated[bytes, File()]):
@@ -57,8 +58,7 @@ async def identify_item(request: Request, file: Annotated[bytes, File()]):
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        get_bs(request).readers.setdefault(
-            sse_client, []).append(sse_message)
+        get_bs(request).readers.setdefault(sse_client, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}
@@ -92,9 +92,9 @@ async def identification(
         raise HTTPException(
             status_code=400, detail="Query or Image is required") from None
 
-    async def start_identification( start_time: float):
-        chatgpt_response = get_bs(request).llm_completion.identify_object(
-            query, encoded_images)
+    async def start_identification(start_time: float):
+        chatgpt_response = get_bs(
+            request).llm_completion.identify_object(query, encoded_images)
         if (
             not chatgpt_response
             or not chatgpt_response.choices
@@ -113,13 +113,16 @@ async def identification(
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
-                reader_id=client_id, rfid=chatgpt_response, duration=time.time() - start_time
+                reader_id=client_id,
+                data={
+                    "response": json.loads(chatgpt_response.choices[0].message.content),
+                    "tokens": chatgpt_response.usage.total_tokens,
+                    "duration": time.time() - start_time,
+                },
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        get_bs(request).readers.setdefault(
-            client_id, []).append(sse_message)
+        get_bs(request).readers.setdefault(client_id, []).append(sse_message)
 
     asyncio.create_task(start_identification(time.time()))
     return {"message": "Identification process started"}
-

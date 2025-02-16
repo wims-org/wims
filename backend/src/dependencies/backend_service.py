@@ -36,8 +36,8 @@ class SseMessage(pydantic.BaseModel):
 
     class SseMessageData(pydantic.BaseModel):
         reader_id: str
-        rfid: str = None  # Todo rename RFID to tag id
-        data: dict = None
+        rfid: str | None = None  # Todo rename RFID to tag id
+        data: dict | None = None
 
 
 class BackendService:
@@ -50,7 +50,8 @@ class BackendService:
         self.mqtt_client_manager = MQTTClientManager(
             callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
-        self.readers: dict[str, list[dict]] = {}  # todo refactor to clients or sth
+        # todo refactor to clients or sth
+        self.readers: dict[str, list[dict]] = {}
 
         # Read the schema from the file
         with open(Path(__file__).parent.parent.parent / "schemas" / "llm_schema.json") as schema_file:
