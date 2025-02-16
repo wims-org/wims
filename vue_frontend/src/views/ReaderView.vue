@@ -85,7 +85,7 @@ export default defineComponent({
 
     const submitReader = async (): Promise<void> => {
       try {
-        await axios.post('/readers', Object(newReader.value))
+        await axios.post('/readers/', Object(newReader.value))
         fetchReaders()
       } catch (error) {
         console.error('Error submitting reader:', error)

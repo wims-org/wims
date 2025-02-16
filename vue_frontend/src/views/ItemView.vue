@@ -19,7 +19,7 @@ const fetchItem = async () => {
   } catch (error) {
     if (axios.isAxiosError(error) && error.response && error.response.status === 404) {
       newItem.value = true;
-      item.value = {};
+      item.value = {tag_uuid: itemId.value};
       console.warn('Item not found, display empty item form');
     } else {
       console.error('Error fetching item:', error);
@@ -37,7 +37,7 @@ watch(() => route.params.tag_uuid, async (newId) => {
 const handleFormSubmit = async (formData: Record<string, never>) => {
   try {
     if (newItem.value) {
-      await axios.post('/items', formData);
+      await axios.post('/items/', formData);
       alert('Item created successfully');
     } else {
       await axios.put(`/items/${itemId.value}`, formData);
