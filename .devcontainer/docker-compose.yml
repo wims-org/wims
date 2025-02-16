@@ -18,6 +18,7 @@ services:
       dev-network:
         ipv4_address: 172.20.128.3
   db:
+    container_name: mongo
     networks:
       dev-network:
         ipv4_address: 172.20.128.4
@@ -53,6 +54,9 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=example
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    networks:
+      dev-network:
+        ipv4_address: 172.20.128.6
 
 networks:
   dev-network:
