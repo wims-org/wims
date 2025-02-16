@@ -16,3 +16,7 @@ RUN sudo usermod -aG docker $(whoami)
 COPY ./vue_frontend /workspace/vue_frontend
 WORKDIR /workspace/vue_frontend
 RUN npm install
+WORKDIR /workspace
+COPY ./backend/pyproject.toml ./backend/poetry.lock /workspace/backend/
+WORKDIR /workspace/backend
+RUN poetry install
