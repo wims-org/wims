@@ -32,6 +32,8 @@ services:
       - ./.devcontainer/mqtt/mosquitto-data:/mosquitto/data
       - ./.devcontainer/mqtt/mosquitto-log:/mosquitto/log
       - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
+    ports:
+      - 1883:1883
     networks:
       dev-network:
         ipv4_address: 172.20.128.5
