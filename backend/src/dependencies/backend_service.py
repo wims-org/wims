@@ -29,15 +29,15 @@ class Event(enum.Enum):
 
 
 class SseMessage(pydantic.BaseModel):
-    event: Event
-    data: dict
-    id: str = str(uuid.uuid4())
-    retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
     class SseMessageData(pydantic.BaseModel):
         reader_id: str
         rfid: str | None = None  # Todo rename RFID to tag id
         data: dict | None = None
+    event: Event
+    data: SseMessageData | dict
+    id: str = str(uuid.uuid4())
+    retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
 
 class BackendService:
@@ -48,7 +48,8 @@ class BackendService:
             database=db_config.get("database", "inventory"),
         )
         self.mqtt_client_manager = MQTTClientManager(
-            callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
+            callback=self.handle_message, mqtt_config=mqtt_config.get(
+                "broker", {})
         )
         # todo refactor to clients or sth
         self.readers: dict[str, list[dict]] = {}
@@ -80,17 +81,20 @@ class BackendService:
         data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
             mode="json", exclude_none=True
         )
-        self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.SCAN).model_dump(mode="json"))
+        self.readers[msg.reader_id].append(SseMessage(
+            data=data, event=Event.SCAN).model_dump(mode="json"))
 
         # Send db data to reader
         # todo don't fetch data from db twice
         item_raw = self.db.find_by_rfid("items", msg.tag_id)
         if item_raw is None:
             # Item not found
-            self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
+            self.mqtt_client_manager.publish(
+                self.item_data_topic + f"/{msg.reader_id}", "null")
         else:
             try:
-                item = Item.model_validate(item_raw, strict=False, from_attributes=True)
+                item = Item.model_validate(
+                    item_raw, strict=False, from_attributes=True)
                 self.mqtt_client_manager.publish(
                     self.item_data_topic + f"/{msg.reader_id}",
                     str(
@@ -110,7 +114,8 @@ class BackendService:
                 )
             except pydantic.ValidationError as e:
                 logger.error(f"Error validating item: {e}")
-                self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
+                self.mqtt_client_manager.publish(
+                    self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
 
     def start_mqtt(self):
         self.mqtt_client_manager.connect()

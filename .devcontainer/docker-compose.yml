@@ -10,10 +10,14 @@ services:
     privileged: true
   
   frontend:
+    deploy:
+      replicas: 0
     networks:
       dev-network:
         ipv4_address: 172.20.128.2
   backend:
+    deploy:
+      replicas: 0
     networks:
       dev-network:
         ipv4_address: 172.20.128.3

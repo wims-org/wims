@@ -1,11 +1,13 @@
 <template>
   <div class="container mt-5" ref="itemForm">
-    <button @click="toggleDetails" class="btn btn-secondary mb-3">
-      {{ showDetails ? 'Hide Details' : 'Show Details' }}
-    </button>
-    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+    <div class="row mb-3">
+      <button @click="toggleDetails" class="btn btn-secondary mt-3 mr-auto">
+        {{ showDetails ? 'Hide Details' : 'Show Details' }}
+      </button>
+      <button @click="handleSubmit" class="btn btn-primary mt-3">Submit</button>
+    </div>
     <h1 class="mb-4">{{ item.short_name }}</h1>
-    <form v-if="item" @submit.prevent="handleSubmit">
+    <form v-if="item && formData" @submit.prevent="handleSubmit">
       <div class="form-group" v-for="(field, key) in formFields" :key="key"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))">
         <label :for="String(key)">{{ field.label || key }}</label>
@@ -49,47 +51,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
-import type FormField from '@/interfaces/FormField.interface';
+import { formFields } from '@/interfaces/FormField.interface';
 import SearchModal from './SearchModal.vue';
 import { EventAction } from '@/interfaces/EventAction';
 import { clientStore as useClientStore } from '@/stores/clientStore';
-
-const formFields: Record<string, FormField> = {
-  tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
-  short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
-  description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: true, required: false },
-  amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
-  item_type: { label: 'Item Type', type: 'text', disabled: false, hidden: false, details: false, required: true },
-  consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: false },
-  created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false, required: false },
-  created_by: { label: 'Created By', type: 'text', disabled: true, hidden: false, details: false, required: false },
-  changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false, required: false },
-  ai_generated: { label: 'AI Generated', type: 'array', disabled: true, hidden: true, details: false, required: false },
-  min_amount: { label: 'Minimum Amount', type: 'number', disabled: false, hidden: false, details: false, required: false },
-  tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: true },
-  images: { label: 'Images', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false, required: false },
-  acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
-  cost_used: { label: 'Cost Used', type: 'number', disabled: false, hidden: false, details: false, required: false },
-  manufacturer: { label: 'Manufacturer', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  model_number: { label: 'Model Number', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  manufacturing_date: { label: 'Manufacturing Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
-  upc: { label: 'UPC', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  asin: { label: 'ASIN', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  serial_number: { label: 'Serial Number', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  vendors: { label: 'Vendors', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  shop_url: { label: 'Shop URL', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  size: { label: 'Size', type: 'object', disabled: false, hidden: false, details: false, required: false },
-  documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  container_tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  container: { label: 'Container', type: 'object', disabled: true, hidden: false, details: false, required: false },
-  current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  borrowed_by: { label: 'Borrowed By', type: 'text', disabled: false, hidden: false, details: false, required: false },
-  borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
-  borrowed_until: { label: 'Borrowed Until', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
-  owner: { label: 'Owner', type: 'text', disabled: false, hidden: false, details: false, required: false },
-}
+// import { getFieldModel, updateFieldModel } from '@/utils';
 
 export default defineComponent({
   name: 'ItemForm',
@@ -107,7 +73,7 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const formData = ref({ ...props.item });
+    const formData = ref<{ [x: string]: unknown; }>({ ...props.item }); // form data is the live data in the form
     const showModal = ref(false);
     const clientStore = useClientStore();
 

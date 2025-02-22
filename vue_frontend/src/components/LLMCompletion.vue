@@ -1,23 +1,13 @@
 <template>
   <div class="container">
-    <div class="row mt-3 border p-3">
-      <h3 class="col-md-8 mb-3">Object Identification</h3>
-      <div class="col-md-8 mb-3">
-        <input
-          ref="string-identification-input"
-          type="text"
-          class="form-control string-ident-input"
-          placeholder="Add Item by Description or Name..."
-        />
-      </div>
-      <div class="col-md-2 mb-3">
-        <input ref="fileInput" type="file" class="form-control-file" @change="uploadPhoto" />
-        <button class="btn btn-secondary mt-2" @click="clearFileInput">Clear File</button>
-      </div>
-      <div class="col-md-2">
-        <button class="btn btn-primary" @click="fetchIdentification(stringIdentInput)">
-          Start Identification
-        </button>
+    <div class="col border p-3">
+      <h3 class="row p-2">Object Identification</h3>
+      <div class="row p-2 justify-content-between align-items-center">
+        <input type="text" class="form-control" v-model="stringInput" placeholder="Add Item by Description or Name..." />
+        <input ref="fileInput" type="file" class="form-control-file d-none" @change="uploadPhoto" />
+        <button class="btn btn-secondary" @click="() => fileInput.click()">Upload Photo</button>
+        <button class="btn btn-secondary" @click="clearFileInput">Clear File</button>
+        <button class="btn btn-primary " @click="fetchIdentification()">Start Identification</button>
       </div>
     </div>
   </div>
@@ -26,18 +16,20 @@
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 
-const stringIdentInput = ref("string-identification-input")
+const $emit = defineEmits(['completion'])
+const stringInput = ref('')
 const formData = new FormData()
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const fetchIdentification = async (query: string) => {
+const fetchIdentification = async () => {
   try {
-    const body = { query, client_id: clientStore().client_id }
-    formData.append('data', JSON.stringify(body))
+    const body = { query: stringInput.value, client_id: clientStore().client_id }
+    formData.set('data', JSON.stringify(body))
     const response = await axios({ method: 'post', url: '/completion/identification', data: formData })
     console.log({ ...response.data })
+//    $emit('completion', response.data)
   } catch (error) {
     console.error('Error posting ident data:', error)
   }

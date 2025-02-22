@@ -42,7 +42,8 @@
         "charliermarsh.ruff",
         "yzhang.markdown-all-in-one",
         "be5invis.toml",
-        "bierner.markdown-mermaid"
+        "bierner.markdown-mermaid",
+        "zeshuaro.vscode-python-poetry"
       ]
     }
   },

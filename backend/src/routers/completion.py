@@ -7,6 +7,7 @@ from typing import Annotated
 
 import pydantic
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi.datastructures import FormData
 
 from dependencies.backend_service import BackendService, Event, SseMessage
 
@@ -21,49 +22,6 @@ def get_bs(request: Request) -> BackendService:
     return request.app.state.backend_service
 
 
-# Database Proxy
-
-
-@router.post("/object-identification")
-async def identify_item(request: Request, file: Annotated[bytes, File()]):
-    photo = file
-    query_params = dict(request.query_params)
-    if "reader_id" not in query_params and "client_id" not in query_params:
-        raise HTTPException(
-            status_code=400, detail="Missing reader_id or client_id")
-    sse_client = query_params.get("reader_id", query_params.get("client_id"))
-
-    async def start_identification(start_time: float):
-        chatgpt_response = await get_bs(request).llm_completion.identify_object(photo)
-        if (
-            not chatgpt_response
-            or not chatgpt_response.choices
-            or not chatgpt_response.choices[0].message
-            or not chatgpt_response.choices[0].message.content
-        ):
-            sse_message = SseMessage(
-                data=SseMessage.SseMessageData(
-                    reader_id=sse_client, rfid="", duration=time.time.now() - start_time
-                ).model_dump(mode="json"),
-                event=Event.ERROR,
-            ).model_dump(mode="json")
-            get_bs(request).readers.setdefault(
-                sse_client, []).append(sse_message)
-            return
-        logger.debug(f"ChatGPT response: {chatgpt_response}")
-        sse_message = SseMessage(
-            data=SseMessage.SseMessageData(
-                reader_id=sse_client, rfid=chatgpt_response, duration=time.time.now() -
-                start_time
-            ).model_dump(mode="json"),
-            event=Event.COMPLETION,
-        ).model_dump(mode="json")
-        get_bs(request).readers.setdefault(sse_client, []).append(sse_message)
-
-    asyncio.create_task(start_identification(time.time()))
-    return {"message": "Identification process started"}
-
-
 class IdentificationRequest(pydantic.BaseModel):
     data: pydantic.Json | None = None
     images: list[UploadFile] = None
@@ -71,14 +29,16 @@ class IdentificationRequest(pydantic.BaseModel):
 
 @router.post("/identification")
 async def identification(
-    # identificationRequest: IdentificationRequest):
     request: Request,
-    data: pydantic.Json = Form(...),
-    images: list[UploadFile] = File(...),
+    # identificationRequest: IdentificationRequest
+    # data: Annotated[FormData, Form()],
+    images: list[UploadFile] | None = File(None),
 ):
     try:
-        query = data.get("query", None)
+        data = json.loads(dict(request._form.items()).get("data"))
+        query = data.get("query")
         client_id = data.get("client_id", [])
+        logger.info(data)
         encoded_images = []
         for image in images or []:
             encoded_image = base64.b64encode(await image.read()).decode("utf-8")
@@ -93,8 +53,19 @@ async def identification(
             status_code=400, detail="Query or Image is required") from None
 
     async def start_identification(start_time: float):
-        chatgpt_response = get_bs(
-            request).llm_completion.identify_object(query, encoded_images)
+        # chatgpt_response = get_bs(            request).llm_completion.identify_object(query, encoded_images)
+        chatgpt_response = {'response': {'upc': None, 'asin': None, 'tags': ['sensor', 'humidity', 'temperature', 'DHT'], 'vendors': ['Adafruit', 'SparkFun', 'Amazon'], 'cost_new': 10.0, 'shop_url': ['https://www.adafruit.com/product/393', 'https://www.sparkfun.com/products/10167', 'https://www.amazon.com/dp/B07D3FQZ3D'], 'cost_used': 5.0, 'item_type': 'sensor',
+                                         'consumable': False, 'short_name': 'DHT22 Sensor', 'description': 'DHT22 (AM2302) is a digital temperature and humidity sensor.', 'manufacturer': 'AOSONG', 'model_number': 'AM2302', 'documentation': ['https://www.adafruit.com/product/393', 'https://learn.adafruit.com/dht/overview'], 'serial_number': None}, 'tokens': 1452, 'duration': 7.048832893371582}
+        sse_message = SseMessage(
+            data=SseMessage.SseMessageData(
+                reader_id=client_id,
+                data= chatgpt_response,
+            ),
+            event=Event.COMPLETION,
+        ).model_dump(mode="json", exclude_none=True)
+        get_bs(request).readers.setdefault(client_id, []).append(sse_message)
+        return
+
         if (
             not chatgpt_response
             or not chatgpt_response.choices

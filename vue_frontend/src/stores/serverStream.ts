@@ -36,7 +36,8 @@ export const serverStream = defineStore('ServerStream', {
       });
       this.eventSource.addEventListener('COMPLETION', (event) => {
         console.log('completion %s', event.data);
-        eventBus.emit('completion', event.data);
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'));
+        eventBus.emit('completion', parsedData);
       });
       this.eventSource.addEventListener('ALIVE', () => {
         console.log('alive');
