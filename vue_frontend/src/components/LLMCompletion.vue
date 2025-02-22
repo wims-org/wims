@@ -5,7 +5,7 @@
       <div class="row p-2 justify-content-between align-items-center">
         <input type="text" class="form-control" v-model="stringInput" placeholder="Add Item by Description or Name..." />
         <input ref="fileInput" type="file" class="form-control-file d-none" @change="uploadPhoto" />
-        <button class="btn btn-secondary" @click="() => fileInput.click()">Upload Photo</button>
+        <button class="btn btn-secondary" @click="() => fileInput?.click()">Upload Photo</button>
         <button class="btn btn-secondary" @click="clearFileInput">Clear File</button>
         <button class="btn btn-primary " @click="fetchIdentification()">Start Identification</button>
       </div>
