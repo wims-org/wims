@@ -20,7 +20,10 @@
                 "--reload"
             ],
             "jinja": true,
-            "consoleTitle": "Python: FastAPI"
+            "consoleTitle": "Python: FastAPI",
+            "env": {
+                "LLM_ENVIRONMENT": "development"
+            }
         },
         {
             "name": "Vue: npm run dev",

@@ -1,8 +1,13 @@
 <template>
   <main>
     <LLMCompletion />
-    <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
-      @submit="handleFormSubmit" />
+    <ItemCompare
+      v-if="isComparing"
+      :item_org="item"
+      :item_new="completion"
+      :newItem="newItem"
+      @submit="handleFormSubmit"
+    />
     <ItemForm v-else :item="item" :newItem="newItem" @submit="handleFormSubmit" />
   </main>
 </template>
@@ -22,12 +27,12 @@ const itemId = ref(route.params.tag_uuid);
 const item = ref({});
 const newItem = ref(false);
 const isComparing = ref(false); // New state variable for edit mode
-const completion = ref({}); // Variable to store the result from LLMCompletion
+const completion = ref({}); // Variable to store the
 
-eventBus.on('completion', (data: Events["completion"]) => {
+eventBus.on('completion', (data: Events.completion) => {
   if (data) {
     handleCompletion(data);
-}
+  }
 });
 
 const fetchItem = async () => {
@@ -49,14 +54,15 @@ const fetchItem = async () => {
 
 onMounted(fetchItem);
 
-watch(() => route.params.tag_uuid, async (newId) => {
-  if (itemId.value != newId) {
-    itemId.value = newId;
-    await fetchItem();
-  }
-});
+watch(() => route.params.tag_uuid,async (newId) => {
+    if (itemId.value != newId) {
+      itemId.value = newId;
+      await fetchItem();
+    }
+  },
+);
 
-const handleFormSubmit = async (formData: Record<string, never>) => {
+const handleFormSubmit = async (formData: Record<string, unknown>) => {
   try {
     isComparing.value = false;
     if (newItem.value) {
@@ -72,13 +78,12 @@ const handleFormSubmit = async (formData: Record<string, never>) => {
   }
 };
 
-const handleCompletion = (result: {data:{response:object}}) => {
-  if (result && result["data"] && result["data"]["response"]) {
-
-    completion.value = result["data"]["response"]
-    isComparing.value = true
+const handleCompletion = (result: { data: { response: object } }) => {
+  if (result && result.data && result.data.response) {
+    completion.value = result.data.response;
+    isComparing.value = true;
   } else {
-    isComparing.value = false
+    isComparing.value = false;
   }
-}
+};
 </script>

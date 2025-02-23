@@ -1,7 +1,7 @@
 <script lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { onMounted, watch } from 'vue'
-import HelloWorld from './components/HelloWorld.vue'
+import TitleComponent from './components/TitleComponent.vue'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
 import { serverStream } from './stores/serverStream'
@@ -16,7 +16,7 @@ import { setReaderId } from './utils'
 export default {
   name: 'App',
   components: {
-    HelloWorld,
+    TitleComponent,
   },
   setup() {
     const client_store = clientStore()
@@ -57,7 +57,7 @@ export default {
   <div class="col-12">
     <header>
       <div class="wrapper">
-        <HelloWorld msg="WIMS?" />
+        <TitleComponent msg="WIMS?" />
 
         <nav>
           <RouterLink to="/">Home</RouterLink>

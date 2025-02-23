@@ -16,9 +16,8 @@
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 
-const $emit = defineEmits(['completion'])
 const stringInput = ref('')
 const formData = new FormData()
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -29,7 +28,6 @@ const fetchIdentification = async () => {
     formData.set('data', JSON.stringify(body))
     const response = await axios({ method: 'post', url: '/completion/identification', data: formData })
     console.log({ ...response.data })
-//    $emit('completion', response.data)
   } catch (error) {
     console.error('Error posting ident data:', error)
   }

@@ -27,62 +27,18 @@
             }"
             v-show="!field.hidden"
           >
-            <!-- && (!field.details || (showDetails && field.details))"> // dont exclude details with changes-->
             <td>
-              <label>{{ field.label || key }}</label>
-              <input
-                v-if="
-                  field.type !== 'textarea' && field.type !== 'object' && field.type !== 'loading'
-                "
-                :type="field.type || 'text'"
+              <component
+                :is="getFieldComponent(field.type)"
                 :name="String(key)"
+                :label="field.label || key"
+                :value="formData_org[key]"
                 :disabled="field.disabled ?? undefined"
-                :value="getFieldModel(formData_org, String(key), field.type)"
                 :required="field.required"
-                @input="updateFieldModel(formData_org, $event, String(key), field.type)"
+                @update:value="updateFieldModel($event, String(key), field.type)"
                 @click="handleInputClick(key)"
-                class="form-control"
                 :class="{ 'is-invalid': field.required && !item_org[key] }"
               />
-              <div v-else-if="field.type === 'object'" class="card p-3">
-                <div
-                  v-for="(subValue, subKey) in item_org[key]"
-                  :key="subKey"
-                  class="form-group"
-                  v-show="subValue !== null && subValue !== undefined"
-                >
-                  <label :for="`${key}-${subKey}`">{{ subKey }}</label>
-                  <input
-                    :type="typeof subValue === 'number' ? 'number' : 'text'"
-                    :name="`${key}-${subKey}`"
-                    :value="subValue"
-                    :disabled="field.disabled ?? undefined"
-                    @input="
-                      updateFieldModel(formData_org, $event, `${key}.${subKey}`, typeof subValue)
-                    "
-                    class="form-control"
-                  />
-                </div>
-              </div>
-              <div v-else-if="field.type === 'loading'" class="card">
-                <div
-                  class="d-flex flex-column justify-content-center align-items-center"
-                  style="height: 100px"
-                >
-                  <div class="m-2 spinner-border text-primary" role="status">
-                    <font-awesome-icon icon="spinner" spin />
-                  </div>
-                  <span>Container will be fetched after saving...</span>
-                </div>
-              </div>
-              <textarea
-                v-else
-                :name="String(key)"
-                :disabled="field.disabled ?? undefined"
-                :v-model="item_org[key]"
-                class="form-control"
-                :class="{ 'is-invalid': field.required && !item_org[key] }"
-              ></textarea>
             </td>
             <td class="text-center">
               <button
@@ -104,6 +60,13 @@
                   icon="arrow-left"
                 />
                 <font-awesome-icon v-else icon="equals" />
+              </button>
+              <button
+                type="button"
+                @click="copyToClipboard(formData_new[key])"
+                class="btn btn-secondary mt-3"
+              >
+                <font-awesome-icon icon="clipboard" />
               </button>
             </td>
             <td>{{ getFieldModel(formData_new, String(key), field.type) }}</td>
@@ -134,12 +97,28 @@ import { formFields } from '@/interfaces/FormField.interface'
 import SearchModal from './SearchModal.vue'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
-import { getFieldModel, updateFieldModel } from '@/utils'
+import { getFieldModel } from '@/utils'
+import TextField from '@/components/fields/TextField.vue'
+import TextAreaField from '@/components/fields/TextAreaField.vue'
+import ObjectField from '@/components/fields/ObjectField.vue'
+import LoadingField from '@/components/fields/LoadingField.vue'
+import CheckboxField from '@/components/fields/CheckboxField.vue'
+import ArrayField from '@/components/fields/ArrayField.vue'
+import ModalField from '@/components/fields/ModalField.vue'
+import NumberField from '@/components/fields/NumberField.vue'
 
 export default defineComponent({
   name: 'ItemComparison',
   components: {
     SearchModal,
+    TextField,
+    TextAreaField,
+    ObjectField,
+    LoadingField,
+    CheckboxField,
+    ArrayField,
+    ModalField,
+    NumberField,
   },
   props: {
     item_org: {
@@ -161,8 +140,6 @@ export default defineComponent({
     const showModal = ref(false)
     const clientStore = useClientStore()
 
-    console.log(formData_org)
-    console.log(props)
     watch(
       () => props.item_org,
       (item_org) => {
@@ -213,6 +190,45 @@ export default defineComponent({
       }
     }
 
+    const getFieldComponent = (type: string) => {
+      switch (type) {
+        case 'textarea':
+          return 'TextAreaField'
+        case 'object':
+          return 'ObjectField'
+        case 'loading':
+          return 'LoadingField'
+        case 'checkbox':
+          return 'CheckboxField'
+        case 'array':
+          return 'ArrayField'
+        case 'uuid':
+          return 'ModalField'
+        case 'number':
+          return 'NumberField'
+        default:
+          return 'TextField'
+      }
+    }
+
+    const updateFieldModel = (value: unknown, key: string, type: string) => {
+      console.log('updateFieldModel', value, key, type)
+      if (type === 'checkbox') {
+        formData_org.value[key] = Boolean(value)
+      } else if (type === 'epoch') {
+        formData_org.value[key] = new Date(value as string).getTime() / 1000
+      } else if (type === 'number') {
+        formData_org.value[key] = Number(value)
+      } else if (type === 'array') {
+        formData_org.value[key] = (value as string).split(',|;').map((item) => item.trim())
+      } else {
+        // text uuid object
+        formData_org.value[key] = value
+      }
+    }
+    const copyToClipboard = (value: string) => {
+      navigator.clipboard.writeText(value)
+    }
     return {
       formData_org,
       formData_new,
@@ -220,6 +236,7 @@ export default defineComponent({
       showDetails,
       toggleDetails,
       handleSubmit,
+      getFieldComponent,
       getFieldModel,
       updateFieldModel,
       showModal,
@@ -227,6 +244,7 @@ export default defineComponent({
       handleSelect,
       closeModal,
       applyNewValuesToOrg,
+      copyToClipboard,
     }
   },
 })

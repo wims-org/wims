@@ -61,8 +61,9 @@ import axios from 'axios'
 import { ref, onMounted, defineComponent } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import type Reader from '@/interfaces/reader.interface'
-const clientStoreInstance = clientStore()
 import { useRouter } from 'vue-router'
+
+const clientStoreInstance = clientStore()
 
 export default defineComponent({
   name: 'ReaderView',

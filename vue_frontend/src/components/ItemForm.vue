@@ -8,32 +8,18 @@
     </div>
     <h1 class="mb-4">{{ item.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit">
-      <div class="form-group" v-for="(field, key) in formFields" :key="key"
-        v-show="!field.hidden && (!field.details || (showDetails && field.details))">
-        <label :for="String(key)">{{ field.label || key }}</label>
-        <input v-if="field.type !== 'textarea' && field.type !== 'object' && field.type !== 'loading'"
-          :type="field.type || 'text'" :name="String(key)" :disabled="field.disabled ?? undefined"
-          :value="getFieldModel(String(key), field.type)" :required="field.required"
-          @input="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)" class="form-control"
-          :class="{ 'is-invalid': field.required && !item[key] }" />
-        <div v-else-if="field.type === 'object'" class="card p-3">
-          <div v-for="(subValue, subKey) in item[key]" :key="subKey" class="form-group"
-            v-show="subValue !== null && subValue !== undefined">
-            <label :for="`${key}-${subKey}`">{{ subKey }}</label>
-            <input :type="typeof subValue === 'number' ? 'number' : 'text'" :name="`${key}-${subKey}`" :value="subValue"
-              :disabled="field.disabled ?? undefined"
-              @input="updateFieldModel($event, `${key}.${subKey}`, typeof subValue)" class="form-control" />
-          </div>
-        </div>
-        <div v-else-if="field.type === 'loading'" class="card">
-          <div class="d-flex flex-column justify-content-center align-items-center" style="height: 100px;">
-            <div class="m-2 spinner-border text-primary" role="status"> </div>
-            <span>Container will be fetched after saving...</span>
-          </div>
-        </div>
-        <textarea v-else :name="String(key)" :disabled="field.disabled ?? undefined" :v-model="item[key]"
-          class="form-control" :class="{ 'is-invalid': field.required && !item[key] }"></textarea>
-      </div>
+      <component
+        v-for="(field, key) in formFields"
+        :is="getFieldComponent(field.type)"
+        :key="key"
+        :name="String(key)"
+        :label="field.label || key"
+        :value="formData[key]"
+        :disabled="field.disabled ?? undefined"
+        :required="field.required"
+        @update:value="updateFieldModel($event, String(key), field.type)"
+        v-show="!field.hidden && (!field.details || (showDetails && field.details))"
+      />
       <button type="submit" class="btn btn-primary mt-3">Submit</button>
     </form>
     <div v-else>
@@ -45,22 +31,32 @@
         <li v-for="(error, index) in item.errors" :key="index">{{ error }}</li>
       </ul>
     </div>
-    <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue';
 import { formFields } from '@/interfaces/FormField.interface';
-import SearchModal from './SearchModal.vue';
-import { EventAction } from '@/interfaces/EventAction';
-import { clientStore as useClientStore } from '@/stores/clientStore';
-// import { getFieldModel, updateFieldModel } from '@/utils';
+import TextField from '@/components/fields/TextField.vue';
+import TextAreaField from '@/components/fields/TextAreaField.vue';
+import ObjectField from '@/components/fields/ObjectField.vue';
+import LoadingField from '@/components/fields/LoadingField.vue';
+import CheckboxField from '@/components/fields/CheckboxField.vue';
+import ArrayField from '@/components/fields/ArrayField.vue';
+import ModalField from '@/components/fields/ModalField.vue';
+import NumberField from '@/components/fields/NumberField.vue';
 
 export default defineComponent({
   name: 'ItemForm',
   components: {
-    SearchModal,
+    TextField,
+    TextAreaField,
+    ObjectField,
+    LoadingField,
+    CheckboxField,
+    ArrayField,
+    ModalField,
+    NumberField,
   },
   props: {
     item: {
@@ -73,9 +69,7 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    const formData = ref<{ [x: string]: unknown; }>({ ...props.item }); // form data is the live data in the form
-    const showModal = ref(false);
-    const clientStore = useClientStore();
+    const formData = ref<{ [x: string]: unknown | undefined; }>({ ...props.item }); // form data is the live data in the form
 
     watch(
       () => props.item,
@@ -96,6 +90,27 @@ export default defineComponent({
       formFields.container.type = 'object'; // After saving, the container will be fetched
     };
 
+    const getFieldComponent = (type: string) => {
+      switch (type) {
+        case 'textarea':
+          return 'TextAreaField';
+        case 'object':
+          return 'ObjectField';
+        case 'loading':
+          return 'LoadingField';
+        case 'checkbox':
+          return 'CheckboxField';
+        case 'array':
+          return 'ArrayField';
+        case 'uuid':
+          return 'ModalField';
+        case 'number':
+          return 'NumberField';
+        default:
+          return 'TextField';
+      }
+    };
+
     const formatDate = (timestamp: number): string => {
       if (!timestamp) return '';
       const date = new Date(timestamp * 1000);
@@ -111,35 +126,18 @@ export default defineComponent({
       return formData.value[key];
     };
 
-    const updateFieldModel = (event: Event, key: string, type: string) => {
-      const target = event.target as HTMLInputElement;
+    const updateFieldModel = (value: unknown, key: string, type: string) => {
       if (type === 'checkbox') {
-        formData.value[key] = target.checked;
+        formData.value[key] = Boolean(value);
       } else if (type === 'epoch') {
-        formData.value[key] = new Date(target.value).getTime() / 1000;
+        formData.value[key] = new Date(value as string).getTime() / 1000;
       } else if (type === 'number') {
-        formData.value[key] = Number(target.value);
+        formData.value[key] = Number(value);
       } else if (type === 'array') {
-        formData.value[key] = target.value.split(',|;').map(item => item.trim());
-      } else {
-        formData.value[key] = target.value;
+        formData.value[key] = (value as string).split(',|;').map(item => item.trim());
+      } else { // text uuid object 
+        formData.value[key] = value;
       }
-    };
-
-    const handleInputClick = (key: string) => {
-      if (key === 'container_tag_uuid') {
-        showModal.value = true;
-      }
-    };
-
-    const handleSelect = (tag: string) => {
-      formData.value.container_tag_uuid = tag;
-      formFields.container.type = 'loading'; // show loading spinner
-    };
-
-    const closeModal = () => {
-      showModal.value = false;
-      clientStore.expected_event_action = EventAction.REDIRECT
     };
 
     return {
@@ -148,12 +146,9 @@ export default defineComponent({
       showDetails,
       toggleDetails,
       handleSubmit,
+      getFieldComponent,
       getFieldModel,
       updateFieldModel,
-      showModal,
-      handleInputClick,
-      handleSelect,
-      closeModal,
     };
   },
 });

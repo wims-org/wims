@@ -25,6 +25,7 @@ import { defineComponent } from 'vue'
 import { computed } from 'vue'
 
 export default defineComponent({
+  name: 'TitleComponent',
   setup() {
     const client_store = clientStore()
     const server_stream = serverStream()
