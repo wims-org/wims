@@ -4,7 +4,7 @@
         <div class="list-group">
             <div v-for="item in items" :key="item.tag_uuid" 
                 class="list-group-item list-group-item-action" @click="selectItem(item)">
-                <h5 class="mb-1">{{ item.name }}</h5>
+                <h5 class="mb-1">{{ item.short_name }}</h5>
                 <p class="mb-1">{{ item.description }}</p>
         </div>
         </div>
@@ -17,7 +17,7 @@ import type { PropType } from 'vue';
 
 interface Item {
     tag_uuid: string;
-    name: string;
+    short_name: string;
     description: string;
 }
 
