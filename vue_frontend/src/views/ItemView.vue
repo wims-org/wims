@@ -29,7 +29,7 @@ const newItem = ref(false);
 const isComparing = ref(false); // New state variable for edit mode
 const completion = ref({}); // Variable to store the
 
-eventBus.on('completion', (data: Events.completion) => {
+eventBus.on('completion', (data: Events['completion']) => {
   if (data) {
     handleCompletion(data);
   }

@@ -63,7 +63,8 @@
               </button>
               <button
                 type="button"
-                @click="copyToClipboard(formData_new[key])"
+                :v-if="formData_new[key]"
+                @click="formData_new[key]?copyToClipboard(formData_new[key]):''"
                 class="btn btn-secondary mt-3"
               >
                 <font-awesome-icon icon="clipboard" />
@@ -226,8 +227,8 @@ export default defineComponent({
         formData_org.value[key] = value
       }
     }
-    const copyToClipboard = (value: string) => {
-      navigator.clipboard.writeText(value)
+    const copyToClipboard = (value: string | unknown | undefined ) => {
+      if (value && typeof value == 'string') navigator.clipboard.writeText(value)
     }
     return {
       formData_org,
