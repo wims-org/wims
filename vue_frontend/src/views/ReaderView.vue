@@ -2,18 +2,24 @@
   <div>
     <h1>Readers</h1>
     <ul class="list-group block-item-list">
-      <li v-for="reader in readers" :key="reader.reader_id" @click="selectReader(reader.reader_id)"
+      <li
+        v-for="reader in readers"
+        :key="reader.reader_id"
+        @click="selectReader(reader.reader_id)"
         class="list-group-item d-flex justify-content-between align-items-center"
-        :class="{ active: reader?.reader_id === (clientStoreInstance?.reader_id ?? '') }">
+        :class="{ active: reader?.reader_id === (clientStoreInstance?.reader_id ?? '') }"
+      >
         <div>
           {{ reader.reader_name }}
           <br />
           <span class="text-muted">{{ reader.reader_id }}</span>
         </div>
-        <button @click.stop="deleteReader(reader.reader_id)" class="btn btn-danger btn-sm">Delete</button>
+        <button @click.stop="deleteReader(reader.reader_id)" class="btn btn-danger btn-sm">
+          Delete
+        </button>
       </li>
       <div v-if="readers.length === 0" class="list-group-item">
-        <div class="spinner-border spinner-border-sm" role="status"> </div>
+        <div class="spinner-border spinner-border-sm" role="status"></div>
         Loading...
       </div>
     </ul>
@@ -23,11 +29,23 @@
         <form @submit.prevent="submitReader" class="p-3 row">
           <div class="form-group col-md-5">
             <label for="readerName">Reader Name</label>
-            <input type="text" v-model="newReader.reader_name" id="readerName" class="form-control" required />
+            <input
+              type="text"
+              v-model="newReader.reader_name"
+              id="readerName"
+              class="form-control"
+              required
+            />
           </div>
           <div class="form-group col-md-5">
             <label for="readerId">Reader ID</label>
-            <input type="text" v-model="newReader.reader_id" id="readerId" class="form-control" required />
+            <input
+              type="text"
+              v-model="newReader.reader_id"
+              id="readerId"
+              class="form-control"
+              required
+            />
           </div>
           <div class="form-group col-md-2 d-flex align-items-end">
             <button type="submit" class="btn btn-primary w-100">Add Reader</button>
@@ -64,6 +82,8 @@ export default defineComponent({
 
     const selectReader = (readerId: string) => {
       clientStoreInstance.setReaderId(readerId)
+      sessionStorage.setItem('reader_id', readerId)
+      sessionStorage.setItem('reader_id_time', Date.now().toString())
       const params = router.currentRoute.value.query
       if (readerId !== '') {
         params.reader_id = readerId
@@ -72,14 +92,12 @@ export default defineComponent({
         {},
         '',
         router.currentRoute.value.path +
-        '?' +
-        Object.keys(params)
-          .map(key => {
-            return (
-              encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
-            )
-          })
-          .join('&')
+          '?' +
+          Object.keys(params)
+            .map((key) => {
+              return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
+            })
+            .join('&'),
       )
     }
 

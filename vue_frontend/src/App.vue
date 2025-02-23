@@ -1,6 +1,6 @@
 <script lang="ts">
-import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { onMounted, watch } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 
@@ -11,6 +11,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import eventBus, { type Events } from './stores/eventBus'
 import { EventAction } from './interfaces/EventAction'
+import { setReaderId } from './utils'
 
 export default {
   name: 'App',
@@ -21,26 +22,29 @@ export default {
     const client_store = clientStore()
     const server_stream = serverStream()
     const router = useRouter()
+    const route = useRoute()
+
     onMounted(async () => {
       await router.isReady()
-      if (client_store.reader_id === '') {
-        client_store.reader_id = Array.isArray(router.currentRoute.value.query.reader)
-          ? router.currentRoute.value.query.reader[0] || ''
-          : router.currentRoute.value.query.reader || ''
-        server_stream.connect(client_store.client_id, 'client_id')
-      }
-      if (client_store.reader_id) {
-        server_stream.connect(client_store.reader_id, 'reader_id')
-      }
+      setReaderId(router)
 
       // Handle scan event from event bus
       eventBus.on('scan', (data: Events['scan']) => {
         console.log('Scan event:', data)
         if (client_store.expected_event_action === EventAction.REDIRECT) {
-          router.push('/items/' + data.rfid);
+          router.push('/items/' + data.rfid)
         }
-      });
+      })
     })
+
+    // Watch for route parameter changes
+    watch(
+      () => route.query.reader,
+      (newReader) => {
+        setReaderId(router)
+      },
+    )
+
     return {
       client_store,
       server_stream,
