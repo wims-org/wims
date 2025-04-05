@@ -55,7 +55,9 @@ export default defineComponent({
       this.saved_action = clientStore().expected_event_action
       clientStore().setExpectedEventAction(EventAction.CONTAINER_SCAN)
       eventBus.on('scan', (data: Events['scan']) => {
-        this.handleSelect(data.rfid)
+        if (clientStore().expected_event_action !== EventAction.CONTAINER_SCAN) {
+          this.handleSelect(data.rfid)
+        }
       })
     },
     returnNone() {

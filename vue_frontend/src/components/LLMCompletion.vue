@@ -3,11 +3,24 @@
     <div class="col border p-3">
       <h3 class="row p-2">Object Identification</h3>
       <div class="row p-2 justify-content-between align-items-center">
-        <input type="text" class="form-control" v-model="stringInput" placeholder="Add Item by Description or Name..." />
+        <input
+          type="text"
+          class="form-control"
+          v-model="stringInput"
+          placeholder="Add Item by Description or Name..."
+        />
         <input ref="fileInput" type="file" class="form-control-file d-none" @change="uploadPhoto" />
-        <button class="btn btn-secondary" @click="() => fileInput?.click()">Upload Photo</button>
+        <input ref="cameraInput" type="file" class="form-control-file d-none" accept="image/*" capture="environment" @change="uploadPhoto" />
+        <button class="btn btn-secondary" @click="() => fileInput?.click()">
+          {{ fileInput?.files?.[0]?.name?.substring(0, 12) || 'Upload Photo' }}
+        </button>
         <button class="btn btn-secondary" @click="clearFileInput">Clear File</button>
-        <button class="btn btn-primary " @click="fetchIdentification()">Start Identification</button>
+        <button class="btn btn-primary" @click="fetchIdentification()">Start Identification</button>
+        <button class="btn btn-secondary" @click="() => cameraInput?.click()">Take Photo</button>
+
+
+
+        
       </div>
     </div>
   </div>
@@ -21,12 +34,17 @@ import { ref } from 'vue'
 const stringInput = ref('')
 const formData = new FormData()
 const fileInput = ref<HTMLInputElement | null>(null)
+const cameraInput = ref<HTMLInputElement | null>(null)
 
 const fetchIdentification = async () => {
   try {
     const body = { query: stringInput.value, client_id: clientStore().client_id }
     formData.set('data', JSON.stringify(body))
-    const response = await axios({ method: 'post', url: '/completion/identification', data: formData })
+    const response = await axios({
+      method: 'post',
+      url: '/completion/identification',
+      data: formData,
+    })
     console.log({ ...response.data })
   } catch (error) {
     console.error('Error posting ident data:', error)
@@ -50,6 +68,10 @@ const uploadPhoto = async (event: Event) => {
 const clearFileInput = () => {
   if (fileInput.value) {
     fileInput.value.value = ''
+    formData.delete('images')
+  }
+  if (cameraInput.value) {
+    cameraInput.value.value = ''
     formData.delete('images')
   }
 }
