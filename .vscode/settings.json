@@ -1,3 +1,16 @@
 {
-  "cSpell.words": ["mqtt", "rfid"]
+  "cSpell.words": [
+    "mqtt",
+    "rfid"
+  ],
+  "python.testing.pytestArgs": [
+    "backend"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestPath": "backend/.venv/bin/pytest",
+  "terminal.integrated.env.osx": {"PYTHONPATH": "${workspaceFolder}/backend/.venv/bin/python"},
+  "python.pythonPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
 }
+  
