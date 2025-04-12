@@ -45,6 +45,7 @@ import CheckboxField from '@/components/fields/CheckboxField.vue';
 import ArrayField from '@/components/fields/ArrayField.vue';
 import ModalField from '@/components/fields/ModalField.vue';
 import NumberField from '@/components/fields/NumberField.vue';
+import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue';
 
 export default defineComponent({
   name: 'ItemForm',
@@ -57,6 +58,7 @@ export default defineComponent({
     ArrayField,
     ModalField,
     NumberField,
+    ImageThumbnailField,
   },
   props: {
     item: {
@@ -106,6 +108,8 @@ export default defineComponent({
           return 'ModalField';
         case 'number':
           return 'NumberField';
+        case 'images':
+          return 'ImageThumbnailField';
         default:
           return 'TextField';
       }
@@ -140,6 +144,11 @@ export default defineComponent({
       }
     };
 
+    const removeImage = (index: number) => {
+      if (!Array.isArray(formData.value.imageUrls)) return;
+      formData.value.imageUrls.splice(index, 1);
+    };
+
     return {
       formData,
       formFields,
@@ -149,6 +158,7 @@ export default defineComponent({
       getFieldComponent,
       getFieldModel,
       updateFieldModel,
+      removeImage,
     };
   },
 });

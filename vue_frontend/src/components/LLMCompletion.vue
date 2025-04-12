@@ -10,41 +10,46 @@
           placeholder="Add Item by Description or Name..."
         />
         <input ref="fileInput" type="file" class="form-control-file d-none" @change="uploadPhoto" />
-        <input ref="cameraInput" type="file" class="form-control-file d-none" accept="image/*" capture="environment" @change="uploadPhoto" />
-        <button class="btn btn-secondary" @click="() => fileInput?.click()">
-          {{ fileInput?.files?.[0]?.name?.substring(0, 12) || 'Upload Photo' }}
-        </button>
+        <input
+          ref="cameraInput"
+          type="file"
+          class="form-control-file d-none"
+          accept="image/*"
+          capture="environment"
+          @change="uploadPhoto"
+        />
         <button class="btn btn-secondary" @click="clearFileInput">Clear File</button>
         <button class="btn btn-primary" @click="fetchIdentification()">Start Identification</button>
-        <button class="btn btn-secondary" @click="() => cameraInput?.click()">Take Photo</button>
-
-
-
-        
       </div>
+    <div class="row mt-3">
+      <ImageThumbnailField
+        :value="imageUrls"
+        @update:value="updateImage($event)"
+      />
     </div>
+  </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 
 const stringInput = ref('')
-const formData = new FormData()
+const imageUrls = reactive<string[]>([]) // Store base64-encoded image URLs
 const fileInput = ref<HTMLInputElement | null>(null)
 const cameraInput = ref<HTMLInputElement | null>(null)
 
 const fetchIdentification = async () => {
   try {
-    const body = { query: stringInput.value, client_id: clientStore().client_id }
-    formData.set('data', JSON.stringify(body))
-    const response = await axios({
-      method: 'post',
-      url: '/completion/identification',
-      data: formData,
-    })
+    const body = {
+      query: stringInput.value,
+      client_id: clientStore().client_id,
+      imageUrls: [...imageUrls],
+    }
+    const response = await axios.post('/completion/identification', body)
     console.log({ ...response.data })
   } catch (error) {
     console.error('Error posting ident data:', error)
@@ -60,19 +65,33 @@ const uploadPhoto = async (event: Event) => {
         alert('File size exceeds 5MB limit.')
         return
       }
-      formData.append('images', file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const imageUrl = e.target.result as string
+          imageUrls.push(imageUrl) // Add base64-encoded URL to the list
+        }
+      }
+      reader.readAsDataURL(file)
     }
   }
+}
+
+const updateImage = (updatedValue: Array<string> ) => {
+  imageUrls.length = 0 // Clear the existing array
+  imageUrls.push(...updatedValue) // Add the new URLs
 }
 
 const clearFileInput = () => {
   if (fileInput.value) {
     fileInput.value.value = ''
-    formData.delete('images')
   }
   if (cameraInput.value) {
     cameraInput.value.value = ''
-    formData.delete('images')
   }
+  imageUrls.length = 0 // Clear all image URLs
 }
 </script>
+
+<style scoped>
+</style>

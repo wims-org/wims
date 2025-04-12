@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import SearchComponent from '../components/SearchComponent.vue'
+import SearchComponent from '../components/shared/SearchComponent.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 

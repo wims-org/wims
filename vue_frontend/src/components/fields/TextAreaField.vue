@@ -4,7 +4,7 @@
     <label :for="name">{{ label }}</label>
     <textarea
       :name="name"
-      :disabled="disabled"
+      :disabled="disabled ?? undefined"
       :value="value"
       @input="updateField"
       class="form-control"

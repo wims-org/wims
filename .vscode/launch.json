@@ -22,7 +22,8 @@
             "jinja": true,
             "consoleTitle": "Python: FastAPI",
             "env": {
-                "LLM_ENVIRONMENT": "development"
+            //    "LLM_ENVIRONMENT": "development"
+             "LLM_ENVIRONMENT": "production"
             }
         },
         {

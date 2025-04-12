@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import SearchModal from '../SearchModal.vue'
+import SearchModal from '@/components/shared/SearchModal.vue'
 
 export default defineComponent({
   name: 'ModalField',

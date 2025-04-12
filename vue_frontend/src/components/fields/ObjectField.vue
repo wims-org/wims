@@ -1,29 +1,30 @@
-Field.vue
 <template>
+  <div>
     <label :for="name">{{ label }}</label>
-  <div class="card p-3">
-    <div
-      v-for="(subValue, subKey) in value"
-      :key="subKey"
-      class="form-group"
-      v-show="subValue !== null && subValue !== undefined"
-    >
-      <label :for="`${name}-${subKey}`">{{ subKey }}</label>
-      <input
-        :type="typeof subValue === 'number' ? 'number' : 'text'"
-        :name="`${name}-${subKey}`"
-        :value="subValue"
-        :disabled="disabled"
-        @input="updateField($event, subKey)"
-        class="form-control"
-        :required="required || undefined"
-      />
+    <div class="card p-3">
+      <div
+        v-for="(subValue, subKey) in value"
+        :key="subKey"
+        class="form-group"
+        v-show="subValue !== null && subValue !== undefined"
+      >
+        <label :for="`${name}-${subKey}`">{{ subKey }}</label>
+        <input
+          :type="typeof subValue === 'number' ? 'number' : 'text'"
+          :name="`${name}-${subKey}`"
+          :value="subValue"
+          :disabled="disabled"
+          @input="updateField($event, subKey)"
+          class="form-control"
+          :required="required"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
+import { defineComponent, type PropType } from 'vue'
 
 export default defineComponent({
   name: 'ObjectField',
@@ -52,10 +53,10 @@ export default defineComponent({
   emits: ['update:value'],
   methods: {
     updateField(event: Event, subKey: string | number) {
-      const target = event.target as HTMLInputElement;
-      const newValue = { ...this.value, [subKey]: target.value };
-      this.$emit('update:value', newValue);
+      const target = event.target as HTMLInputElement
+      const newValue = { ...this.value, [subKey]: target.value }
+      this.$emit('update:value', newValue)
     },
   },
-});
+})
 </script>

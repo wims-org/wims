@@ -8,7 +8,7 @@
       :disabled="disabled"
       @change="updateField"
       class="ml-3"
-      :required="required || undefined"
+      :required="required"
     />
   </div>
 </template>
