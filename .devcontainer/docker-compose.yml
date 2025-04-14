@@ -14,26 +14,20 @@ services:
       - skip
     deploy:
       replicas: 0
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.2
   backend:
     profiles:
       - skip
     deploy:
       replicas: 0
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.3
   db:
     container_name: mongo
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.4
     volumes:
       - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
+    ports:
+      - 27017:27017
+
   # DEV Mqtt broker
-  mqtt: # Todo mosquitto dies at startup
+  mqtt:
     image: eclipse-mosquitto:latest
     restart: unless-stopped
     volumes:
@@ -42,11 +36,6 @@ services:
       - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
     ports:
       - 1883:1883
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.5
-      app-network:
-        ipv4_address: 172.19.128.5
 
   mongo-express:
     image: mongo-express
@@ -64,12 +53,3 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=example
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=admin
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.6
-
-networks:
-  dev-network:
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

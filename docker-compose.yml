@@ -1,9 +1,6 @@
 services:
   frontend:
     build: ./vue_frontend
-    networks:
-      app-network:
-        ipv4_address: 172.19.128.2
     ports:
       - "5000:8080"
     depends_on:
@@ -11,9 +8,6 @@ services:
     # environment: doesnt work for vite
   backend:
     build: ./backend
-    networks:
-      app-network:
-        ipv4_address: 172.19.128.3
     ports:
       - "8000:8000"
     depends_on:
@@ -30,9 +24,6 @@ services:
   db:
     image: mongodb/mongodb-community-server:latest
     restart: unless-stopped
-    networks:
-      app-network:
-        ipv4_address: 172.19.128.4
     volumes:
       - mongodb-data:/data/db
       - ./mongodb-docker-entrypoint-initdb.d/a_setup_database.js:/docker-entrypoint-initdb.d/a_setup_database.js:ro
@@ -40,11 +31,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
+  mqtt: 
+    image: eclipse-mosquitto:latest
+    restart: unless-stopped
+    volumes:
+      - ./.devcontainer/mqtt/mosquitto-data:/mosquitto/data
+      - ./.devcontainer/mqtt/mosquitto-log:/mosquitto/log
+      - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
+    ports:
+      - 1883:1883
+
 volumes:
   mongodb-data:
-
-networks:
-  app-network:
-    ipam:
-      config:
-        - subnet: 172.19.0.0/16
