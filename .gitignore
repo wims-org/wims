@@ -2,4 +2,4 @@
 shell.nix
 .direnv/
 __pycache__/
-backend/src/config,yml
+backend/src/config.yml
