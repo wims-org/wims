@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:18-alpine as build-stage
+FROM node:23-alpine as build-stage
 
 RUN npm install -g http-server
 
