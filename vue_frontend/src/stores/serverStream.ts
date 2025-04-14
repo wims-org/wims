@@ -9,7 +9,7 @@ export const serverStream = defineStore('ServerStream', {
     reader_id: ref<string>(''),
     eventSource: null as EventSource | null,
     alive: ref<boolean>(false),
-    
+
   }),
   getters: {},
   actions: {
@@ -20,9 +20,7 @@ export const serverStream = defineStore('ServerStream', {
         this.reader_id = reader_id;
       }
       this.eventSource = new EventSource(
-        import.meta.env.VITE_APP_API_HOST +
-          ':' +
-          import.meta.env.VITE_APP_API_PORT +
+        import.meta.env.VITE_API_URL +
           '/stream?reader=' +
           reader_id,
       );

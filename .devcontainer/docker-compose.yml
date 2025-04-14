@@ -7,35 +7,30 @@ services:
     network_mode: host
     volumes:
       - ..:/workspaces:cached
-    privileged: true
+
+  proxy:
+    profiles:
+      - skip
+    deploy:
+      replicas: 0
   
   frontend:
     profiles:
       - skip
     deploy:
       replicas: 0
+
   backend:
     profiles:
       - skip
     deploy:
       replicas: 0
+
   db:
-    container_name: mongo
     volumes:
       - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
     ports:
       - 27017:27017
-
-  # DEV Mqtt broker
-  mqtt:
-    image: eclipse-mosquitto:latest
-    restart: unless-stopped
-    volumes:
-      - ./.devcontainer/mqtt/mosquitto-data:/mosquitto/data
-      - ./.devcontainer/mqtt/mosquitto-log:/mosquitto/log
-      - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
-    ports:
-      - 1883:1883
 
   mongo-express:
     image: mongo-express
@@ -45,7 +40,7 @@ services:
     depends_on:
       - db
     environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_SERVER=db
       - ME_CONFIG_MONGODB_PORT=27017
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
