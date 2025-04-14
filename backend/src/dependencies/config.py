@@ -8,8 +8,6 @@ import yaml
 
 from utils import update
 
-global config
-
 logger = logging.getLogger("uvicorn.error")
 
 
