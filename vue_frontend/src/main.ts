@@ -19,5 +19,5 @@ app.use(router)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')
 
-axios.defaults.baseURL = import.meta.env.VITE_APP_API_HOST + ':' + import.meta.env.VITE_APP_API_PORT
+axios.defaults.baseURL = import.meta.env.VITE_API_URL
 console.log(axios.defaults.baseURL)

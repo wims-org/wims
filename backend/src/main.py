@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,7 +65,11 @@ async def lifespan(app: FastAPI):
     yield
     app.state.backend_service.close()
 
-app = FastAPI(lifespan=lifespan)
+if os.environ.get("RUN_MODE","") == "production":
+    app = FastAPI(lifespan=lifespan, root_path="/api")
+else:
+    app = FastAPI(lifespan=lifespan)
+
 app.include_router(readers.router)
 app.include_router(items.router)
 app.include_router(completion.router)
