@@ -33,7 +33,8 @@ export default {
         console.log('Scan event:', data)
         if (client_store.expected_event_action === EventAction.REDIRECT) {
           router.push('/items/' + data.rfid)
-        }
+        } 
+
       })
     })
 

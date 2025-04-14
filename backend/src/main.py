@@ -4,10 +4,12 @@ import logging
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
+# Use absolute import
 from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService, Event
 from dependencies.config import read_config
 from routers import completion, items, readers
@@ -23,9 +25,7 @@ global config
 config = read_config()
 
 
-def setup_middleware(
-    app,
-):
+def setup_middleware(app):
     frontend_config = config.get("frontend", {})
     origins = [
         "http://localhost:5000",
@@ -38,8 +38,7 @@ def setup_middleware(
         "http://localhost:8080",
     ]
     origins.append(
-        f"http://{frontend_config.get("host",
-                                      "0.0.0.0")}:{frontend_config.get("port", '8080')}"
+        f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}"
     )
     app.add_middleware(
         CORSMiddleware,
@@ -63,8 +62,7 @@ async def lifespan(app: FastAPI):
         scan_topic = find(key := "mqtt.topics.scan", config)
     except (KeyError, TypeError) as e:
         logger.error(
-            f"Error updating config key {
-                key}, check config file and environment variables: {e}"
+            f"Error updating config key {key}, check config file and environment variables: {e}"
         )
     app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan")
     yield
@@ -93,9 +91,6 @@ async def test_db_connection():
         return {"message": f"Database connection failed: {e}"}
 
 
-# Routes
-
-
 @app.get("/")
 def read_root():
     return {"message": "Hello, World!"}
@@ -110,7 +105,7 @@ def get_message():
 
 @app.get("/stream")
 async def message_stream(request: Request, reader: str):
-    logger.debug(f"Message stream{request}, {reader}")
+    logger.debug(f"Message stream {request}, {reader}")
     app.state.backend_service.readers[reader] = []
 
     def new_messages():

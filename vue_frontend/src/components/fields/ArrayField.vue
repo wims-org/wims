@@ -14,7 +14,7 @@
       @keyup.enter="addItem"
       class="form-control"
       placeholder="Add item"
-      :required="!value.length && required || undefined"
+      :required="!value.length && required"
         />
   </div>
 </template>

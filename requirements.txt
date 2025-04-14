@@ -1,4 +1,1 @@
-flask
-bootstrap-flask
-flask_wtf
 poetry

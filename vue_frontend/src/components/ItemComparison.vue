@@ -46,9 +46,9 @@
                 @click="() => (formData_org[key] = formData_new[key])"
                 class="btn btn-primary mt-3"
                 :disabled="
-                  !(key in formData_new) ||
+                  (!(key in formData_new) ||
                   formData_new[key] == null ||
-                  formData_org[key] == formData_new[key]
+                  formData_org[key] == formData_new[key]) ?? undefined
                 "
               >
                 <font-awesome-icon
@@ -95,7 +95,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue'
 import { formFields } from '@/interfaces/FormField.interface'
-import SearchModal from './SearchModal.vue'
+import SearchModal from '@/components/shared/SearchModal.vue'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
 import { getFieldModel } from '@/utils'
@@ -107,6 +107,7 @@ import CheckboxField from '@/components/fields/CheckboxField.vue'
 import ArrayField from '@/components/fields/ArrayField.vue'
 import ModalField from '@/components/fields/ModalField.vue'
 import NumberField from '@/components/fields/NumberField.vue'
+import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 
 export default defineComponent({
   name: 'ItemComparison',
@@ -120,6 +121,7 @@ export default defineComponent({
     ArrayField,
     ModalField,
     NumberField,
+    ImageThumbnailField,
   },
   props: {
     item_org: {
@@ -205,6 +207,8 @@ export default defineComponent({
           return 'ArrayField'
         case 'uuid':
           return 'ModalField'
+        case 'images':
+          return 'ImageThumbnailField'
         case 'number':
           return 'NumberField'
         default:

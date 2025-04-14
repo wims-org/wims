@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <h1 class="my-4">Item List</h1>
+        <h1 class="mt-4">Item List</h1>
         <div class="list-group">
             <div v-for="item in items" :key="item.tag_uuid" 
                 class="list-group-item list-group-item-action" @click="selectItem(item)">

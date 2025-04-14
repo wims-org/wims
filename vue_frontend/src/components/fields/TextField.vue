@@ -4,7 +4,7 @@
     <input
       :type="type || 'text'"
       :name="name"
-      :disabled="disabled"
+      :disabled="disabled ?? undefined"
       :value="value"
       :required="required"
       @input="updateField"

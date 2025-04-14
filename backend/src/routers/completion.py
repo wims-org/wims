@@ -31,46 +31,70 @@ class IdentificationRequest(pydantic.BaseModel):
 @router.post("/identification")
 async def identification(
     request: Request,
-    # identificationRequest: IdentificationRequest
-    # data: Annotated[FormData, Form()],
-    images: list[UploadFile] | None = File(None),
 ):
     try:
-        data = json.loads(dict(request._form.items()).get("data"))
-        query = data.get("query")
-        client_id = data.get("client_id", [])
-        logger.info(data)
-        encoded_images = []
-        for image in images or []:
-            encoded_image = base64.b64encode(await image.read()).decode("utf-8")
-            encoded_images.append(encoded_image)
+        # Parse JSON data from the request body
+        body = await request.json()
+        query = body.get("query")
+        client_id = body.get("client_id")
+        imageUrls = body.get("imageUrls", [])  # Base64-encoded image URLs
+        # Validate input
         assert (
-            query or images) and client_id, "(Query or Image) and client_id is required"
+            query or imageUrls) and client_id, "(Query or Image) and client_id is required"
     except json.JSONDecodeError:
         raise HTTPException(
-            status_code=400, detail="Invalid JSON in document") from None
+            status_code=400, detail="Invalid JSON in request body"
+        ) from None
     except AssertionError:
         raise HTTPException(
-            status_code=400, detail="Query or Image is required") from None
+            status_code=400, detail="Query or Image is required"
+        ) from None
 
     async def start_identification(start_time: float):
         if os.environ.get("LLM_ENVIRONMENT") == "development":
-            chatgpt_response = {'response': {'upc': None, 'asin': None, 'tags': ['sensor', 'humidity', 'temperature', 'DHT'], 'vendors': ['Adafruit', 'SparkFun', 'Amazon'], 'cost_new': 10.0, 'shop_url': ['https://www.adafruit.com/product/393', 'https://www.sparkfun.com/products/10167', 'https://www.amazon.com/dp/B07D3FQZ3D'], 'cost_used': 5.0, 'item_type': 'sensor',
-                                            'consumable': False, 'short_name': 'DHT22 Sensor', 'description': 'DHT22 (AM2302) is a digital temperature and humidity sensor.', 'manufacturer': 'AOSONG', 'model_number': 'AM2302', 'documentation': ['https://www.adafruit.com/product/393', 'https://learn.adafruit.com/dht/overview'], 'serial_number': None}, 'tokens': 1452, 'duration': 7.048832893371582}
+            # Mock response for development
+            chatgpt_response = {
+                'response': {
+                    'upc': None,
+                    'asin': None,
+                    'tags': ['sensor', 'humidity', 'temperature', 'DHT'],
+                    'vendors': ['Adafruit', 'SparkFun', 'Amazon'],
+                    'cost_new': 10.0,
+                    'shop_url': [
+                        'https://www.adafruit.com/product/393',
+                        'https://www.sparkfun.com/products/10167',
+                        'https://www.amazon.com/dp/B07D3FQZ3D'
+                    ],
+                    'cost_used': 5.0,
+                    'item_type': 'sensor',
+                    'consumable': False,
+                    'short_name': 'DHT22 Sensor',
+                    'description': 'DHT22 (AM2302) is a digital temperature and humidity sensor.',
+                    'manufacturer': 'AOSONG',
+                    'model_number': 'AM2302',
+                    'documentation': [
+                        'https://www.adafruit.com/product/393',
+                        'https://learn.adafruit.com/dht/overview'
+                    ],
+                    'serial_number': None
+                },
+                'tokens': 1452,
+                'duration': 7.048832893371582
+            }
             sse_message = SseMessage(
                 data=SseMessage.SseMessageData(
                     reader_id=client_id,
-                    data= chatgpt_response,
+                    data=chatgpt_response,
                 ),
                 event=Event.COMPLETION,
             ).model_dump(mode="json", exclude_none=True)
-            get_bs(request).readers.setdefault(client_id, []).append(sse_message)
+            get_bs(request).readers.setdefault(
+                client_id, []).append(sse_message)
             return
 
-
-
+        # Call ChatGPT to identify the object
         chatgpt_response = get_bs(
-            request).llm_completion.identify_object(query, encoded_images)
+            request).llm_completion.identify_object(query, imageUrls)
         if (
             not chatgpt_response
             or not chatgpt_response.choices
@@ -86,12 +110,16 @@ async def identification(
             get_bs(request).readers.setdefault(
                 client_id, []).append(sse_message)
             return
+
         logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
                 reader_id=client_id,
                 data={
-                    "response": json.loads(chatgpt_response.choices[0].message.content),
+                    "response": {
+                        **json.loads(chatgpt_response.choices[0].message.content),
+                        "images": imageUrls,  # Add imageUrls to data.response.images
+                    },
                     "tokens": chatgpt_response.usage.total_tokens,
                     "duration": time.time() - start_time,
                 },

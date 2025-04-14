@@ -20,8 +20,8 @@ class ChatGPT(LLMCompletion):
         self.client = OpenAI(api_key=api_key)
         self.response_schema = response_schema
 
-    def identify_object(self, query: str = None, files: list[bytes] = None):
-        file = files[0] if files else None
+    def identify_object(self, query: str = None, imageUrls: list[str] = None):
+        image_url = imageUrls[0] if imageUrls else None
         return self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -42,13 +42,12 @@ class ChatGPT(LLMCompletion):
                         {"type": "text", "text": query},
                         {
                             "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{file}"},
+                            "image_url": {"url": image_url},
                         },
                     ],
                 },
             ],
-            response_format={"type": "json_schema",
-                             "json_schema": self.response_schema},
+            response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
             max_completion_tokens=2048,
             top_p=1,
