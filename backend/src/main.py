@@ -4,23 +4,19 @@ import logging
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from sse_starlette.sse import EventSourceResponse
 
 # Use absolute import
-from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService, Event
+from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService
 from dependencies.config import read_config
-from routers import completion, items, readers
+from  routers import items, completion, readers, stream
 from utils import find
 
 logger = logging.getLogger("uvicorn.error")
 logger.setLevel(logging.DEBUG)
 
 logger.debug("Starting backend service")
-
-global config
 
 config = read_config()
 
@@ -64,65 +60,13 @@ async def lifespan(app: FastAPI):
         logger.error(
             f"Error updating config key {key}, check config file and environment variables: {e}"
         )
-    app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan")
+    app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan/#")
     yield
     app.state.backend_service.close()
-
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(readers.router)
 app.include_router(items.router)
 app.include_router(completion.router)
+app.include_router(stream.router)
 setup_middleware(app)
-
-
-async def handle_message(message, topic):
-    logger.debug(f"Handle message: {message} on topic {topic}")
-    # await app.state.backend_service.websocket_manager.send_message(message, topic)
-
-
-@app.get("/test-db")
-async def test_db_connection():
-    try:
-        app.state.backend_service.db.connect()
-        app.state.backend_service.db.disconnect()
-        return {"message": "Database connection successful"}
-    except Exception as e:
-        return {"message": f"Database connection failed: {e}"}
-
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello, World!"}
-
-
-def get_message():
-    """this could be any function that blocks until data is ready"""
-    time.sleep(1.0)
-    s = time.ctime(time.time())
-    return s
-
-
-@app.get("/stream")
-async def message_stream(request: Request, reader: str):
-    logger.debug(f"Message stream {request}, {reader}")
-    app.state.backend_service.readers[reader] = []
-
-    def new_messages():
-        return len(app.state.backend_service.readers[reader]) > 0
-
-    async def event_generator():
-        while True:
-            # If client was closed the connection
-            if await request.is_disconnected():
-                break
-            # Checks for new messages and return them to client if any
-            if new_messages():
-                message = app.state.backend_service.readers[reader].pop(0)
-                if message["event"] != Event.ALIVE.value:
-                    logger.debug(f"Sending message: {message}")
-                message['data'] = json.dumps(message['data'])
-                yield message
-            await asyncio.sleep(MESSAGE_STREAM_DELAY)
-
-    return EventSourceResponse(event_generator())

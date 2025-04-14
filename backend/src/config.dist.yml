@@ -20,7 +20,7 @@ mqtt:
         username: "test"
         password: "test"
     topics:
-        scan: "rfid/scan"
+        scan: "rfid/scan/#"
         result: "rfid/itemdata"
 logging:
     level: "INFO"
