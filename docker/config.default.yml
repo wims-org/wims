@@ -2,26 +2,23 @@
 schema_version: 1.0
 
 database:
-    host: "127.0.0.1"
-    port: 3306
+    host: "db"
+    port: 27017
     name: "test"
     database: "test"
-    user: "test"
-    password: "test"
+    user: "root"
+    password: "example"
 
 mqtt:
     broker: 
-        host: "127.0.0.1"
+        host: "mqtt"
         port: 1883
-        username: "test"
-        password: "test"
+        username: "admin"
+        password: "1234"
     topics:
         scan: "rfid/scan/#"
         result: "rfid/itemdata"
+
 logging:
     level: "INFO"
     file: "/var/log/backend_service.log"
-
-features:
-    openai:
-        api_key: "insert your API key here"

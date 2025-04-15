@@ -1,12 +1,9 @@
 import asyncio
-import logging
 import time
 
+from loguru import logger
 from paho.mqtt import client as mqtt
 from pydantic import BaseModel
-
-logger = logging.getLogger("uvicorn.error")
-logger.setLevel(logging.DEBUG)
 
 
 class ReaderMessage(BaseModel):

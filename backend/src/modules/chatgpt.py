@@ -30,9 +30,10 @@ class ChatGPT(LLMCompletion):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines Makerspacers, u.a. "
-                            "Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und Stichworten. Nutze die gegebenen Informa"
-                            "tionen, um alle angeforderten Daten so präzise und vollständig wie möglich zusammenzutragen.",
+                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines "
+                            "Makerspacers, u.a. Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und St"
+                            "ichworten. Nutze die gegebenen Informationen, um alle angeforderten Daten "
+                            "so präzise und vollständig wie möglich zusammenzutragen.",
                         }
                     ],
                 },
@@ -64,9 +65,10 @@ class ChatGPT(LLMCompletion):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines Makerspacers, u.a. "
-                            "Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und Stichworten. Nutze die gegebenen Informa"
-                            "tionen, um alle angeforderten Daten so präzise und vollständig wie möglich zusammenzutragen.",
+                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines "
+                            "Makerspacers, u.a. Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und St"
+                            "ichworten. Nutze die gegebenen Informationen, um alle angeforderten Daten "
+                            "so präzise und vollständig wie möglich zusammenzutragen.",
                         }
                     ],
                 },
@@ -78,8 +80,7 @@ class ChatGPT(LLMCompletion):
                     },
                 },
             ],
-            response_format={"type": "json_schema",
-                             "json_schema": self.response_schema},
+            response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
             max_completion_tokens=2048,
             top_p=1,

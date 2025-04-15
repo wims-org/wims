@@ -1,42 +1,56 @@
-import asyncio
-import json
-import logging
-import time
-from contextlib import asynccontextmanager
 import os
+import sys
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
 
 # Use absolute import
-from dependencies.backend_service import MESSAGE_STREAM_DELAY, BackendService
-from dependencies.config import read_config
-from  routers import items, completion, readers, stream
+from dependencies.backend_service import BackendService
+from dependencies.config import read_config, read_env_config
+from routers import completion, items, readers, stream
 from utils import find
 
-logger = logging.getLogger("uvicorn.error")
-logger.setLevel(logging.DEBUG)
+# Read config
 
-logger.debug("Starting backend service")
+config = {}
+try:
+    config = read_config(
+        config_file_path=Path(os.environ.get("CONFIG_FILE")) if os.environ.get("CONFIG_FILE") else None
+    )
+except (FileNotFoundError, ValueError) as e:
+    logger.error(e.message)
 
-config = read_config()
+read_env_config(config)
+
+# Set up logging
+
+logger.add(
+    sys.stderr,
+    level=config.get("logging", {}).get("level", "ERROR"),
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+)
+logger.add(
+    os.path.join("logs", "backend.log"),
+    rotation="1 MB",
+    retention="7 days",
+    level=config.get("logging", {}).get("level", "DEBUG"),
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+)
+
+logger.info("Starting backend service")
+
+# Set up the FastAPI app
 
 
 def setup_middleware(app):
     frontend_config = config.get("frontend", {})
     origins = [
-        "http://localhost:5000",
-        "http://localhost:5002",
-        "http://localhost:5005",
-        "http://localhost:5173",
-        "http://localhost:8000",
-        "http://localhost",
-        "https://localhost",
-        "http://localhost:8080",
+        "*",
     ]
-    origins.append(
-        f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}"
-    )
+    origins.append(f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -58,20 +72,23 @@ async def lifespan(app: FastAPI):
     try:
         scan_topic = find(key := "mqtt.topics.scan", config)
     except (KeyError, TypeError) as e:
-        logger.error(
-            f"Error updating config key {key}, check config file and environment variables: {e}"
-        )
+        logger.error(f"Error updating config key {key}, check config file and environment variables: {e}")
     app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan/#")
     yield
     app.state.backend_service.close()
 
-if os.environ.get("RUN_MODE","") == "production":
+
+if os.environ.get("RUN_MODE", "") == "production":
     app = FastAPI(lifespan=lifespan, root_path="/api")
 else:
     app = FastAPI(lifespan=lifespan)
 
 app.include_router(readers.router)
 app.include_router(items.router)
-app.include_router(completion.router)
 app.include_router(stream.router)
+if find("features.openai", config):
+    app.include_router(completion.router)
+    logger.info("LLM features enabled")
+else:
+    logger.info("Handarbeit")
 setup_middleware(app)

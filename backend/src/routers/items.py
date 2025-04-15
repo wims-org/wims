@@ -1,17 +1,13 @@
-import logging
-
 import pydantic
 import pymongo
 from fastapi import APIRouter, HTTPException, Request
+from loguru import logger
 
 from database_connector import MongoDBConnector
 from models.database import Item
 from models.requests import ItemRequest
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
-
-logger = logging.getLogger("uvicorn.error")
-logger.setLevel(logging.DEBUG)
 
 
 def get_db(request: Request) -> MongoDBConnector:

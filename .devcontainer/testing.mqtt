@@ -1,4 +1,4 @@
-host=172.20.128.5
+host=localhost
 TopicLevel1=rfid
 TOPIC_FOO={{TopicLevel1}}/foo
 message=Hello, world!

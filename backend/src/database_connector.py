@@ -1,11 +1,8 @@
-import logging
 from typing import Any
 
+from loguru import logger
 from pymongo import MongoClient
 from pymongo.collection import Collection
-
-logger = logging.getLogger("uvicorn.error")
-logger.setLevel(logging.DEBUG)
 
 
 class MongoDBConnector:
@@ -51,6 +48,7 @@ class MongoDBConnector:
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]
         documents = collection.find(query or {}, projection={"_id": False})
+        logger.debug(f"Documents found: {documents}")
         return list(documents)
 
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:

@@ -2,7 +2,7 @@
 
 You might know your stuff, but do you know mine?
 
-_Where Is My Stuff_ is a makerspace-inventory-tool, meant to be used by a lot of people with no clue what is available and where.
+_Where Is My Stuff_ is a makerspace inventory tool designed for use by people who may not know what is available or where it is located.
 
 ## Architecture
 
@@ -24,19 +24,29 @@ graph TD
         subgraph MQTT
             D[MQTT Broker]
         end
+
+        subgraph Proxy
+            E[nginx]
+        end
     end
 
 
     subgraph Reader
-        E[MQTT Client]
+        M[MQTT Client]
+    end
 
+    subgraph Client
+        N[Web Client]
     end
 
 
     A --> |HTTP| B
     B --> |MongoDB| C
     B <--> |MQTT| D
-    E <--> |MQTT| D
+    M <--> |MQTT| D
+    N --> |HTTP| E
+    E -.-> |HTTP| A
+    E -.-> |HTTP| B
     B --> |Server Stream| A
 ```
 
@@ -68,105 +78,112 @@ sequenceDiagram
     Backend-->>Frontend: Response
     Frontend->>Frontend: Update UI with Item Details
 ```
+And there is a proxy somewhere.
 
-## Set up
-1. Copy backend config
+## Setup
+The provided `docker-compose.yml` includes all necessary startup configurations.
 
-    cp backend/src/config.dist.yml backend/src/config.yml
+1. Start with `docker compose up`.
 
-2. adapt `docker-compose.yml` `backend/src/config.yml` and `vue_frontend/.env.production` (for now) and start all containers with
+### Adapting Service Configuration
 
-    docker compose up -d
+1. Copy the backend configuration: `cp docker/config.dist.yml docker/config.yml`.
+2. Make changes to `config.yml`.
+3. Use `config.yml` in the backend service mount.
 
-visit frontend, check backend connection ( default [172.19.128.1:5000] )
+Visit the frontend and check the backend connection (default: [localhost:8080]).
+
+## Development
+
+To start developing, use the provided devcontainer. Configure the backend service in `backend/src/config.yml`. Note the linked `config.dist.yml` file in the `/docker` folder.
+
+Start the backend and frontend services using `.vscode/launch.json`.
 
 ## Use Cases:
 
+* Storing items
+* Finding items
+* Analysis
 
-* Einlagern
+### Administrative:
 
-* Finden
+* Bulk item storage:
 
-* Analyse
+    Using LLMs (e.g., ChatGPT) to pre-fill fields:
 
+    * Item:
+        - Name, ID, Storage Location, Tags/Category
+        - Container TAG ID: uuid
+        - Short Name: str
+        - Description
+        - Amount
+        - Category/Tags
+        - Image[]
+        - Storage Location
+        - Storage Location Tag ID
+        - Current Location
+        - Borrowed by
+        - Cost per Item
+        - Manufacturer
+        - Model Number
+        - UPC, ASIN
+        - Serial Number
+        - Vendor
+        - Shop URL
+        - Container Size
+        - Consumable: bool
+        - Documentation
 
-### Administrativ:
+    * User:
+        - ID
+        - Name
+        - Permissions?
 
-* Viele Dinge einlagern:
+* Dashboard:
 
-    Unter Zuhilfenahme von LLM (ChatGPT) vorausgefüllte Felder
+    Show items with 0 quantity.
 
-    * Item
-    Name, ID, Lagerort, Tags/Kategorie
-        
-        *Container TAG ID: uuid
-        *Short Name: str
-        Description
-        *Amount	
-        *Category/Tags
-        Image[]
-        Storage Location	
-        Storage Location Tag ID	
-        Current Location	
-        borrowed by	
-        Cost per Item
-        Manufacturer	
-        Model Number	
-        UPC	ASIN	
-        Serial Number	
-        Vendor	
-        Shop URL	
-        Container Size
-        Consumable bool
-        Documentation
+* Attribute Update Feature:
 
-    * User
+    Update item attributes like amount, price, location, etc.
 
-        ID
-        Name
-        Permissions?
+### Daily Usage:
 
+* Access Frontend:
+    * Prerequisites:
+        - Currently requires local WLAN.
+        - Internet support planned for later.
+    * Access Methods:
+        - Scan QR Code of a generic reader (session bound to reader, anonymous).
+        - Scan QR Code of a personal reader (session bound to a specific user and reader).
 
-* Dashboard
-    
-    show 0 Amount
+        - Scan NFC Tag:
+            - Generic Tag (just opens the frontend).
+            - Personal Tag (direct user login via URL + user_id).
 
-* Attribute-Update Feature
+* Login:
+    * QR Code Photo:
+        - Username?
 
-### Daily Usage
+    * Read NFC tag from Android phone (currently too complex).
 
-* Access Frontend
-    * prerequisites
-        * for now Local WLAN
-        * internet later
-    * Access Frontend
-        * Scan QR Code of generic Reader (session bound to reader, anonymous)
-        * Scan QR Code of personal Reader (session bound to personal reader and specific user)
+* Search Inventory:
 
-        * Scan NFC Tag
-            * Generic Tag (just opens frontend)
-            * Personal Tag (direct user login) (url+user_id)
+* Find & Use / Borrow Items:
 
+    Update the "borrowed by" field.
 
-* Login 
-    * QR Code Photo
-        * Username?
+* **Update Values**:
 
-    * read Android Phone nfc tag  (too hard for now)
+    Update item amount, price, location, etc.
 
-* Inventar durchsuchen 
+* Delete/Archive Items:
 
-* Finden & Nutzen / Item Auslagern (borrowed by)
-
-* **Update Values**
-
-    update item amount, price tag, location etc
-
-* Delete/Archive
+    Remove or archive items.
 
 ### Future Features:
-* generate ebay 
-* automatische ToDos
-    * bestellen
-    * aufräumen überfällig
-* Sport / Decathlon Reader
+* Generate eBay listings.
+* Automatic To-Dos:
+    - Restocking.
+    - Cleaning overdue items.
+* Sports/Decathlon Reader integration.

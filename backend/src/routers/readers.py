@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from loguru import logger
 from pydantic import BaseModel
 
 from database_connector import MongoDBConnector
@@ -17,6 +18,7 @@ def get_db(request: Request) -> MongoDBConnector:
 
 @router.get("/", response_model=list[Reader])
 async def get_readers(request: Request):
+    logger.debug("Fetching all readers")
     readers = list(get_db(request).read("readers"))
     return readers
 

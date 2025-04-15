@@ -20,12 +20,14 @@
                 "--reload",
                 "--timeout-graceful-shutdown",
                 "0"
+                
             ],
             "jinja": true,
             "consoleTitle": "Python: FastAPI",
             "env": {
             //    "LLM_ENVIRONMENT": "development"
-             "LLM_ENVIRONMENT": "production"
+             "LLM_ENVIRONMENT": "production",
+             "CONFIG_FILE": "${workspaceFolder}/backend/src/configs/config.yaml"
             }
         },
         {

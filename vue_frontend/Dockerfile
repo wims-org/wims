@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Command to run the application
-RUN npm run build
+RUN npm run build --prod 
 
 FROM nginx:alpine
 COPY --from=builder /app/dist/ /app
