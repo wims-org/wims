@@ -33,7 +33,7 @@ async def put_item(request: Request):
         return {"message": "Failed to update item"}
 
 
-@router.post("/")
+@router.post("")
 async def post_item(request: Request):
     # create item
     item = await request.json()
@@ -84,7 +84,7 @@ async def get_item(request: Request, rfid: str):
         raise HTTPException(status_code=404, detail="Item not found")
 
 
-@router.get("/")
+@router.get("")
 async def get_items(request: Request, query: str = None):
     if query:
         items = get_db(request).read(
@@ -109,7 +109,7 @@ async def get_items(request: Request, query: str = None):
 
 
 # dont look to closely at this
-@router.patch("/")
+@router.patch("")
 async def patch_items(request: Request):
     items = get_db(request).read(collection_name="items")
     for item_data in items:

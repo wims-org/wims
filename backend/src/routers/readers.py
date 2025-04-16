@@ -16,7 +16,7 @@ def get_db(request: Request) -> MongoDBConnector:
     return request.app.state.backend_service.db
 
 
-@router.get("/", response_model=list[Reader])
+@router.get("", response_model=list[Reader])
 async def get_readers(request: Request):
     logger.debug("Fetching all readers")
     readers = list(get_db(request).read("readers"))
@@ -31,7 +31,7 @@ async def read_user(request: Request, reader_id: str):
     return reader
 
 
-@router.post("/", response_model=Reader)
+@router.post("", response_model=Reader)
 async def create_reader(request: Request, reader: Reader):
     res = get_db(request).create("readers", reader.model_dump(mode="dict"))
     return reader if res else None

@@ -10,7 +10,7 @@ from dependencies.backend_service import MESSAGE_STREAM_DELAY, Event
 router = APIRouter(prefix="/stream", tags=["stream"], responses={404: {"description": "Not found"}})
 
 
-@router.get("/")
+@router.get("")
 async def message_stream(request: Request, reader: str):
     logger.debug(f"Message stream {request}, {reader}")
     request.app.state.backend_service.readers[reader] = []
