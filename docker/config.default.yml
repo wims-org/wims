@@ -21,4 +21,3 @@ mqtt:
 
 logging:
     level: "INFO"
-    file: "/var/log/backend_service.log"

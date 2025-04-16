@@ -18,9 +18,9 @@ mqtt:
     topics:
         scan: "rfid/scan/#"
         result: "rfid/itemdata"
+        
 logging:
     level: "INFO"
-    file: "/var/log/backend_service.log"
 
 features:
     openai:

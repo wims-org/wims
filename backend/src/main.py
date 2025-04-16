@@ -25,25 +25,9 @@ except (FileNotFoundError, ValueError) as e:
 
 read_env_config(config)
 
-# Set up logging
-
-logger.add(
-    sys.stderr,
-    level=config.get("logging", {}).get("level", "ERROR"),
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-)
-logger.add(
-    os.path.join("logs", "backend.log"),
-    rotation="1 MB",
-    retention="7 days",
-    level=config.get("logging", {}).get("level", "DEBUG"),
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-)
-
 logger.info("Starting backend service")
 
 # Set up the FastAPI app
-
 
 def setup_middleware(app):
     frontend_config = config.get("frontend", {})
