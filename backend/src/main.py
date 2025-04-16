@@ -10,7 +10,7 @@ from loguru import logger
 # Use absolute import
 from dependencies.backend_service import BackendService
 from dependencies.config import read_config, read_env_config
-from routers import completion, items, readers, stream
+from routers import completion, items, readers, stream, healthz
 from utils import find
 
 # Read config
@@ -86,6 +86,8 @@ else:
 app.include_router(readers.router)
 app.include_router(items.router)
 app.include_router(stream.router)
+app.include_router(healthz.router)
+
 if find("features.openai", config):
     app.include_router(completion.router)
     logger.info("LLM features enabled")
