@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
 router = APIRouter(prefix="/healthz", tags=["healthz"])

@@ -27,7 +27,7 @@
             "env": {
             //    "LLM_ENVIRONMENT": "development"
              "LLM_ENVIRONMENT": "production",
-             "CONFIG_FILE": "${workspaceFolder}/backend/src/configs/config.yaml"
+             "CONFIG_FILE": "${workspaceFolder}/backend/src/config.yml"
             }
         },
         {

@@ -1,7 +1,5 @@
 import os
-import sys
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,25 +7,18 @@ from loguru import logger
 
 # Use absolute import
 from dependencies.backend_service import BackendService
-from dependencies.config import read_config, read_env_config
-from routers import completion, items, readers, stream, healthz
+from dependencies.config import read_config
+from routers import completion, healthz, items, readers, stream
 from utils import find
 
 # Read config
 
-config = {}
-try:
-    config = read_config(
-        config_file_path=Path(os.environ.get("CONFIG_FILE")) if os.environ.get("CONFIG_FILE") else None
-    )
-except (FileNotFoundError, ValueError) as e:
-    logger.error(e.message)
-
-read_env_config(config)
+config = read_config()
 
 logger.info("Starting backend service")
 
 # Set up the FastAPI app
+
 
 def setup_middleware(app):
     frontend_config = config.get("frontend", {})
