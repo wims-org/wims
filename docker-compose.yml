@@ -5,22 +5,28 @@ services:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
       - 8080:80
+    depends_on:
+      - frontend
+      - backend
 
   frontend:
     image: kailus.dev/edreesen/inventory-manager-frontend:main
-    # build: ./vue_frontend
-
+    build: ./vue_frontend
+    depends_on:
+      - backend
+  
   backend:
     image: kailus.dev/edreesen/inventory-manager-backend:main
-    # build: ./backend
+    build: ./backend
     depends_on:
       - db
+      - mqtt
+    volumes:
+      - ./docker/config.default.yml:/app/src/config.yml:ro
+      - ./docker/logs:/app/src/logs
     environment:
-      - mqtt.broker.host=mqtt
-      - mqtt.broker.port=1883
       - mqtt.broker.username=admin
       - mqtt.broker.password=1234
-      - database.host=db
       - database.user=root
       - database.password=example
       - RUN_MODE=production

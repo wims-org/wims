@@ -1,16 +1,16 @@
-import json
 import asyncio
-from fastapi import APIRouter, Request
-from sse_starlette.sse import EventSourceResponse
-from dependencies.backend_service import MESSAGE_STREAM_DELAY, Event
-import logging
+import json
 
-logger = logging.getLogger("uvicorn.error")
-logger.setLevel(logging.DEBUG)
+from fastapi import APIRouter, Request
+from loguru import logger
+from sse_starlette.sse import EventSourceResponse
+
+from dependencies.backend_service import MESSAGE_STREAM_DELAY, Event
 
 router = APIRouter(prefix="/stream", tags=["stream"], responses={404: {"description": "Not found"}})
 
-@router.get("/")
+
+@router.get("")
 async def message_stream(request: Request, reader: str):
     logger.debug(f"Message stream {request}, {reader}")
     request.app.state.backend_service.readers[reader] = []
@@ -28,7 +28,7 @@ async def message_stream(request: Request, reader: str):
                 message = request.app.state.backend_service.readers[reader].pop(0)
                 if message["event"] != Event.ALIVE.value:
                     logger.debug(f"Sending message: {message}")
-                message['data'] = json.dumps(message['data'])
+                message["data"] = json.dumps(message["data"])
                 yield message
             await asyncio.sleep(MESSAGE_STREAM_DELAY)
 
