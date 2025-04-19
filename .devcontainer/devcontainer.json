@@ -10,7 +10,8 @@
   "service": "devcontainer",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=inventory-commandhistory,target=/commandhistory,type=volume"
     //"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
     //"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
   ],
@@ -43,7 +44,8 @@
         "yzhang.markdown-all-in-one",
         "be5invis.toml",
         "bierner.markdown-mermaid",
-        "zeshuaro.vscode-python-poetry"
+        "zeshuaro.vscode-python-poetry",
+        "ms-playwright.playwright"
       ]
     }
   },
@@ -58,7 +60,9 @@
     }
   },
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "",
+  "postCreateCommand": {
+    "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory"
+  }
   // "remoteUser": "root"
   // uncomment if any errors occur in one of the services
   // "runServices": ["devcontainer"]
