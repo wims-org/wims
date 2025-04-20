@@ -21,20 +21,36 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - uses: actions/setup-node@v4
+      working-directory: ./integration
       with:
         node-version: lts/*
 
     - name: Install dependencies
       run: npm ci
+      working-directory: ./integration
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+      working-directory: ./integration
 
     - name: Run Playwright tests
       run: npx playwright test
+      working-directory: ./integration
+
+    - name: Capture Docker Compose Logs
+      if: failure() # Only capture logs if the tests fail
+      run: |
+        docker compose -f ./integration/docker-compose.tests.yml logs --no-log-prefix > ./integration/docker-compose-logs.txt || echo "Failed to capture logs." > ./integration/docker-compose-logs.txt
+
+    - uses: actions/upload-artifact@v4
+      if: failure() # Only upload logs if the tests fail
+      with:
+        name: docker-compose-logs
+        path: ./integration/docker-compose-logs.txt
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
+      working-directory: ./integration
       with:
         name: playwright-report
         path: playwright-report/

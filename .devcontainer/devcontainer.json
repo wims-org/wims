@@ -61,7 +61,8 @@
   },
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": {
-    "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory"
+    "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
+    "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock"
   }
   // "remoteUser": "root"
   // uncomment if any errors occur in one of the services

@@ -10,16 +10,21 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requ
 # Install additional OS packages
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
-    docker.io \ 
+    curl \
     npm \
     libx11-6 libxcomposite1 libxrandr2 libxdamage1 libxext6 libxfixes3 libxcb1 libxkbcommon0 libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1-mesa libgbm1 libgtk-3-0 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install Docker and Docker Compose plugin
+RUN curl -fsSL https://get.docker.com | bash \
+    && curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
+
 # Add the current user to the Docker group
-RUN sudo usermod -aG docker $(whoami)
+ARG USERNAME=vscode
+RUN groupadd -f docker && usermod -aG docker,users $USERNAME
 
 # bash history
-ARG USERNAME=vscode
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     && mkdir /commandhistory \
     && touch /commandhistory/.bash_history \

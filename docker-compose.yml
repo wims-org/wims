@@ -23,7 +23,6 @@ services:
       - mqtt
     volumes:
       - ./docker/config.default.yml:/app/src/config.yml:ro
-      - ./docker/logs:/app/src/logs
     environment:
       - mqtt.broker.username=admin
       - mqtt.broker.password=1234

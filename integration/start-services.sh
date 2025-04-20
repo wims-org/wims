@@ -1,4 +1,4 @@
-#!bash
+#/bin/bash
 
 cleanup() {
   echo "Stopping services..."
@@ -8,12 +8,15 @@ cleanup() {
 # Trap EXIT signal to clean up background processes
 trap cleanup EXIT
 
+# run in Docker:
 if [ "$CI" = "true" ]; then
     echo "CI environment detected. Starting services with Docker Compose..."
-    (docker compose -f ../docker-compose.yml -f docker-compose.tests.yml up) &
+    (docker compose -f ../docker-compose.yml -f docker-compose.tests.yml up --build) &
 else
-    (cd ../inventory/backend/src && uvicorn main:app --host 0.0.0.0 --port 5005) &
-    (cd ../inventory/vue_frontend && npm run dev) &
-fi
+
+# or run native:
+    (cd ../backend/src && poetry run uvicorn main:app --host 0.0.0.0 --port 5005) &
+    (cd ../vue_frontend && npm run dev) &
+fi 
 
 wait
