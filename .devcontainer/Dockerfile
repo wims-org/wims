@@ -11,9 +11,13 @@ RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requ
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     curl \
-    npm \
-    libx11-6 libxcomposite1 libxrandr2 libxdamage1 libxext6 libxfixes3 libxcb1 libxkbcommon0 libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1-mesa libgbm1 libgtk-3-0 \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    npm
+
+# Install playwright dependencies for wayland
+RUN apt-get -y install --no-install-recommends libx11-6 libxcomposite1 libxrandr2 libxdamage1 libxext6 libxfixes3 \
+    libxcb1 libxkbcommon0 libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1-mesa libgbm1 libgtk-3-0 
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Docker and Docker Compose plugin
 RUN curl -fsSL https://get.docker.com | bash \
@@ -35,7 +39,7 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 COPY ./vue_frontend /workspace/vue_frontend
 RUN cd /workspace/vue_frontend && npm install
 COPY ./integration /workspace/integration
-RUN cd /workspace/integration && npm install && npx playwright install && npx playwright install-deps
+RUN cd /workspace/integration && npm install && npx playwright install --with-deps && npx playwright install-deps
 
 # Install Python backend dependencies
 WORKDIR /workspace

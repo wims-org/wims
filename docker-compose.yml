@@ -14,7 +14,7 @@ services:
     build: ./vue_frontend
     depends_on:
       - backend
-  
+
   backend:
     image: kailus.dev/edreesen/inventory-manager-backend:main
     build: ./backend
@@ -40,7 +40,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  mqtt: 
+  mqtt:
     image: eclipse-mosquitto:latest
     restart: unless-stopped
     volumes:

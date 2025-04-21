@@ -4,7 +4,7 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const frontendURL = process.env.CI ? "https://localhost:8080" : "http://localhost:5173";
+const frontendURL = process.env.CI ? "http://localhost:8080" : "http://localhost:5173";
 
 export default defineConfig({
   testDir: "./tests",
@@ -15,7 +15,6 @@ export default defineConfig({
   reporter: "html",
   use: {
     baseURL: frontendURL,
-    trace: "on-first-retry",
   },
   projects: [
     {
@@ -31,10 +30,4 @@ export default defineConfig({
       use: { ...devices["Desktop Safari"] },
     },
   ],
-  webServer: {
-    command: "./start-services.sh",
-    url: frontendURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 10 * 1000,
-  },
 });
