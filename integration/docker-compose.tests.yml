@@ -13,6 +13,11 @@ services:
 
   db:
     volumes:
-      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
+      # Reset the volume each restart
+      - type: tmpfs
+        target: /data/db
+        tmpfs:
+          mode: 0777      
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/f_init-mongo-db-with-items.js:ro
     ports:
       - 27017:27017

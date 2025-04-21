@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
-      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/a_setup_database.js:ro
+      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/e_setup_database.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example

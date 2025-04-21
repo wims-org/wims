@@ -9,12 +9,12 @@ cleanup() {
 trap cleanup EXIT
 
 # run in Docker:
-if [ "$CI" = "true" ]; then
-    echo "CI environment detected. Starting services with Docker Compose..."
-    (docker compose -f ../docker-compose.yml -f docker-compose.tests.yml up --build) &
+if [ "$CI" = "true" ] || [ "$CONTAINERIZED" = "true" ]; then
+    # Check if frontend is reachable
+    echo "Container mode."
 else
-
-# or run native:
+    # or run native:
+    echo "Native mode."
     (cd ../backend/src && poetry run uvicorn main:app --host 0.0.0.0 --port 5005) &
     (cd ../vue_frontend && npm run dev) &
 fi 

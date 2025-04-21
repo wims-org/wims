@@ -47,9 +47,9 @@ class MongoDBConnector:
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]
-        documents = collection.find(query or {}, projection={"_id": False})
+        documents = list(collection.find(query or {}, projection={"_id": False}))
         logger.debug(f"Documents found: {documents}")
-        return list(documents)
+        return documents
 
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
         collection: Collection = self.db[collection_name]

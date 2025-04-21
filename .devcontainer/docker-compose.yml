@@ -28,7 +28,7 @@ services:
 
   db:
     volumes:
-      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/a_init-mongo-db-with-items.js:ro
     ports:
       - 27017:27017
 

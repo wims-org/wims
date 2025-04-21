@@ -66,7 +66,7 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
   try {
     isComparing.value = false;
     if (newItem.value) {
-      await axios.post('/items/', formData);
+      await axios.post('/items', formData);
       alert('Item created successfully');
     } else {
       await axios.put(`/items/${itemId.value}`, formData);

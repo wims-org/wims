@@ -4,6 +4,10 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
+  pull_request_target:
+    branches: [ main, dev ]
+
+
 jobs:
   test:
     timeout-minutes: 60
@@ -15,7 +19,6 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - uses: actions/setup-node@v4
-      working-directory: ./integration
       with:
         node-version: lts/*
 
@@ -27,14 +30,14 @@ jobs:
       run: npx playwright install --with-deps
       working-directory: ./integration
 
-    - name: Run Playwright tests
+    - name: integration-tests
       run: npx playwright test
       working-directory: ./integration
 
     - name: Capture Docker Compose Logs
-      if: failure() # Only capture logs if the tests fail
+      if: failure()
       run: |
-        docker compose -f ./integration/docker-compose.tests.yml logs > ./integration/docker-compose-logs.txt || echo "Failed to capture logs." > ./integration/docker-compose-logs.txt
+        docker compose -f ./integration/docker-compose.tests.yml logs || echo "Failed to capture logs." > ./integration/docker-compose-logs.txt
 
     - uses: actions/upload-artifact@v4
       if: failure() # Only upload logs if the tests fail
@@ -44,8 +47,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
-      working-directory: ./integration
       with:
         name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+        path: ./integration/playwright-report/
+        retention-days: 7

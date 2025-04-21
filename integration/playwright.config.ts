@@ -30,4 +30,9 @@ export default defineConfig({
       use: { ...devices["Desktop Safari"] },
     },
   ],
+  // webServer: {
+  //   command: "./scripts/start.sh",
+  //   port: 5173,
+  //   reuseExistingServer: !process.env.CI,
+  // },
 });

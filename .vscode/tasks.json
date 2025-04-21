@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker Compose Up",
+            "type": "shell",
+            "command": "docker-compose",
+            "args": [
+                "-f",
+                "docker-compose.yml",
+                "up",
+                "--build"
+            ],
+            "detail": "Runs Docker Compose and builds the services."
+        },
+        {
+            "label": "Docker Compose Up with Tests",
+            "type": "shell",
+            "command": "docker-compose",
+            "args": [
+                "-f",
+                "docker-compose.yml",
+                "-f",
+                "integration/docker-compose.tests.yml",
+                "up",
+                "--build"
+            ],
+            "detail": "Runs Docker Compose with tests and builds the services."
+        }
+    ]
+}

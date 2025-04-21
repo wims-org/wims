@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: FastAPI",
+      "name": "backend",
       "type": "debugpy",
       "python": "${workspaceFolder}/backend/.venv/bin/python",
       "request": "launch",
@@ -30,7 +30,7 @@
       }
     },
     {
-      "name": "Vue: npm run dev",
+      "name": "frontend",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/vue_frontend",
@@ -40,14 +40,22 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "Run Playwright Tests",
+      "name": "integration-tests",
       "type": "node",
       "request": "launch",
+      "preLaunchTask": "Docker Compose Up with Tests",
       "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",
       "args": [ "playwright", "test", "--ui" ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "build-services",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "Docker Compose Up",
+      "platform": "node",
     }
   ]
 }

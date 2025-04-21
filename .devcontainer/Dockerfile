@@ -24,6 +24,7 @@ RUN curl -fsSL https://get.docker.com | bash \
     && curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
+USER vscode
 # Add the current user to the Docker group
 ARG USERNAME=vscode
 RUN groupadd -f docker && usermod -aG docker,users $USERNAME
@@ -38,8 +39,6 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 # Install Node.js dependencies
 COPY ./vue_frontend /workspace/vue_frontend
 RUN cd /workspace/vue_frontend && npm install
-COPY ./integration /workspace/integration
-RUN cd /workspace/integration && npm install && npx playwright install --with-deps && npx playwright install-deps
 
 # Install Python backend dependencies
 WORKDIR /workspace
