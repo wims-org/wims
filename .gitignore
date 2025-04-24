@@ -1,5 +1,1 @@
-.envrc
-shell.nix
-.direnv/
-__pycache__/
-backend/src/config.yml
+/.pre-commit-config.yaml
