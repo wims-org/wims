@@ -43,6 +43,19 @@
       "name": "integration-tests",
       "type": "node",
       "request": "launch",
+      "cwd": "${workspaceFolder}/integration",
+      "runtimeExecutable": "npx",
+      "env": {
+        "CI": "false",
+      },
+      "args": [ "playwright", "test", "--ui" ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "integration-tests-docker",
+      "type": "node",
+      "request": "launch",
       "preLaunchTask": "Docker Compose Up with Tests",
       "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",

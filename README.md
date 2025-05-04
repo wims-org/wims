@@ -47,7 +47,10 @@ Then start the backend and frontend services using the provided profiles in `.vs
 
 To run full integration tests of all services together using playwright, you have multiple options:
 
-1. Native (might be useful for debugging or bugged docker setups):  
+1. Manual Native Services (Recommended atm):  
+   + run `cd integration && npx playwright install --with-deps`
+   + run the "backend" "frontend" and "integration-tests" launch command
+1. Native (might be useful for debugging or bugged docker setups) (**WIP**):
    + run the "integration-tests" launch command *or*
    ```sh {interactive=true}
    docker compose -f docker-compose.yml -f integration/docker-compose.tests.yml up --build --force-recreate

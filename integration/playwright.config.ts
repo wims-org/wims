@@ -4,7 +4,7 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const frontendURL = process.env.CI ? "http://localhost:8080" : "http://localhost:5173";
+const frontendURL = process.env.CI == "true" ? "http://localhost:8080" : "http://localhost:5173";
 
 export default defineConfig({
   testDir: "./tests",
