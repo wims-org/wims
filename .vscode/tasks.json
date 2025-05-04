@@ -23,7 +23,7 @@
                 "-f",
                 "integration/docker-compose.tests.yml",
                 "up",
-                "--build"
+                "--build",
             ],
             "detail": "Runs Docker Compose with tests and builds the services."
         }

@@ -18,29 +18,22 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-
-    - name: Install dependencies
-      run: npm ci
-      working-directory: ./integration
-
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-      working-directory: ./integration
-
-    - name: integration-tests
-      run: npx playwright test
-      working-directory: ./integration
+    - name: Run Playwright Tests Container
+      run: |
+        docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml up --build --abort-on-container-exit
 
     - name: Capture Docker Compose Logs
-      if: failure()
+      if: always() # Ensure logs are captured regardless of success or failure
       run: |
-        docker compose -f ./integration/docker-compose.tests.yml logs || echo "Failed to capture logs." > ./integration/docker-compose-logs.txt
+        docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml logs > ./integration/docker-compose-logs.txt || echo "Failed to capture logs."
+
+    - name: Cleanup Docker Compose
+      if: always()
+      run: |
+        docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml down
 
     - uses: actions/upload-artifact@v4
-      if: failure() # Only upload logs if the tests fail
+      if:  always()
       with:
         name: docker-compose-logs
         path: ./integration/docker-compose-logs.txt

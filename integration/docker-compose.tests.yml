@@ -4,12 +4,16 @@ services:
     volumes:
     - ./integration/tests:/workspaces/integration/tests:ro,cached # todo: this mount is empty?
     working_dir: /workspaces/integration
-    entrypoint: ["npx", "playwright", "test"]
+    entrypoint: ["npm", "i", "@playwright/test", "&&", "npx", "playwright", "install", "&&", "npx", "playwright", "test"]
 
     depends_on:
       - proxy
       - frontend
       - backend
+
+  backend:
+    volumes:
+      - ./integration/config.backend.test.yml:/app/src/config.yml:ro
 
   db:
     volumes:
