@@ -1,8 +1,8 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="array-field">
     <label :for="name">{{ label }}</label>
-    <div class="pills-container">
-      <span v-for="(item, index) in value" :key="index" class="pill">
+    <div class="pills-container" data-testid="pills-container">
+      <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
         {{ item }}
         <button type="button" @click="removeItem(index)" class="pill-remove">&times;</button>
       </span>

@@ -1,5 +1,5 @@
 <template>
-  <div class="image-thumbnail-field p-2">
+  <div class="image-thumbnail-field p-2" data-testid="image-thumbnail-field">
     <label :for="name">{{ label }}</label>
     <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
       <div

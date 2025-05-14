@@ -1,6 +1,5 @@
-
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="text-area-field">
     <label :for="name">{{ label }}</label>
     <textarea
       :name="name"
@@ -14,7 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'TextAreaField',
@@ -44,9 +43,9 @@ export default defineComponent({
   emits: ['update:value'],
   methods: {
     updateField(event: Event) {
-      const target = event.target as HTMLTextAreaElement;
-      this.$emit('update:value', target.value);
+      const target = event.target as HTMLTextAreaElement
+      this.$emit('update:value', target.value)
     },
   },
-});
+})
 </script>

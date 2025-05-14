@@ -58,7 +58,7 @@ test.describe("Root View", () => {
     expect(updatedListLength).toBe(initialListLength + 1);
  
     // Verify the list length has decreased by 1
-    await newReader.getByRole("button", { name: "Delete" }).click();
+    await newReader.getByRole("button", { name: "Delete" }).click()
     await page.waitForTimeout(100); // Wait for the reader to be deleted
     updatedListLength = await page.getByTestId("reader-item").count();
     expect(updatedListLength).toBe(initialListLength);

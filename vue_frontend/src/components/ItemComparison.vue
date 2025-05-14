@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-5" ref="itemForm">
-    <button @click="toggleDetails" class="btn btn-secondary mb-3">
+    <button @click="toggleDetails" class="btn btn-secondary mb-3" data-testid="toggle-details-button">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
     <h1 class="mb-4">Compare {{ item_org.short_name }}</h1>

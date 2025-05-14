@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="text-area-field">
     <label :for="name">{{ label }}</label>
     <textarea
       :name="name"

@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="number-field">
     <label :for="name">{{ label }}</label>
     <input
       type="number"
@@ -10,6 +10,7 @@
       @input="updateField"
       class="form-control"
       :class="{ 'is-invalid': required && !value }"
+      
     />
   </div>
 </template>

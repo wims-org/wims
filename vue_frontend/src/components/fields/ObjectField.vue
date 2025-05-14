@@ -1,12 +1,13 @@
 <template>
   <div>
     <label :for="name">{{ label }}</label>
-    <div class="card p-3">
+    <div class="card p-3" data-testid="object-field">
       <div
         v-for="(subValue, subKey) in value"
         :key="subKey"
         class="form-group"
         v-show="subValue !== null && subValue !== undefined"
+        data-testid="object-field-text-field"
       >
         <label :for="`${name}-${subKey}`">{{ subKey }}</label>
         <input
