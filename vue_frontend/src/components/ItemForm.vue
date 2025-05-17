@@ -1,17 +1,21 @@
 <template>
   <div class="container mt-5" ref="itemForm">
+    <!-- Sticky Note -->
+    <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
+
     <div class="row mb-3">
       <button
         @click="toggleDetails"
+        type="button"
         class="btn btn-secondary mt-3 mr-auto"
         data-testid="toggle-details-button"
       >
         {{ showDetails ? 'Hide Details' : 'Show Details' }}
       </button>
-      <button @click="handleSubmit" class="btn btn-primary mt-3">Submit</button>
+      <button @click="handleSubmit" type="submit" class="btn btn-primary mt-3">Submit</button>
     </div>
     <h1 class="mb-4">{{ item.short_name }}</h1>
-    <form v-if="item && formData" @submit.prevent="handleSubmit">
+    <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
       <component
         v-for="(field, key) in formFields"
         :is="getFieldComponent(field.type)"
@@ -50,6 +54,8 @@ import ArrayField from '@/components/fields/ArrayField.vue'
 import ModalField from '@/components/fields/ModalField.vue'
 import NumberField from '@/components/fields/NumberField.vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
+import ItemField from '@/components/fields/ItemField.vue'
+import { fieldTypeToComponent } from '@/utils/form.helper'
 
 export default defineComponent({
   name: 'ItemForm',
@@ -62,6 +68,7 @@ export default defineComponent({
     ArrayField,
     ModalField,
     NumberField,
+    ItemField,
     ImageThumbnailField,
   },
   props: {
@@ -76,11 +83,13 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const formData = ref<{ [x: string]: unknown | undefined }>({ ...props.item }) // form data is the live data in the form
+    const unsavedChanges = ref(false)
 
     watch(
       () => props.item,
       (newItem) => {
         formData.value = { ...newItem }
+        unsavedChanges.value = false // Reset unsaved changes when item prop changes
       },
       { immediate: true, deep: true },
     )
@@ -93,29 +102,12 @@ export default defineComponent({
 
     const handleSubmit = () => {
       emit('submit', formData.value)
-      formFields.container.type = 'object' // After saving, the container will be fetched
+      unsavedChanges.value = false // Mark changes as saved
     }
 
-    const getFieldComponent = (type: string) => {
-      switch (type) {
-        case 'textarea':
-          return 'TextAreaField'
-        case 'object':
-          return 'ObjectField'
-        case 'loading':
-          return 'LoadingField'
-        case 'checkbox':
-          return 'CheckboxField'
-        case 'array':
-          return 'ArrayField'
-        case 'uuid':
-          return 'ModalField'
-        case 'number':
-          return 'NumberField'
-        case 'images':
-          return 'ImageThumbnailField'
-        default:
-          return 'TextField'
+    const preventEnterKey = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        event.preventDefault()
       }
     }
 
@@ -134,6 +126,10 @@ export default defineComponent({
       return formData.value[key]
     }
 
+    const getFieldComponent = (type: string) => {
+      return fieldTypeToComponent(type)
+    }
+
     const updateFieldModel = (value: unknown, key: string, type: string) => {
       if (type === 'checkbox') {
         formData.value[key] = Boolean(value)
@@ -142,11 +138,11 @@ export default defineComponent({
       } else if (type === 'number') {
         formData.value[key] = Number(value)
       } else if (type === 'array') {
-        formData.value[key] = (value as string).split(',|;').map((item) => item.trim())
+        formData.value[key] = value
       } else {
-        // text uuid object
         formData.value[key] = value
       }
+      unsavedChanges.value = true // Mark changes as unsaved
     }
 
     const removeImage = (index: number) => {
@@ -160,10 +156,12 @@ export default defineComponent({
       showDetails,
       toggleDetails,
       handleSubmit,
+      preventEnterKey,
       getFieldComponent,
       getFieldModel,
       updateFieldModel,
       removeImage,
+      unsavedChanges,
     }
   },
 })
@@ -172,5 +170,19 @@ export default defineComponent({
 <style scoped>
 .sub-fields {
   margin-left: 20px;
+}
+
+.sticky-note {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: red;
+  color: white;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
 </style>

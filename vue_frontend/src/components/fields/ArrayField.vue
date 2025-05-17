@@ -8,20 +8,21 @@
       </span>
     </div>
     <input
+      v-if="!disabled"
       type="text"
       v-model="newItem"
       :disabled="disabled"
-      @keyup.enter="addItem"
+      @keyup.enter="addItem()"
       class="form-control"
       placeholder="Add item"
       :required="!value.length && required"
-        />
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import type { PropType } from 'vue';
+import { defineComponent, ref } from 'vue'
+import type { PropType } from 'vue'
 
 export default defineComponent({
   name: 'ArrayField',
@@ -50,28 +51,34 @@ export default defineComponent({
   },
   emits: ['update:value'],
   setup(props, { emit }) {
-    const newItem = ref('');
+    const newItem = ref('')
 
     const addItem = () => {
       if (newItem.value.trim() !== '') {
-        emit('update:value', [...props.value, newItem.value.trim()]);
-        newItem.value = '';
+        emit('update:value', [
+          ...props.value,
+          ...newItem.value
+            .trim()
+            .split(new RegExp(',|;'))
+            .map((item) => item.trim()),
+        ])
+        newItem.value = ''
       }
-    };
+    }
 
     const removeItem = (index: number) => {
-      const newValue = [...props.value];
-      newValue.splice(index, 1);
-      emit('update:value', newValue);
-    };
+      const newValue = [...props.value]
+      newValue.splice(index, 1)
+      emit('update:value', newValue)
+    }
 
     return {
       newItem,
       addItem,
       removeItem,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped>

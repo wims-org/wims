@@ -18,8 +18,8 @@
           capture="environment"
           @change="uploadPhoto"
         />
-        <button class="btn btn-secondary" @click="clearFileInput">Clear File</button>
-        <button class="btn btn-primary" @click="fetchIdentification()">Start Identification</button>
+        <button type="button" class="btn btn-secondary" @click="clearFileInput">Clear File</button>
+        <button type="button" class="btn btn-primary" @click="fetchIdentification()">Start Identification</button>
       </div>
     <div class="row mt-3">
       <ImageThumbnailField

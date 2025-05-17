@@ -9,7 +9,7 @@
         @click="openImageModal(image)"
       >
         <img :src="image" class="thumbnail" alt="Image Thumbnail" />
-        <button class="remove-btn" @click.stop="removeImage(index)">
+        <button type="button" class="remove-btn" @click.stop="removeImage(index)">
           <font-awesome-icon icon="times" />
         </button>
       </div>
@@ -17,7 +17,7 @@
         <font-awesome-icon icon="camera" size="xl" />
         <p>No images</p>
       </div>
-      <div class="add-image-container m-2">
+      <div class="add-image-container m-2" v-if="!disabled">
         <input
           ref="cameraInput"
           type="file"
@@ -57,6 +57,10 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       required: true,
       default: () => [],
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['update:value'],
