@@ -7,6 +7,8 @@ test.beforeEach(async ({ page }) => {
   await page.context().clearCookies();
 });
 
+test.describe.configure({ mode: "serial" });
+
 test.describe("Root View", () => {
   // Too: Skip this test, there is no error page yet
   test.skip("should display an error message if the page fails to load", async ({
@@ -47,7 +49,7 @@ test.describe("Root View", () => {
       .getByRole("textbox", { name: "Reader ID" })
       .fill("04-04-46-42-CD-66-83");
     await page.getByRole("button", { name: "Add Reader" }).click();
-    await page.waitForTimeout(10); // Wait for the reader to be added
+    await page.waitForTimeout(100); // Wait for the reader to be added
     // Wait for the new reader to appear in the list
     const newReader = page.getByTestId("reader-item").last();
     await expect(newReader).toBeVisible();
