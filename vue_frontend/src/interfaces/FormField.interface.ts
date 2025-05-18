@@ -40,7 +40,7 @@ export const formFields: Record<string, FormField> = {
   documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
   related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
   container_tag_uuid: { label: 'Container Tag UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
-  container: { label: 'Container', type: 'object', disabled: true, hidden: false, details: false, required: false },
+  container: { label: 'Container', type: 'item', disabled: true, hidden: false, details: false, required: false },
   current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: false, required: false },
   borrowed_by: { label: 'Borrowed By', type: 'text', disabled: false, hidden: false, details: false, required: false },
   borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: false, required: false },

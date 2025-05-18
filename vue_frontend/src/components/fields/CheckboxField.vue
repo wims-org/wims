@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="checkbox-field">
     <label :for="name">{{ label }}</label>
     <input
       type="checkbox"

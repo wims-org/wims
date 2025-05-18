@@ -1,9 +1,10 @@
 <template>
   <div>
     <h1>Readers</h1>
-    <ul class="list-group block-item-list">
+    <ul class="list-group block-item-list" data-testid="reader-list">
       <li
         v-for="reader in readers"
+        data-testid="reader-item"
         :key="reader.reader_id"
         @click="selectReader(reader.reader_id)"
         class="list-group-item d-flex justify-content-between align-items-center"
@@ -104,7 +105,7 @@ export default defineComponent({
 
     const submitReader = async (): Promise<void> => {
       try {
-        await axios.post('/readers/', Object(newReader.value))
+        await axios.post('/readers', Object(newReader.value))
         fetchReaders()
       } catch (error) {
         console.error('Error submitting reader:', error)

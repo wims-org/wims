@@ -14,7 +14,7 @@ services:
     build: ./vue_frontend
     depends_on:
       - backend
-  
+
   backend:
     image: kailus.dev/edreesen/inventory-manager-backend:main
     build: ./backend
@@ -23,7 +23,6 @@ services:
       - mqtt
     volumes:
       - ./docker/config.default.yml:/app/src/config.yml:ro
-      - ./docker/logs:/app/src/logs
     environment:
       - mqtt.broker.username=admin
       - mqtt.broker.password=1234
@@ -36,12 +35,12 @@ services:
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
-      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/a_setup_database.js:ro
+      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/e_setup_database.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-  mqtt: 
+  mqtt:
     image: eclipse-mosquitto:latest
     restart: unless-stopped
     volumes:

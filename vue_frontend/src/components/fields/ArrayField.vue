@@ -1,27 +1,28 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="array-field">
     <label :for="name">{{ label }}</label>
-    <div class="pills-container">
-      <span v-for="(item, index) in value" :key="index" class="pill">
+    <div class="pills-container" data-testid="pills-container">
+      <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
         {{ item }}
         <button type="button" @click="removeItem(index)" class="pill-remove">&times;</button>
       </span>
     </div>
     <input
+      v-if="!disabled"
       type="text"
       v-model="newItem"
       :disabled="disabled"
-      @keyup.enter="addItem"
+      @keyup.enter="addItem()"
       class="form-control"
       placeholder="Add item"
       :required="!value.length && required"
-        />
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import type { PropType } from 'vue';
+import { defineComponent, ref } from 'vue'
+import type { PropType } from 'vue'
 
 export default defineComponent({
   name: 'ArrayField',
@@ -50,28 +51,34 @@ export default defineComponent({
   },
   emits: ['update:value'],
   setup(props, { emit }) {
-    const newItem = ref('');
+    const newItem = ref('')
 
     const addItem = () => {
       if (newItem.value.trim() !== '') {
-        emit('update:value', [...props.value, newItem.value.trim()]);
-        newItem.value = '';
+        emit('update:value', [
+          ...props.value,
+          ...newItem.value
+            .trim()
+            .split(new RegExp(',|;'))
+            .map((item) => item.trim()),
+        ])
+        newItem.value = ''
       }
-    };
+    }
 
     const removeItem = (index: number) => {
-      const newValue = [...props.value];
-      newValue.splice(index, 1);
-      emit('update:value', newValue);
-    };
+      const newValue = [...props.value]
+      newValue.splice(index, 1)
+      emit('update:value', newValue)
+    }
 
     return {
       newItem,
       addItem,
       removeItem,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped>

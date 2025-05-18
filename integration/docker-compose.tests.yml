@@ -1,0 +1,27 @@
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    volumes:
+    - ./integration/tests:/workspaces/integration/tests:ro,cached # todo: this mount is empty?
+    working_dir: /workspaces/integration
+    entrypoint: ["npm", "i", "@playwright/test", "&&", "npx", "playwright", "install", "&&", "npx", "playwright", "test"]
+
+    depends_on:
+      - proxy
+      - frontend
+      - backend
+
+  backend:
+    volumes:
+      - ./integration/config.backend.test.yml:/app/src/config.yml:ro
+
+  db:
+    volumes:
+      # Reset the volume each restart
+      - type: tmpfs
+        target: /data/db
+        tmpfs:
+          mode: 0777      
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/f_init-mongo-db-with-items.js:ro
+    ports:
+      - 27017:27017

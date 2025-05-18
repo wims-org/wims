@@ -1,7 +1,8 @@
 <template>
-  <div class="form-group">
+  <div class="form-group" data-testid="modal-field">
     <label :for="name">{{ label }}</label>
-    <textarea
+    <input
+      type="text"
       :name="name"
       :disabled="disabled"
       :value="value"
@@ -9,7 +10,8 @@
       @click="openModal"
       class="form-control"
       :class="{ 'is-invalid': required && !value }"
-    ></textarea>
+      placeholder="click to open search"
+    />
     <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
   </div>
 </template>

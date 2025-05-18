@@ -3,7 +3,7 @@
     <router-link to="/" style="text-decoration: none; color: inherit;">
       <h1>{{ msg }}</h1>
     </router-link>
-    <div>
+    <div data-testid="sse-connection-state">
       <span v-if="connection_state === 0" class="icon-connected">🟢 Connected to Reader with id {{
         client_store.reader_id }}</span>
       <span v-else-if="connection_state == 1" class="icon-connecting">
