@@ -45,9 +45,46 @@ class MongoDBConnector:
         ]
         return next(collection.aggregate(pipeline), None)
 
+    def get_recursive_container_tags(self, collection_name: str, rfid: str) -> list[dict[str, Any]]:
+        """ Returns a recursive nested object each containing their container tag and respective short_name attribute for a given RFID tag.
+         example:
+        {
+            "tag_uuid": "RFID1",
+            "short_name": "RFID1",
+            "container": {
+                    "tag_uuid": "RFID2",
+                    "short_name": "RFID2",
+                    "container": {
+                            "tag_uuid": "RFID3",
+                            "short_name": "RFID3",
+                            "container": None
+                        }
+                }
+        }
+            """
+        collection: Collection = self.db[collection_name]
+
+        def get_container_recursive(tag_uuid: str) -> dict[str, Any] | None:
+            doc = collection.find_one({"tag_uuid": tag_uuid}, {
+                                      "_id": 0, "tag_uuid": 1, "short_name": 1, "container_tag_uuid": 1})
+            if not doc:
+                return None
+            container_tag_uuid = doc.get("container_tag_uuid")
+            container = get_container_recursive(
+                container_tag_uuid) if container_tag_uuid and container_tag_uuid is not tag_uuid else None
+            return {
+                "tag_uuid": doc["tag_uuid"],
+                "short_name": doc.get("short_name"),
+                "container": container
+            }
+
+        result = get_container_recursive(rfid)
+        return result if result else []
+
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]
-        documents = list(collection.find(query or {}, projection={"_id": False}))
+        documents = list(collection.find(
+            query or {}, projection={"_id": False}))
         logger.debug(f"Documents found: {documents}")
         return documents
 

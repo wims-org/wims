@@ -1,5 +1,5 @@
 <template>
-  <div class="container mt-5" ref="itemForm">
+  <div class="container" ref="itemForm">
     <button @click="toggleDetails" class="btn btn-secondary mb-3" data-testid="toggle-details-button">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>

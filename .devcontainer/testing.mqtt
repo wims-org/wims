@@ -43,7 +43,7 @@ topic: {{TopicLevel1}}/scan
     "tag_id": "123e4567-e89b-12d3-a456-426614174004"
 }
 
-# ## Publish '{{message}}'
+### Publish '{{message}}'
 topic: {{TopicLevel1}}/scan
 
 {

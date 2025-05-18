@@ -1,8 +1,13 @@
 <template>
-  <div class="container mt-5" ref="itemForm">
+  <div class="container" ref="itemForm">
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
+    <ContainerListComponent
+      v-if="item && item.tag_uuid"
+      :itemId="typeof item.tag_uuid === 'string' ? item.tag_uuid : ''"
+      @update:value="updateFieldModel($event, 'container_tag_uuid', 'modal')"
+    />
     <div class="row mb-3">
       <button
         @click="toggleDetails"
@@ -56,6 +61,7 @@ import NumberField from '@/components/fields/NumberField.vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 import ItemField from '@/components/fields/ItemField.vue'
 import { fieldTypeToComponent } from '@/utils/form.helper'
+import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 
 export default defineComponent({
   name: 'ItemForm',
@@ -70,6 +76,7 @@ export default defineComponent({
     NumberField,
     ItemField,
     ImageThumbnailField,
+    ContainerListComponent,
   },
   props: {
     item: {
