@@ -19,6 +19,9 @@
           :label="field.label || key"
           :value="formData[key]"
           :disabled="disabled"
+          :required="field.required"
+          :hide-label="true"
+          :borderless="true"
           @update:value="updateField($event, key)"
           v-show="!field.hidden && !field.details"
         />

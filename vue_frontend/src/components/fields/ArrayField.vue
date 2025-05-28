@@ -1,6 +1,9 @@
 <template>
-  <div class="form-group" data-testid="array-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group"
+    data-testid="array-field"
+  >
+    <label v-if="!hideLabel" :for="name">{{ label }}</label>
     <div class="pills-container" data-testid="pills-container">
       <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
         {{ item }}
@@ -14,7 +17,8 @@
       :disabled="disabled"
       @keyup.enter="addItem()"
       class="form-control"
-      placeholder="Add item"
+      :class="{ 'borderless-input': borderless }"
+      :placeholder="hideLabel ? '' : 'Add item'"
       :required="!value.length && required"
     />
   </div>
@@ -45,6 +49,14 @@ export default defineComponent({
       default: false,
     },
     required: {
+      type: Boolean,
+      default: false,
+    },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
       type: Boolean,
       default: false,
     },
@@ -103,5 +115,16 @@ export default defineComponent({
   font-size: 1.2em;
   margin-left: 5px;
   cursor: pointer;
+}
+
+.borderless-input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.1rem 0.2rem !important;
+  min-width: 0;
+}
+.borderless label {
+  display: none !important;
 }
 </style>

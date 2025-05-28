@@ -1,6 +1,9 @@
 <template>
-  <div class="form-group" data-testid="text-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group"
+    data-testid="text-field"
+  >
+    <label v-if="!hideLabel" :for="name">{{ label }}</label>
     <input
       :type="type || 'text'"
       :name="name"
@@ -9,7 +12,8 @@
       :required="required"
       @input="updateField"
       class="form-control"
-      :class="{ 'is-invalid': required && !value }"
+      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+      :placeholder="hideLabel ? '' : label"
     />
   </div>
 </template>
@@ -44,6 +48,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:value'],
   methods: {
@@ -54,3 +66,16 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+.borderless label {
+  display: none !important;
+}
+.borderless-input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.1rem 0.2rem !important;
+  min-width: 0;
+}
+</style>

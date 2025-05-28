@@ -55,7 +55,7 @@ export default {
 </script>
 
 <template>
-  <div class="col-12">
+  <div class="col-12 h-100">
     <header>
       <div class="wrapper">
         <TitleComponent msg="WIMS?" />
@@ -73,4 +73,8 @@ export default {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.h-100 {
+  height: 100vh !important;
+}
+</style>

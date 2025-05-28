@@ -1,9 +1,20 @@
 from typing import Any
 
 from loguru import logger
+import pydantic
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
+
+class RecursiveContainerObject(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(
+        orm_mode=True,
+        arbitrary_types_allowed=True
+    )
+
+    tag_uuid: str
+    short_name: str | None = None
+    container: "RecursiveContainerObject | None" = None
 
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
@@ -45,7 +56,9 @@ class MongoDBConnector:
         ]
         return next(collection.aggregate(pipeline), None)
 
-    def get_recursive_container_tags(self, collection_name: str, rfid: str) -> list[dict[str, Any]]:
+
+
+    def get_recursive_container_tags(self, collection_name: str, rfid: str) -> RecursiveContainerObject | None:
         """ Returns a recursive nested object each containing their container tag and respective short_name attribute for a given RFID tag.
          example:
         {
@@ -78,8 +91,7 @@ class MongoDBConnector:
                 "container": container
             }
 
-        result = get_container_recursive(rfid)
-        return result if result else []
+        return get_container_recursive(rfid)
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         collection: Collection = self.db[collection_name]
