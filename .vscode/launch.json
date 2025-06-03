@@ -40,6 +40,19 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
+      "name": "openapi generate types",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/vue_frontend",
+      "runtimeExecutable": "npx",
+      "args": [
+        "openapi-typescript",
+        "http://127.0.0.1:5005/openapi.json",
+        "--output",
+        "src/interfaces/api-types.ts"
+      ],
+    },
+    {
       "name": "integration-tests",
       "type": "node",
       "request": "launch",

@@ -1,6 +1,9 @@
 <template>
-  <div class="image-thumbnail-field p-2" data-testid="image-thumbnail-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+    data-testid="image-thumbnail-field"
+  >
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
       <div
         v-for="(image, index) in value"
@@ -62,6 +65,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:value'],
   setup(props, { emit }) {
@@ -120,8 +131,8 @@ export default defineComponent({
 <style scoped>
 .thumbnail-container {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 4rem;
+  height: 4rem;
   cursor: pointer;
 }
 
@@ -131,10 +142,6 @@ export default defineComponent({
   object-fit: cover;
   border: 1px solid #ddd;
   border-radius: 4px;
-
-  &:hover {
-    transform: scale(1.05);
-  }
 }
 
 .remove-btn {
@@ -146,12 +153,12 @@ export default defineComponent({
   cursor: pointer;
   color: #ff0000;
   border-radius: 50%;
+}
 
-  &:hover {
-    color: #ff0000;
-    transform: scale(1.2);
-    background: rgba(0, 0, 0, 0.2);
-  }
+.remove-btn:hover {
+  color: #ff0000;
+  transform: scale(1.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .add-image-container {
@@ -169,5 +176,9 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   padding: 0;
+}
+
+.borderless label {
+  display: none !important;
 }
 </style>

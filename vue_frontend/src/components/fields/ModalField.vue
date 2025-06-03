@@ -1,6 +1,9 @@
 <template>
-  <div class="form-group" data-testid="modal-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+    data-testid="modal-field"
+  >
+    <label v-if="!hideLabel" :for="name">{{ label }}</label>
     <input
       type="text"
       :name="name"
@@ -9,15 +12,15 @@
       @input="updateField"
       @click="openModal"
       class="form-control"
-      :class="{ 'is-invalid': required && !value }"
-      placeholder="click to open search"
+      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+      :placeholder="hideLabel ? '' : 'click to open search'"
     />
     <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 export default defineComponent({
@@ -46,36 +49,54 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:value'],
-  setup(props, { emit }) {
-    const showModal = ref(false)
-
-    const updateField = (event: Event) => {
-      const target = event.target as HTMLTextAreaElement
-      emit('update:value', target.value)
-    }
-
-    const openModal = () => {
-      showModal.value = true
-    }
-
-    const closeModal = () => {
-      showModal.value = false
-    }
-
-    const handleSelect = (tag: string) => {
-      emit('update:value', tag)
-      closeModal()
-    }
-
+  data() {
     return {
-      showModal,
-      updateField,
-      openModal,
-      closeModal,
-      handleSelect,
+      showModal: false,
     }
+  },
+  methods: {
+    updateField(event: Event) {
+      const target = event.target as HTMLInputElement
+      this.$emit('update:value', target.value)
+    },
+
+    openModal() {
+      this.showModal = true
+    },
+
+    closeModal() {
+      this.showModal = false
+    },
+
+    handleSelect(tag: string) {
+      if (this.disabled) return
+      console.log('Selected tag:', tag)
+      this.$emit('update:value', tag)
+      this.closeModal()
+    },
   },
 })
 </script>
+
+<style scoped>
+.borderless label {
+  display: none !important;
+}
+.borderless-input {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0.1rem 0.2rem !important;
+  min-width: 0;
+}
+</style>

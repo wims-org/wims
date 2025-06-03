@@ -1,6 +1,9 @@
 <template>
-  <div class="form-group" data-testid="checkbox-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+    data-testid="checkbox-field"
+  >
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <input
       type="checkbox"
       :name="name"
@@ -39,6 +42,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:value'],
   methods: {
@@ -49,3 +60,9 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+.borderless label {
+  display: none !important;
+}
+</style>

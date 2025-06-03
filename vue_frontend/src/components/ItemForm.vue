@@ -1,8 +1,13 @@
 <template>
-  <div class="container mt-5" ref="itemForm">
+  <div class="container pb-5" ref="itemForm">
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
+    <ContainerListComponent
+      v-if="item && item.tag_uuid"
+      :itemId="typeof item.tag_uuid === 'string' ? item.tag_uuid : ''"
+      @update:value="updateFieldModel($event, 'container_tag_uuid', 'modal')"
+    />
     <div class="row mb-3">
       <button
         @click="toggleDetails"
@@ -17,7 +22,7 @@
     <h1 class="mb-4">{{ item.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
       <component
-        v-for="(field, key) in formFields"
+        v-for="(field, key, fieldIndex) in formFields"
         :is="getFieldComponent(field.type)"
         :key="key"
         :name="String(key)"
@@ -25,6 +30,7 @@
         :value="formData[key]"
         :disabled="field.disabled ?? undefined"
         :required="field.required"
+        :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
         @update:value="updateFieldModel($event, String(key), field.type)"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))"
       />
@@ -56,6 +62,10 @@ import NumberField from '@/components/fields/NumberField.vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 import ItemField from '@/components/fields/ItemField.vue'
 import { fieldTypeToComponent } from '@/utils/form.helper'
+import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
+import axios from 'axios'
+import type { components } from '@/interfaces/api-types'
+type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 export default defineComponent({
   name: 'ItemForm',
@@ -70,6 +80,7 @@ export default defineComponent({
     NumberField,
     ItemField,
     ImageThumbnailField,
+    ContainerListComponent,
   },
   props: {
     item: {
@@ -84,6 +95,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const formData = ref<{ [x: string]: unknown | undefined }>({ ...props.item }) // form data is the live data in the form
     const unsavedChanges = ref(false)
+    const saveError = ref('')
 
     watch(
       () => props.item,
@@ -100,9 +112,9 @@ export default defineComponent({
       showDetails.value = !showDetails.value
     }
 
-    const handleSubmit = () => {
-      emit('submit', formData.value)
-      unsavedChanges.value = false // Mark changes as saved
+    const handleSubmit = async () => {
+      await emit('submit', formData.value)
+      unsavedChanges.value = false
     }
 
     const preventEnterKey = (event: KeyboardEvent) => {
@@ -131,6 +143,7 @@ export default defineComponent({
     }
 
     const updateFieldModel = (value: unknown, key: string, type: string) => {
+      console.log(`Updating field ${key} with value:`, value)
       if (type === 'checkbox') {
         formData.value[key] = Boolean(value)
       } else if (type === 'epoch') {
@@ -139,6 +152,14 @@ export default defineComponent({
         formData.value[key] = Number(value)
       } else if (type === 'array') {
         formData.value[key] = value
+      } else if (key === 'container_tag_uuid') {
+        if (value) {
+          axios
+            .get<Item>(`/items/${value}`)
+            .then((response) => (formData.value['container'] = response.data))
+        } else {
+          formData.value['container'] = undefined // Clear the field if no value
+        }
       } else {
         formData.value[key] = value
       }
@@ -162,12 +183,17 @@ export default defineComponent({
       updateFieldModel,
       removeImage,
       unsavedChanges,
+      saveError,
     }
   },
-})
+})  
 </script>
 
 <style scoped>
+:deep(.form-control) {
+  width: unset;
+  min-width: 0;
+}
 .sub-fields {
   margin-left: 20px;
 }

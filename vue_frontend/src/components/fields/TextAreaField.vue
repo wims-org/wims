@@ -1,13 +1,18 @@
 <template>
-  <div class="form-group" data-testid="text-area-field">
-    <label :for="name">{{ label }}</label>
+  <div
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+    data-testid="text-area-field"
+  >
+    <label v-if="!hideLabel" :for="name">{{ label }}</label>
     <textarea
       :name="name"
       :disabled="disabled ?? undefined"
       :value="value"
       @input="updateField"
       class="form-control"
-      :class="{ 'is-invalid': required && !value }"
+      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+      :required="required"
+      :placeholder="hideLabel ? '' : label"
     ></textarea>
   </div>
 </template>
@@ -39,6 +44,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    hideLabel: {
+      type: Boolean,
+      default: false,
+    },
+    borderless: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:value'],
   methods: {
@@ -49,3 +62,6 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+</style>

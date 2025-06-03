@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from './font-awesome'
 new configureCompat({
   ATTR_FALSE_VALUE: false,
   RENDER_FUNCTION: false,
+  COMPONENT_ASYNC: false 
 })
 const app = createApp(App)
 

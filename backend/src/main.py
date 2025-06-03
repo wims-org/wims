@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from loguru import logger
 
 # Use absolute import
@@ -69,3 +70,11 @@ if find("features.openai", config):
 else:
     logger.info("Handarbeit")
 setup_middleware(app)
+
+
+@app.get("/openapi.json", include_in_schema=False)
+async def custom_openapi():
+    """
+    Serve the OpenAPI spec for frontend code generation.
+    """
+    return JSONResponse(app.openapi())

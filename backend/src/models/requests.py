@@ -18,11 +18,11 @@ class ItemRequest(BaseModel):
     consumable: bool | None = None
     created_at: datetime | None = Field(default_factory=datetime.now)
     created_by: str | None = None
-    changes: list[Change] = []
+    changes: list[Change] | None = []
     ai_generated: set[str] = Field(default_factory=set)
     min_amount: int | None = None
     tags: set[str] = Field(default_factory=set)
-    images: list[str] = []
+    images: list[str] | None = []
     cost_new: float | None = None
     acquisition_date: int | None = None
     cost_used: float | None = None
@@ -32,10 +32,10 @@ class ItemRequest(BaseModel):
     upc: str | None = None
     asin: str | None = None
     serial_number: str | None = None
-    vendors: list[str] = []
-    shop_url: list[str] = []
+    vendors: list[str] | None = []
+    shop_url: list[str] | None = []
     size: Size | None = None
-    documentation: list[str] = []
+    documentation: list[str] | None = []
     container_tag_uuid: str | None = None
     current_location: str | None = None
     borrowed_by: str | None = None
