@@ -4,3 +4,4 @@ shell.nix
 __pycache__/
 backend/src/config.yml
 config.yml
+volar.config.js

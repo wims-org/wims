@@ -1,9 +1,9 @@
 <template>
   <div
-    class="form-group d-flex align-items-center"
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="number-field"
   >
-    <label v-if="!hideLabel" :for="name" class="me-2">{{ label }}</label>
+    <span v-if="!hideLabel" :for="name" class="me-2">{{ label }}</span>
     <div class="number-input-wrapper d-flex align-items-center">
       <input
         type="number"

@@ -1,9 +1,9 @@
 <template>
   <div
-    class="image-thumbnail-field p-2"
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="image-thumbnail-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
       <div
         v-for="(image, index) in value"
@@ -131,8 +131,8 @@ export default defineComponent({
 <style scoped>
 .thumbnail-container {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 4rem;
+  height: 4rem;
   cursor: pointer;
 }
 

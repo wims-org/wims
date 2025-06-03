@@ -1,15 +1,13 @@
 <template>
   <div
-    class="form-group"
+    class="form-group d-flex align-items-center flex-wrap pills-container p-2"
     data-testid="array-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
-    <div class="pills-container" data-testid="pills-container">
-      <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
-        {{ item }}
-        <button type="button" @click="removeItem(index)" class="pill-remove">&times;</button>
-      </span>
-    </div>
+    <span v-if="!hideLabel" :for="name" class="mr-auto">{{ label }}</span>
+    <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
+      {{ item }}
+      <button type="button" @click="removeItem(index)" class="pill-remove">&times;</button>
+    </span>
     <input
       v-if="!disabled"
       type="text"
@@ -97,7 +95,7 @@ export default defineComponent({
 .pills-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 0.2rem;
   margin-bottom: 10px;
 }
 

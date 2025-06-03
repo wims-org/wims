@@ -1,13 +1,21 @@
 <template>
   <div>
     <form @submit.prevent="handleSubmit">
-      <div class="mb-2">
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span class="text-nowrap mr-2">
+          <font-awesome-icon icon="file-csv" />
+          Upload .CSV:</span
+        >
         <input
           type="file"
           accept=".csv,text/csv"
           @change="handleCsvUpload"
           class="form-control-file"
         />
+        <button type="button" class="btn btn-secondary btn-sm ml-2" @click="copyColumnNames">
+          <font-awesome-icon icon="clipboard" />
+          Copy Column Names to clipboard
+        </button>
       </div>
       <div class="table-responsive">
         <table class="table table-bordered table-sm">
@@ -54,19 +62,35 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, rowIdx) in items" :key="rowIdx">
-              <td v-for="col in columns" :key="col">
+            <tr
+              v-for="(item, rowIdx) in items"
+              :key="rowIdx"
+              :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }"
+            >
+              <td
+                v-for="col in columns"
+                :key="col"
+                :class="{
+                  'invalid-cell':
+                    !rowEmpty(item) &&
+                    formFields[col]?.required &&
+                    (item[col] === undefined || item[col] === ''),
+                }"
+              >
                 <component
                   v-if="formFields[col]"
                   :is="getFieldComponent(formFields[col].type)"
                   :name="col"
                   :label="formFields[col].label"
                   :value="item[col]"
-                  :disabled="col === 'tag_uuid' && !!item[col]"
+                  :disabled="!item[col]"
                   :required="!rowEmpty(item) && formFields[col].required"
                   hide-label
                   borderless
-                  @update:value="(val: string | number | boolean | string[]) => updateField(val, rowIdx, col, formFields[col].type)"
+                  @update:value="
+                    (val: string | number | boolean | string[]) =>
+                      updateField(val, rowIdx, col, formFields[col].type)
+                  "
                 />
                 <span v-else>-</span>
               </td>
@@ -86,7 +110,13 @@
       </div>
       <button type="submit" class="btn btn-primary mt-2">Submit All</button>
     </form>
-    <div v-if="submitError" class="alert alert-danger mt-2">{{ submitError }}</div>
+    <div v-if="submitErrorStatus === 406" class="alert alert-danger mt-2">
+      <span> Some items were not updated because they already exist in the database.</span>
+      <button type="button" class="btn btn-link" @click="filterErrorUUIDs()">
+        Remove skipped Duplicates
+      </button>
+    </div>
+    <div v-else-if="submitError" class="alert alert-danger mt-2">{{ submitError }}</div>
     <div v-if="submitSuccess" class="alert alert-success mt-2">Items imported successfully!</div>
   </div>
 </template>
@@ -140,6 +170,8 @@ export default defineComponent({
   setup() {
     const columns = reactive([...DEFAULT_COLUMNS])
     const submitError = ref('')
+    const submitErrorStatus = ref(null)
+    const errorItems = ref<Array<string>>([])
     const submitSuccess = ref(false)
     const saved_action = ref<EventAction | null>(null)
     const emptyItem: Partial<Item> = { consumable: false, amount: 1 }
@@ -205,19 +237,49 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       submitError.value = ''
+      submitErrorStatus.value = null
       submitSuccess.value = false
       const toSubmit = items.filter((item) => !rowEmpty(item))
       if (!toSubmit.length) {
         submitError.value = 'No items to submit.'
         return
       }
-      try {
-        await axios.post('/items/bulk', toSubmit)
-        items.filter((item) => !toSubmit.includes(item))
-        submitSuccess.value = true
-      } catch (err) {
-        submitError.value = (err as any)?.response?.data?.message || 'Failed to import items.'
+
+      await axios
+        .post('/items/bulk', toSubmit, { validateStatus: (status) => status < 300 })
+        .then(() => {
+          items.filter((item) => !toSubmit.includes(item))
+          submitSuccess.value = true
+        })
+        .catch((error) => {
+          console.error('Error submitting items:', error)
+          if (error.response?.status === 422 || error.response?.status === 406) {
+            submitErrorStatus.value = error.response?.status
+            errorItems.value = error.response?.data?.detail?.error_items
+            console.warn(
+              'Some items were not updated due to validation errors:',
+              error.response?.data?.detail?.error_items,
+              errorItems
+            )
+          } else {
+            submitError.value = error.response?.data?.message || 'Failed to import items.'
+          }
+        })
+    }
+
+    const filterErrorUUIDs = () => {
+      if (submitErrorStatus.value !== 406 || !errorItems.value.length) {
+        submitErrorStatus.value = null
+        errorItems.value = []
+        return
       }
+
+      errorItems.value.forEach((uuid) => {
+        const idx = items.findIndex((item) => item.tag_uuid === uuid)
+        if (idx !== -1) removeRow(idx)
+      })
+      errorItems.value = []
+      submitErrorStatus.value = null
     }
 
     const fetchAndAddItemToTable = async (scanData: { rfid: string }) => {
@@ -240,11 +302,13 @@ export default defineComponent({
       if (storedWidths) {
         const parsedWidths = JSON.parse(storedWidths)
         Object.keys(parsedWidths).forEach((col) => {
-          if (columns.includes(col)) {
-            columnWidths[col] = parsedWidths[col]
+          if (!columns.includes(col)) {
+            columns.push(col)
           }
+          columnWidths[col] = parsedWidths[col]
         })
       }
+      console.log('Column widths set from storage:', columnWidths, columns)
     }
 
     onMounted(() => {
@@ -270,7 +334,13 @@ export default defineComponent({
           item[key] === '',
       )
     }
-    const updateField = (value: boolean | string | number | Array<string>, rowIdx: number, col: string, type: string) => {
+    const updateField = (
+      value: boolean | string | number | Array<string>,
+      rowIdx: number,
+      col: string,
+      type: string,
+    ) => {
+      console.log(`Updating field: row ${rowIdx}, column ${col}, type ${type}, value:`, value)
       submitSuccess.value = false
       if (type === 'checkbox') {
         items[rowIdx][col] = Boolean(value)
@@ -280,6 +350,14 @@ export default defineComponent({
         items[rowIdx][col] = Number(value)
       } else if (type === 'array') {
         items[rowIdx][col] = value
+      } else if (col === 'container_tag_uuid') {
+        if (value) {
+          axios
+            .get<Item>(`/items/${value}`)
+            .then((response) => (items[rowIdx]['container'] = response.data))
+        } else {
+          items[rowIdx]['container'] = undefined // Clear the field if no value
+        }
       } else {
         items[rowIdx][col] = value
       }
@@ -363,6 +441,12 @@ export default defineComponent({
       input.value = ''
     }
 
+    const copyColumnNames = () => {
+      const columnNames = Object.keys(formFields).join(',')
+      navigator.clipboard.writeText(columnNames)
+      alert(`Column names copied to clipboard:\n${columnNames}`)
+    }
+
     return {
       columns,
       items,
@@ -370,6 +454,7 @@ export default defineComponent({
       removeRow,
       handleSubmit,
       submitError,
+      submitErrorStatus,
       submitSuccess,
       getFieldComponent,
       updateField,
@@ -379,6 +464,9 @@ export default defineComponent({
       handleCsvUpload,
       toggleColumnDropdown,
       columnDropDown,
+      copyColumnNames,
+      filterErrorUUIDs,
+      errorItems,
     }
   },
 })
@@ -399,6 +487,15 @@ td .form-group {
   margin-bottom: 0 !important;
 }
 
+td.invalid-cell {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.item-error {
+  background-color: #fdde9a;
+  color: #e99f00;
+}
 /* Draggable column styles */
 .draggable-th {
   position: relative;

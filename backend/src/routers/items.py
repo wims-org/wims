@@ -17,13 +17,15 @@ def get_db(request: Request) -> MongoDBConnector:
 
 class ItemChangedResponse(pydantic.BaseModel):
     message: str
+    error_items: list[str]
+    errors: list[str] 
 
 
 @router.put("/{rfid}", response_model=ItemChangedResponse)
 async def put_item(
     request: Request,
     rfid: str,
-    item: dict | None = None,
+    item: ItemRequest | None = None,
 ) -> ItemChangedResponse:
     if item is None:
         item = await request.json()
@@ -32,6 +34,7 @@ async def put_item(
         item, strict=False, from_attributes=True)
     item_data = Item.model_validate(
         item_data, strict=False, from_attributes=True)
+    logger.debug(f"Updating item with rfid {rfid}: {item_data}")
     updated_rows = get_db(request).update(
         collection_name="items",
         query={"$or": [{"tag_uuid": rfid}]},
@@ -47,7 +50,7 @@ async def put_item(
 @router.post("", response_model=ItemChangedResponse)
 async def post_item(
     request: Request,
-    item: dict | None = None,
+    item: ItemRequest | None = None,
 ) -> ItemChangedResponse:
     if item is None:
         item = await request.json()
@@ -100,7 +103,8 @@ async def get_item(
         except pydantic.ValidationError as e:
             logger.error(f"Error validating item: {item=}, {e}")
             errors = [
-                f"{'.'.join(map(str, err.get('loc', [])))} {err.get('type')}: {err.get('msg')}" for err in e.errors()]
+                f"{'.'.join(map(str, err.get('loc', [])))} {err.get('type')}: {err.get('msg')}" for err in e.errors()
+            ]
             valid_item = Item.model_construct(**item)
             res = valid_item.model_dump(
                 exclude_unset=True, exclude_defaults=True, exclude_none=True)
@@ -182,19 +186,25 @@ async def bulk_import_items(
     imported = 0
     updated = 0
     errors = []
+    error_items = []
     for idx, item_req in enumerate(items):
         try:
+            # Remove None values, use defaults for missing fields
+            item_dict = {k: v for k, v in item_req.model_dump(
+                exclude_none=True).items()}
             item = Item.model_validate(
-                item_req, strict=False, from_attributes=True)
+                item_dict, strict=False, from_attributes=True)
             # Try to update existing item
             result = db.update(
                 collection_name="items",
-                query={"tag_uuid":  item.tag_uuid},
+                query={"tag_uuid": item.tag_uuid},
                 update_values=item.model_dump(mode="json", by_alias=True),
             )
 
             if result:
                 updated += 1
+            else:
+                error_items.append(item.tag_uuid)
         except pymongo.errors.DuplicateKeyError:
             # If not found, create new
             db.create(
@@ -203,13 +213,32 @@ async def bulk_import_items(
             )
             imported += 1
         except Exception as e:
-            errors.append(f"Row {idx+1}: {str(e)}")
+            errors.append(f"Row {idx}: {str(e)}")
+            if tag_uuid := item_dict.get("tag_uuid"):
+                error_items.append(tag_uuid)
 
-    if imported == 0 and updated == 0:
+    if imported == 0 and updated == 0 and not errors:
+        logger.warning(error_items)
         raise HTTPException(
-            status_code=400, detail="No items imported or updated. Errors: " + "; ".join(errors))
-    
+            status_code=406,
+            detail={
+                "message": "Not Modified. No items imported or updated.",
+                "errors": errors,
+                "error_items": error_items,
+            },
+        )
+    if errors:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": f"Validation error: Some items are invalid. Please check your input.",
+                "errors": errors,
+                "error_items": error_items,
+            },
+        )
+
     msg = f"{imported} item(s) imported, {updated} item(s) updated successfully."
     if errors:
         msg += f" {len(errors)} error(s): {'; '.join(errors)}"
-    return ItemChangedResponse(message=msg)
+    return ItemChangedResponse(message=msg, errors=errors,
+                               error_items=error_items)

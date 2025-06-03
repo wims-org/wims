@@ -19,6 +19,8 @@ import {
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faFileCsv,
+  faExternalLinkAlt
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -39,6 +41,8 @@ library.add(
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faFileCsv,
+  faExternalLinkAlt
 )
 
 export { FontAwesomeIcon }

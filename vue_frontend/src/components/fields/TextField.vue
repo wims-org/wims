@@ -1,9 +1,9 @@
 <template>
   <div
-    class="form-group"
+    class="form-group d-flex align-items-center justify-content-between flex-wra  p p-2"
     data-testid="text-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <input
       :type="type || 'text'"
       :name="name"
@@ -68,7 +68,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.borderless label {
+.borderless span {
   display: none !important;
 }
 .borderless-input {

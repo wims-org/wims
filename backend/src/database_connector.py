@@ -1,7 +1,7 @@
 from typing import Any
 
-from loguru import logger
 import pydantic
+from loguru import logger
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -103,6 +103,7 @@ class MongoDBConnector:
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
         collection: Collection = self.db[collection_name]
         result = collection.update_many(query, {"$set": update_values})
+        logger.debug(f"Documents updated: {result}")
         return result.modified_count
 
     def delete(self, collection_name: str, query: dict[str, Any]) -> int:

@@ -1,5 +1,7 @@
 <template>
   <main>
+      <div v-if="saveError" class="sticky-note">Error saving changes</div>
+
     <LLMCompletion />
     <ItemCompare
       v-if="isComparing"
@@ -34,6 +36,7 @@ const item = ref({})
 const newItem = ref(false)
 const isComparing = ref(false)
 const completion = ref({})
+const saveError = ref('')
 
 eventBus.on('completion', (data: Events['completion']) => {
   if (data) {
@@ -71,6 +74,7 @@ watch(
 )
 
 const handleFormSubmit = async (formData: Record<string, unknown>) => {
+  saveError.value = ''
   try {
     isComparing.value = false
     if (newItem.value) {
@@ -82,6 +86,7 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     }
     fetchItem()
   } catch (error) {
+    saveError.value = 'Could not save changes. Please try again.'
     console.error('Error submitting form:', error)
   }
 }
@@ -95,3 +100,19 @@ const handleCompletion = (result: { data: { response: object } }) => {
   }
 }
 </script>
+
+<style scoped>
+.sticky-note {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: red;
+  color: white;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+</style>

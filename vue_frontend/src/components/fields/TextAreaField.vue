@@ -1,6 +1,6 @@
 <template>
   <div
-    class="form-group"
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="text-area-field"
   >
     <label v-if="!hideLabel" :for="name">{{ label }}</label>

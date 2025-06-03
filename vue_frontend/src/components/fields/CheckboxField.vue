@@ -1,9 +1,9 @@
 <template>
   <div
-    class="form-group"
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="checkbox-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <input
       type="checkbox"
       :name="name"

@@ -1,18 +1,18 @@
 <template>
   <div
-    class="form-group"
+    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="object-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
+    <span v-if="!hideLabel" :for="name">{{ label }}</span>
     <div class="card p-3">
       <div
         v-for="(subValue, subKey) in value"
         :key="subKey"
-        class="form-group"
+        class="form-group d-flex align-items-center justify-content-between flex-wrap"
         v-show="subValue !== null && subValue !== undefined"
         data-testid="object-field-text-field"
       >
-        <label v-if="!hideLabel" :for="`${name}-${subKey}`">{{ subKey }}</label>
+        <span v-if="!hideLabel" :for="`${name}-${subKey}`" class="mr-2">{{ subKey }}</span>
         <input
           :type="typeof subValue === 'number' ? 'number' : 'text'"
           :name="`${name}-${subKey}`"
