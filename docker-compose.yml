@@ -10,13 +10,13 @@ services:
       - backend
 
   frontend:
-    image: kailus.dev/edreesen/inventory-manager-frontend:main
+    image: kailus.dev/edreesen/inventory-manager-frontend:dev
     build: ./vue_frontend
     depends_on:
       - backend
 
   backend:
-    image: kailus.dev/edreesen/inventory-manager-backend:main
+    image: kailus.dev/edreesen/inventory-manager-backend:dev
     build: ./backend
     depends_on:
       - db

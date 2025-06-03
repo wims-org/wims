@@ -4,6 +4,7 @@ import pydantic
 from loguru import logger
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from pymongo.errors import ServerSelectionTimeoutError  # Add this import
 
 
 class RecursiveContainerObject(pydantic.BaseModel):
@@ -18,21 +19,34 @@ class RecursiveContainerObject(pydantic.BaseModel):
 
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
-        self.client = MongoClient(
-            uri,
-            username="root",
-            password="example",
-            authSource="admin",
-            authMechanism="SCRAM-SHA-256",
-        )
-        self.db = self.client[database]
+        try:
+            self.client = MongoClient(
+                uri,
+                username="root",
+                password="example",
+                authSource="admin",
+                authMechanism="SCRAM-SHA-256"
+            )
+            # Attempt to trigger server selection to catch connection errors early
+            self.client.server_info()
+            self.db = self.client[database]
+        except ServerSelectionTimeoutError as e:
+            logger.error(f"Could not connect to MongoDB server: {e}")
+            self.client = None
+            self.db = None
 
     def create(self, collection_name: str, document: dict[str, Any]) -> str | None:
+        if self.db is None:
+            logger.error("No database connection available for create operation.")
+            return None
         collection: Collection = self.db[collection_name]
         result = collection.insert_one(document)
         return str(result.inserted_id)
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
+        if self.db is None:
+            logger.error("No database connection available for find_by_rfid operation.")
+            return None
         collection: Collection = self.db[collection_name]
         # todo
         pipeline = [
@@ -94,6 +108,9 @@ class MongoDBConnector:
         return get_container_recursive(rfid)
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        if self.db is None:
+            logger.error("No database connection available for read operation.")
+            return []
         collection: Collection = self.db[collection_name]
         documents = list(collection.find(
             query or {}, projection={"_id": False}))
@@ -101,12 +118,18 @@ class MongoDBConnector:
         return documents
 
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
+        if self.db is None:
+            logger.error("No database connection available for update operation.")
+            return 0
         collection: Collection = self.db[collection_name]
         result = collection.update_many(query, {"$set": update_values})
         logger.debug(f"Documents updated: {result}")
         return result.modified_count
 
     def delete(self, collection_name: str, query: dict[str, Any]) -> int:
+        if self.db is None:
+            logger.error("No database connection available for delete operation.")
+            return 0
         collection: Collection = self.db[collection_name]
         result = collection.delete_many(query)
         return result.deleted_count

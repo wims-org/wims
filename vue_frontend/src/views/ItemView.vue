@@ -56,6 +56,7 @@ const fetchItem = async () => {
       item.value = { tag_uuid: itemId.value }
       console.warn('Item not found, display empty item form')
     } else {
+      item.value = { tag_uuid: itemId.value }
       console.error('Error fetching item:', error)
     }
   }

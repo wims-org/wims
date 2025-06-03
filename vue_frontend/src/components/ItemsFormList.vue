@@ -83,7 +83,7 @@
                   :name="col"
                   :label="formFields[col].label"
                   :value="item[col]"
-                  :disabled="!item[col]"
+                  :disabled="false"
                   :required="!rowEmpty(item) && formFields[col].required"
                   hide-label
                   borderless
@@ -443,8 +443,27 @@ export default defineComponent({
 
     const copyColumnNames = () => {
       const columnNames = Object.keys(formFields).join(',')
-      navigator.clipboard.writeText(columnNames)
-      alert(`Column names copied to clipboard:\n${columnNames}`)
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === "function"
+      ) {
+        navigator.clipboard.writeText(columnNames)
+          .then(() => alert(`Column names copied to clipboard:\n${columnNames}`))
+          .catch(() => fallbackCopyTextToClipboard(columnNames))
+      } else {
+        fallbackCopyTextToClipboard(columnNames)
+      }
+    }
+
+    const fallbackCopyTextToClipboard = (text: string) => {
+      const textArea = document.createElement("textarea")
+      textArea.value = text
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textArea)
+      alert(`Column names copied to clipboard:\n${text}`)
     }
 
     return {

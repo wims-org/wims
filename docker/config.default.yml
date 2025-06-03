@@ -1,0 +1,26 @@
+# backend/configuration/config.yaml
+schema_version: 1.0
+
+database:
+    host: "0.0.0.0"
+    port: 27017
+    name: "test"
+    database: "test"
+    user: "root"
+    password: "example"
+
+mqtt:
+    broker: 
+        host: "0.0.0.0"
+        port: 1883
+        username: "admin"
+        password: "1234"
+    topics:
+        scan: "rfid/scan/#"
+        result: "rfid/itemdata"
+logging:
+    level: "INFO"
+
+features:
+    openai:
+        api_key: "sk-svcacct-RNGzmZu6x2v-7x--nWetFSvVImslJxq7VBl6pSgFJ7QeNXrOgru2a_Swz7GuZ8ra-V55bT3BlbkFJl56qj5ERtsrBmdb6nCkq03mf-p1x_pLCkiU-SpMWTBZe486TVJ1oj2HN5p2ReHhnCcGKAA"
