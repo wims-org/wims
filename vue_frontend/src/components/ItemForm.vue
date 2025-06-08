@@ -143,6 +143,7 @@ export default defineComponent({
     }
 
     const updateFieldModel = (value: unknown, key: string, type: string) => {
+      if (value === formData.value[key]) return // No change, do nothing
       console.log(`Updating field ${key} with value:`, value)
       if (type === 'checkbox') {
         formData.value[key] = Boolean(value)
@@ -157,9 +158,15 @@ export default defineComponent({
           axios
             .get<Item>(`/items/${value}`)
             .then((response) => (formData.value['container'] = response.data))
+            .catch(() => {
+              // new container
+              console.warn(`Container with UUID ${value} not found, creating new container entry`)
+              formData.value['container'] = { tag_uuid: value, short_name: 'Create New Container' }
+            })
         } else {
           formData.value['container'] = undefined // Clear the field if no value
         }
+        formData.value[key] = value
       } else {
         formData.value[key] = value
       }
@@ -186,7 +193,7 @@ export default defineComponent({
       saveError,
     }
   },
-})  
+})
 </script>
 
 <style scoped>

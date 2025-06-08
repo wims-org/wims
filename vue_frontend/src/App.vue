@@ -29,12 +29,8 @@ export default {
       setReaderId(router)
 
       // Handle scan event from event bus
-      eventBus.on('scan', (data: Events['scan']) => {
-        console.log('Scan event:', data)
-        if (client_store.expected_event_action === EventAction.REDIRECT) {
-          router.push('/items/' + data.rfid)
-        } 
-
+      eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
+        router.push('/items/' + data.rfid)
       })
     })
 

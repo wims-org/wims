@@ -12,7 +12,7 @@ export default interface FormField {
 
 
 export const formFields: Record<string, FormField> = {
-  tag_uuid: { label: 'Container Tag UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
+  tag_uuid: { label: 'Item UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: true, required: false },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
@@ -39,7 +39,7 @@ export const formFields: Record<string, FormField> = {
   size: { label: 'Size', type: 'object', disabled: false, hidden: false, details: false, required: false },
   documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
   related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
-  container_tag_uuid: { label: 'Container Tag UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
+  container_tag_uuid: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
   container: { label: 'Container', type: 'item', disabled: true, hidden: false, details: false, required: false },
   current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: false, required: false },
   borrowed_by: { label: 'Borrowed By', type: 'text', disabled: false, hidden: false, details: false, required: false },

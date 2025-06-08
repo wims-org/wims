@@ -64,7 +64,7 @@
           <tbody>
             <tr
               v-for="(item, rowIdx) in items"
-              :key="rowIdx"
+              :key="item.tag_uuid || rowIdx"
               :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }"
             >
               <td
@@ -177,6 +177,7 @@ export default defineComponent({
     const emptyItem: Partial<Item> = { consumable: false, amount: 1 }
     const items = reactive<Array<Partial<Item>>>([Object.assign({}, emptyItem)])
     const columnDropDown = ref(false)
+    const editable = ref(true)
 
     // Draggable column widths
     const defaultWidth = 160
@@ -315,11 +316,11 @@ export default defineComponent({
       saved_action.value = clientStore().expected_event_action
       setColumnWidthsFromStorage()
       clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-      eventBus.on('scan', async (scanData: { rfid: string }) => fetchAndAddItemToTable(scanData))
+      eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) => fetchAndAddItemToTable(scanData))
     })
 
     onUnmounted(() => {
-      eventBus.off('scan')
+      eventBus.off(EventAction.FORM_SCAN_ADD)
       if (saved_action.value) clientStore().setExpectedEventAction(saved_action.value)
     })
 
@@ -340,6 +341,10 @@ export default defineComponent({
       col: string,
       type: string,
     ) => {
+      if (!editable.value) {
+        console.warn('Edit blocked, not updating field:', col)
+        return
+      }
       console.log(`Updating field: row ${rowIdx}, column ${col}, type ${type}, value:`, value)
       submitSuccess.value = false
       if (type === 'checkbox') {
@@ -351,6 +356,7 @@ export default defineComponent({
       } else if (type === 'array') {
         items[rowIdx][col] = value
       } else if (col === 'container_tag_uuid') {
+        items[rowIdx][col] = '' + value
         if (value) {
           axios
             .get<Item>(`/items/${value}`)

@@ -1,6 +1,6 @@
 <template>
   <main>
-      <div v-if="saveError" class="sticky-note">Error saving changes</div>
+    <div v-if="saveError" class="sticky-note">Error saving changes</div>
 
     <LLMCompletion />
     <ItemCompare
@@ -23,6 +23,7 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import eventBus from '../stores/eventBus'
 import { type Events } from '../stores/eventBus'
+import { EventAction } from '@/interfaces/EventAction'
 
 const route = useRoute()
 const itemId = ref<string>(
@@ -38,7 +39,7 @@ const isComparing = ref(false)
 const completion = ref({})
 const saveError = ref('')
 
-eventBus.on('completion', (data: Events['completion']) => {
+eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
   if (data) {
     handleCompletion(data)
   }
