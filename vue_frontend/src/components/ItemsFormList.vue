@@ -32,7 +32,7 @@
                   <span class="resize-handle" @mousedown="startResize($event, col)"></span>
                 </div>
               </th>
-              <th>
+              <th class="button-column">
                 <button
                   type="button"
                   class="btn btn-success btn-sm"
@@ -94,7 +94,7 @@
                 />
                 <span v-else>-</span>
               </td>
-              <td>
+              <td class="button-column">
                 <button
                   v-if="items.length > 1 && rowIdx !== items.length - 1"
                   type="button"
@@ -108,7 +108,9 @@
           </tbody>
         </table>
       </div>
-      <button type="submit" class="btn btn-primary mt-2">Submit All</button>
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" class="btn btn-primary mt-2">Submit All</button>
+      </div>
     </form>
     <div v-if="submitErrorStatus === 406" class="alert alert-danger mt-2">
       <span> Some items were not updated because they already exist in the database.</span>
@@ -202,10 +204,58 @@ export default defineComponent({
       document.addEventListener('mouseup', stopResize)
     }
 
+    /**
+     * Handles resizing of table columns by dragging the resize handle.
+     * Resizes the selected column and proportionally adjusts the widths of columns to its right,
+     * ensuring no column becomes smaller than the minimum width.
+     */
     const onResize = (e: MouseEvent) => {
       if (!resizingCol.value) return
+      const col = resizingCol.value
       const dx = e.clientX - startX
-      columnWidths[resizingCol.value] = Math.max(60, startWidth + dx)
+
+      // Initialize column widths if missing
+      columns.forEach((c) => {
+        if (!isFinite(columnWidths[c])) columnWidths[c] = defaultWidth
+      })
+
+      const colIdx = columns.indexOf(col)
+      const rightCols = columns.slice(colIdx + 1)
+      if (!rightCols.length) return // No columns to the right, do not resize
+
+      // Ensure right columns have initialized widths
+      rightCols.forEach((c) => {
+        if (!isFinite(columnWidths[c])) columnWidths[c] = defaultWidth
+      })
+
+      const minWidth = 60
+      const newWidth = Math.max(minWidth, startWidth + dx)
+      const delta = newWidth - columnWidths[col]
+      const rightTotalWidth = rightCols.reduce((sum, c) => sum + columnWidths[c], 0)
+
+      // Check if resizing would shrink any right column below minWidth
+      const canResize = rightCols.every((c) => {
+        const proportion = columnWidths[c] / rightTotalWidth
+        return columnWidths[c] - delta * proportion >= minWidth
+      })
+      if (!canResize) return
+
+      // Apply new width to the resizing column
+      columnWidths[col] = newWidth
+
+      // Adjust right columns proportionally
+      rightCols.forEach((c) => {
+        const proportion = columnWidths[c] / rightTotalWidth
+        columnWidths[c] -= delta * proportion
+      })
+
+      // Correct rounding errors to keep total width constant
+      const totalWidth = columns.reduce((sum, c) => sum + columnWidths[c], 0)
+      const expectedTotal = columns.length * defaultWidth
+      if (Math.abs(totalWidth - expectedTotal) > 1) {
+        const last = rightCols[rightCols.length - 1]
+        columnWidths[last] += expectedTotal - totalWidth
+      }
     }
 
     const stopResize = () => {
@@ -229,7 +279,6 @@ export default defineComponent({
     )
 
     const toggleColumnDropdown = () => {
-      console.log('Toggling column dropdown')
       columnDropDown.value = !columnDropDown.value
     }
     const removeRow = (idx: number) => {
@@ -260,7 +309,7 @@ export default defineComponent({
             console.warn(
               'Some items were not updated due to validation errors:',
               error.response?.data?.detail?.error_items,
-              errorItems
+              errorItems,
             )
           } else {
             submitError.value = error.response?.data?.message || 'Failed to import items.'
@@ -309,14 +358,15 @@ export default defineComponent({
           columnWidths[col] = parsedWidths[col]
         })
       }
-      console.log('Column widths set from storage:', columnWidths, columns)
     }
 
     onMounted(() => {
       saved_action.value = clientStore().expected_event_action
       setColumnWidthsFromStorage()
       clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-      eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) => fetchAndAddItemToTable(scanData))
+      eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) =>
+        fetchAndAddItemToTable(scanData),
+      )
     })
 
     onUnmounted(() => {
@@ -345,7 +395,6 @@ export default defineComponent({
         console.warn('Edit blocked, not updating field:', col)
         return
       }
-      console.log(`Updating field: row ${rowIdx}, column ${col}, type ${type}, value:`, value)
       submitSuccess.value = false
       if (type === 'checkbox') {
         items[rowIdx][col] = Boolean(value)
@@ -438,7 +487,6 @@ export default defineComponent({
               item[key] = row[key]
             }
           })
-          console.log('Parsed item from CSV:', item)
           items.splice(items.length - 1, 0, item)
         })
       }
@@ -450,11 +498,12 @@ export default defineComponent({
     const copyColumnNames = () => {
       const columnNames = Object.keys(formFields).join(',')
       if (
-        typeof navigator !== "undefined" &&
+        typeof navigator !== 'undefined' &&
         navigator.clipboard &&
-        typeof navigator.clipboard.writeText === "function"
+        typeof navigator.clipboard.writeText === 'function'
       ) {
-        navigator.clipboard.writeText(columnNames)
+        navigator.clipboard
+          .writeText(columnNames)
           .then(() => alert(`Column names copied to clipboard:\n${columnNames}`))
           .catch(() => fallbackCopyTextToClipboard(columnNames))
       } else {
@@ -463,11 +512,11 @@ export default defineComponent({
     }
 
     const fallbackCopyTextToClipboard = (text: string) => {
-      const textArea = document.createElement("textarea")
+      const textArea = document.createElement('textarea')
       textArea.value = text
       document.body.appendChild(textArea)
       textArea.select()
-      document.execCommand("copy")
+      document.execCommand('copy')
       document.body.removeChild(textArea)
       alert(`Column names copied to clipboard:\n${text}`)
     }
@@ -496,22 +545,60 @@ export default defineComponent({
   },
 })
 </script>
-
 <style scoped>
+:global(#app) {
+  max-width: 100vw !important;
+  overflow-x: auto;
+}
+
+/* Table Styles */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 95%;
+  table-layout: fixed;
+}
+
+th,
+td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+th:last-child,
+td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: initial;
+}
+
+.button-column {
+  max-width: 100px;
+  border: none;
+}
+
+/* Form Field Styles */
+td .form-group {
+  padding: 0 !important;
+  margin-bottom: 0 !important;
+}
+
 td .form-group > label {
   display: none !important;
 }
+
 td .form-group > input.form-control {
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
-  padding: 0.1rem 0.2rem !important;
-  min-width: 0;
-}
-td .form-group {
-  margin-bottom: 0 !important;
 }
 
+/* Validation & Error Styles */
 td.invalid-cell {
   background-color: #f8d7da;
   color: #721c24;
@@ -521,18 +608,19 @@ td.invalid-cell {
   background-color: #fdde9a;
   color: #e99f00;
 }
-/* Draggable column styles */
+
 .draggable-th {
   position: relative;
   user-select: none;
   min-width: 60px;
-  /* Prevents columns from being too small */
 }
+
 .th-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .resize-handle {
   width: 8px;
   height: 100%;
@@ -542,15 +630,16 @@ td.invalid-cell {
   right: 0;
   top: 0;
   z-index: 2;
+  background: transparent;
+  transition: background 0.2s;
 }
+
 .resize-handle:hover {
   background-color: #ddd;
 }
+
 .resize-handle:active {
   background-color: #bbb;
-}
-.dropdown-menu-anchor {
-  position: relative;
 }
 .dropdown-menu {
   position: absolute;
