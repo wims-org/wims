@@ -24,7 +24,7 @@ export const formFields: Record<string, FormField> = {
   changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: false, required: false },
   ai_generated: { label: 'AI Generated', type: 'array', disabled: true, hidden: true, details: false, required: false },
   min_amount: { label: 'Minimum Amount', type: 'number', disabled: false, hidden: false, details: false, required: false },
-  tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: true },
+  tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: false },
   cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false, required: false },
   acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
   cost_used: { label: 'Cost Used', type: 'number', disabled: false, hidden: false, details: false, required: false },
