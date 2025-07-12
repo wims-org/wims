@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <h1 class="mt-4">Item List</h1>
+        <h3 class="mt-4">{{ title }}</h3>
         <div class="list-group">
             <div v-for="item in items" :key="item.tag_uuid" 
                 class="list-group-item list-group-item-action" @click="selectItem(item)">
@@ -14,18 +14,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
-
-interface Item {
-    tag_uuid: string;
-    short_name: string;
-    description: string;
-}
+import type { components } from '@/interfaces/api-types';
+type Item = components['schemas']['Item'] & { [key: string]: unknown };
 
 export default defineComponent({
     props: {
         items: {
             type: Array as PropType<Item[]>,
             required: true
+        },
+        title: {
+            type: String,
+            default: 'Item List'
         }
     },
     emits: ['select'],

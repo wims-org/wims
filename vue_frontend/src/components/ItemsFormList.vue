@@ -540,6 +540,12 @@ export default defineComponent({
   table-layout: fixed;
 }
 
+@media screen and (max-width: 768px) {
+  .table {
+    width: 92%;
+  }
+}
+
 th,
 td {
   overflow: hidden;

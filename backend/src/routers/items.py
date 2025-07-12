@@ -122,6 +122,19 @@ async def get_item_with_containers(
     return recursive_containers
 
 
+@router.get("/{rfid}/content", response_model=list[Item])
+async def get_item_content(
+    request: Request,
+    rfid: str,
+) -> list[Item]:
+    content = get_db(request).read(
+        collection_name="items",
+        query={"container_tag_uuid": rfid})
+    if not content:
+        raise HTTPException(status_code=404, detail="Item content not found")
+    return content
+
+
 @router.get("", response_model=list[Item])
 async def get_items(
     request: Request,

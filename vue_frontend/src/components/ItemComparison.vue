@@ -3,7 +3,7 @@
     <button @click="toggleDetails" class="btn btn-secondary mb-3" data-testid="toggle-details-button">
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
-    <h1 class="mb-4">Compare {{ item_org.short_name }}</h1>
+    <h1 class="mb-4">Compare {{ item_org?.short_name }}</h1>
     <form v-if="item_org && formData_org" @submit.prevent="handleSubmit">
       <div class="row p-2 justify-content-between align-items-center">
         <div class="col-2">Old Value</div>
@@ -16,57 +16,33 @@
       </div>
       <table class="table table-bordered">
         <tbody>
-          <tr
-            v-for="(field, key) in formFields"
-            :key="key"
-            :class="{
-              'table-danger':
-                key in formData_new &&
-                formData_new[key] != null &&
-                formData_org[key] !== formData_new[key],
-            }"
-            v-show="!field.hidden"
-          >
+          <tr v-for="(field, key) in formFields" :key="key" :class="{
+            'table-danger':
+              key in formData_new &&
+              formData_new[key] != null &&
+              formData_org[key] !== formData_new[key],
+          }" v-show="!field.hidden">
             <td>
-              <component
-                :is="getFieldComponent(field.type)"
-                :name="String(key)"
-                :label="field.label || key"
-                :value="formData_org[key]"
-                :disabled="field.disabled ?? undefined"
-                :required="field.required"
-                @update:value="updateFieldModel($event, String(key), field.type)"
-                @click="handleInputClick(key)"
-                :class="{ 'is-invalid': field.required && !item_org[key] }"
-              />
+              <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
+                :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
+                @update:value="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)"
+                :class="{ 'is-invalid': field.required && item_org.value && item_org?.[key] }" />
             </td>
             <td class="text-center">
-              <button
-                type="button"
-                @click="() => (formData_org[key] = formData_new[key])"
-                class="btn btn-primary mt-3"
-                :disabled="
-                  (!(key in formData_new) ||
+              <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mt-3"
+                :disabled="(!(key in formData_new) ||
                   formData_new[key] == null ||
                   formData_org[key] == formData_new[key]) ?? undefined
-                "
-              >
-                <font-awesome-icon
-                  v-if="
-                    key in formData_new &&
-                    formData_new[key] != null &&
-                    formData_org[key] != formData_new[key]
-                  "
-                  icon="arrow-left"
-                />
+                  ">
+                <font-awesome-icon v-if="
+                  key in formData_new &&
+                  formData_new[key] != null &&
+                  formData_org[key] != formData_new[key]
+                " icon="arrow-left" />
                 <font-awesome-icon v-else icon="equals" />
               </button>
-              <button
-                type="button"
-                :v-if="formData_new[key]"
-                @click="formData_new[key]?copyToClipboard(formData_new[key]):''"
-                class="btn btn-secondary mt-3"
-              >
+              <button type="button" :v-if="formData_new[key]"
+                @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''" class="btn btn-secondary mt-3">
                 <font-awesome-icon icon="clipboard" />
               </button>
             </td>
@@ -79,13 +55,10 @@
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
     </div>
-    <div
-      v-if="Array.isArray(item_org.errors) && item_org.errors.length"
-      class="alert alert-danger mt-3"
-    >
+    <div v-if="Array.isArray(errors) && errors.length" class="alert alert-danger mt-3">
       <p>There were errors in the data model from the database:</p>
       <ul>
-        <li v-for="(error, index) in item_org.errors" :key="index">{{ error }}</li>
+        <li v-for="(error, index) in errors" :key="index">{{ error }}</li>
       </ul>
     </div>
     <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
@@ -108,7 +81,10 @@ import ArrayField from '@/components/fields/ArrayField.vue'
 import ModalField from '@/components/fields/ModalField.vue'
 import NumberField from '@/components/fields/NumberField.vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
+import type { components } from '@/interfaces/api-types'
 
+type Item = components['schemas']['Item'] & { [key: string]: unknown }
+import type { PropType } from 'vue'
 export default defineComponent({
   name: 'ItemComparison',
   components: {
@@ -124,17 +100,22 @@ export default defineComponent({
     ImageThumbnailField,
   },
   props: {
+
     item_org: {
-      type: Object as () => Record<string, unknown>,
+      type: Object as PropType<Item | undefined>,
       required: true,
     },
     item_new: {
-      type: Object as () => Record<string, unknown>,
+      type: Object as PropType<Item | undefined>,
       required: true,
     },
     newItem: {
       type: Boolean,
       required: true,
+    },
+    errors: {
+      type: Array as PropType<string[]>,
+      default: () => [],
     },
   },
   setup(props, { emit }) {
@@ -231,7 +212,7 @@ export default defineComponent({
         formData_org.value[key] = value
       }
     }
-    const copyToClipboard = (value: string | unknown | undefined ) => {
+    const copyToClipboard = (value: string | unknown | undefined) => {
       if (value && typeof value == 'string') navigator.clipboard.writeText(value)
     }
     return {

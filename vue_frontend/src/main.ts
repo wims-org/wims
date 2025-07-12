@@ -7,15 +7,25 @@ import App from './App.vue'
 import router from './router'
 import axios from 'axios'
 import { FontAwesomeIcon } from './font-awesome'
+
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+
+// Import Bootstrap and BootstrapVue CSS files (order is important)
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
 new configureCompat({
   ATTR_FALSE_VALUE: false,
   RENDER_FUNCTION: false,
-  COMPONENT_ASYNC: false 
+  COMPONENT_ASYNC: false,
+  WATCH_ARRAY: false,
 })
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(BootstrapVue)
+app.use(IconsPlugin)
 
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')

@@ -12,9 +12,6 @@ const router = useRouter()
 
 const handleSelect = (tag: string) => {
   console.log('Selected tag:', tag)
-  
-
   router.push(`/items/${tag}`)
-  // Add your logic to handle the selected tag
 }
 </script>

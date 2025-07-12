@@ -2,13 +2,8 @@
 import { useRouter, useRoute } from 'vue-router'
 import { onMounted, watch } from 'vue'
 import TitleComponent from './components/TitleComponent.vue'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
 import { serverStream } from './stores/serverStream'
 import { clientStore } from './stores/clientStore'
-// Import Bootstrap and BootstrapVue CSS files (order is important)
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 import eventBus, { type Events } from './stores/eventBus'
 import { EventAction } from './interfaces/EventAction'
 import { setReaderId } from './utils'
@@ -30,6 +25,7 @@ export default {
 
       // Handle scan event from event bus
       eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
+        console.log('App received redirect event:', data)
         router.push('/items/' + data.rfid)
       })
     })

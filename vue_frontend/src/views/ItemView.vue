@@ -3,14 +3,26 @@
     <div v-if="saveError" class="sticky-note">Error saving changes</div>
 
     <LLMCompletion />
-    <ItemCompare
-      v-if="isComparing"
-      :item_org="item"
-      :item_new="completion"
-      :newItem="newItem"
-      @submit="handleFormSubmit"
-    />
-    <ItemForm v-else :item="item" :newItem="newItem" @submit="handleFormSubmit" />
+    <h1 class="m-4">{{ item?.short_name }}</h1>
+    <b-tabs class="mt-3" content-class="mt-3">
+      <b-tab title="Container Tree" :active="items?.length > 0">
+        <ContainerListComponent v-if="item?.tag_uuid" :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
+          @update:value="handleContainerSelect" />
+        <ItemList :items="items" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
+        <div class="d-flex justify-content-center mt-3">
+          <button @click="() => { showModal = true }" class="btn btn-primary mb-3" data-testid="add-content-button">Add
+            content
+            now</button>
+        </div>
+      </b-tab>
+      <b-tab title="Item Data" :active="items?.length === 0">
+        <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
+          @submit="handleFormSubmit" />
+        <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
+      </b-tab>
+    </b-tabs>
+
+    <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
   </main>
 </template>
 
@@ -24,6 +36,12 @@ import axios from 'axios'
 import eventBus from '../stores/eventBus'
 import { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
+import { clientStore as useClientStore } from '@/stores/clientStore'
+import ItemList from '@/components/ItemList.vue'
+import type { components } from '@/interfaces/api-types'
+type Item = components['schemas']['Item'] & { [key: string]: unknown }
+import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
+import SearchModal from '@/components/shared/SearchModal.vue'
 
 const route = useRoute()
 const itemId = ref<string>(
@@ -33,11 +51,16 @@ const itemId = ref<string>(
       ? route.params.tag_uuid[0]
       : '',
 )
-const item = ref({})
+const item = ref<Item>()
 const newItem = ref(false)
 const isComparing = ref(false)
-const completion = ref({})
+const completion = ref<Item>()
 const saveError = ref('')
+const items = ref<Item[]>([])
+const noContent = ref(false)
+const showModal = ref(false)
+
+const clientStore = useClientStore()
 
 eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
   if (data) {
@@ -54,16 +77,36 @@ const fetchItem = async () => {
   } catch (error) {
     if (axios.isAxiosError(error) && error.response && error.response.status === 404) {
       newItem.value = true
-      item.value = { tag_uuid: itemId.value }
+      item.value = { tag_uuid: itemId.value } as Item
       console.warn('Item not found, display empty item form')
     } else {
-      item.value = { tag_uuid: itemId.value }
+      item.value = { tag_uuid: itemId.value } as Item
       console.error('Error fetching item:', error)
     }
   }
 }
 
+
+const fetchContainerContent = async () => {
+  try {
+    const response = await axios.get(`/items/${itemId.value}/content`)
+    // Check if response is array
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      items.value = response.data as Item[]
+      noContent.value = false
+    } else {
+      // nothing found
+      items.value = []
+      noContent.value = true
+    }
+  } catch {
+    noContent.value = true
+    items.value = []
+  }
+}
+
 onMounted(fetchItem)
+onMounted(fetchContainerContent)
 
 watch(
   () => route.params.tag_uuid,
@@ -71,6 +114,7 @@ watch(
     if (itemId.value !== newId) {
       itemId.value = typeof newId === 'string' ? newId : ''
       await fetchItem()
+      await fetchContainerContent()
     }
   },
 )
@@ -95,11 +139,41 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
 
 const handleCompletion = (result: { data: { response: object } }) => {
   if (result && result.data && result.data.response) {
-    completion.value = result.data.response
+    completion.value = result.data.response as Item
     isComparing.value = true
   } else {
     isComparing.value = false
   }
+}
+
+const handleItemSelect = (item: Item) => {
+  clientStore.expected_event_action = EventAction.REDIRECT
+  eventBus.emit(EventAction.REDIRECT, { rfid: item.tag_uuid } as Events[EventAction.REDIRECT])
+}
+
+const handleContentSelect = async (tag: string) => {
+  try {
+    const selectedItem = await axios.get(`/items/${tag}`)
+    selectedItem.data["container_tag_uuid"] = itemId.value
+    selectedItem.data["container_name"] = item.value?.short_name
+
+    await axios.put(`/items/${tag}`, selectedItem.data)
+  } catch (error) {
+    saveError.value = 'Could not save changes. Please try again.'
+    console.error(error)
+  } finally {
+    fetchContainerContent()
+  }
+}
+
+const handleContainerSelect = (tag: string) => {
+  if (!item.value) return
+  item.value.container_tag_uuid = tag
+}
+
+const closeModal = () => {
+  showModal.value = false
+  clientStore.expected_event_action = EventAction.REDIRECT
 }
 </script>
 

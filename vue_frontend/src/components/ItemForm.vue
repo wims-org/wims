@@ -3,46 +3,29 @@
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
-    <ContainerListComponent
-      v-if="item && item.tag_uuid"
-      :itemId="typeof item.tag_uuid === 'string' ? item.tag_uuid : ''"
-      @update:value="updateFieldModel($event, 'container_tag_uuid', 'modal')"
-    />
     <div class="row mb-3">
-      <button
-        @click="toggleDetails"
-        type="button"
-        class="btn btn-secondary mt-3 mr-auto"
-        data-testid="toggle-details-button"
-      >
+      <button @click="toggleDetails" type="button" class="btn btn-secondary mt-3 mr-auto"
+        data-testid="toggle-details-button">
         {{ showDetails ? 'Hide Details' : 'Show Details' }}
       </button>
       <button @click="handleSubmit" type="submit" class="btn btn-primary mt-3">Submit</button>
     </div>
-    <h1 class="mb-4">{{ item.short_name }}</h1>
+    <h1 class="mb-4">{{ item?.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
-      <component
-        v-for="(field, key, fieldIndex) in formFields"
-        :is="getFieldComponent(field.type)"
-        :key="key"
-        :name="String(key)"
-        :label="field.label || key"
-        :value="formData[key]"
-        :disabled="field.disabled ?? undefined"
-        :required="field.required"
-        :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
+      <component v-for="(field, key, fieldIndex) in formFields" :is="getFieldComponent(field.type)" :key="key"
+        :name="String(key)" :label="field.label || key" :value="formData[key]" :disabled="field.disabled ?? undefined"
+        :required="field.required" :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
         @update:value="updateFieldModel($event, String(key), field.type)"
-        v-show="!field.hidden && (!field.details || (showDetails && field.details))"
-      />
+        v-show="!field.hidden && (!field.details || (showDetails && field.details))" />
       <button type="submit" class="btn btn-primary mt-3">Submit</button>
     </form>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
     </div>
-    <div v-if="Array.isArray(item.errors) && item.errors.length" class="alert alert-danger mt-3">
+    <div v-if="Array.isArray(errors) && errors.length" class="alert alert-danger mt-3">
       <p>There were errors in the data model from the database:</p>
       <ul>
-        <li v-for="(error, index) in item.errors" :key="index">{{ error }}</li>
+        <li v-for="(error, index) in errors" :key="index">{{ error }}</li>
       </ul>
     </div>
   </div>
@@ -84,23 +67,28 @@ export default defineComponent({
   },
   props: {
     item: {
-      type: Object as () => Record<string, unknown>,
-      required: true,
+      type: Object as () => Item | undefined,
+      required: true
     },
-    newItem: {
+    isNewItem: {
       type: Boolean,
       required: true,
     },
+    errors: 
+    {
+      type: Array as () => string[],
+      default: () => [],
+    },
   },
   setup(props, { emit }) {
-    const formData = ref<{ [x: string]: unknown | undefined }>({ ...props.item }) // form data is the live data in the form
+    const formData = ref() // form data is the live data in the form
     const unsavedChanges = ref(false)
     const saveError = ref('')
 
     watch(
       () => props.item,
       (newItem) => {
-        formData.value = { ...newItem }
+        formData.value = { ...newItem}
         unsavedChanges.value = false // Reset unsaved changes when item prop changes
       },
       { immediate: true, deep: true },
@@ -154,19 +142,20 @@ export default defineComponent({
       } else if (type === 'array') {
         formData.value[key] = value
       } else if (key === 'container_tag_uuid') {
-        if (value) {
+        if (typeof (value) === 'string' && value.trim() !== '') {
           axios
             .get<Item>(`/items/${value}`)
             .then((response) => (formData.value['container'] = response.data))
             .catch(() => {
               // new container
               console.warn(`Container with UUID ${value} not found, creating new container entry`)
-              formData.value['container'] = { tag_uuid: value, short_name: 'Create New Container' }
+
+              formData.value['container'] = { tag_uuid: value } as Item
             })
         } else {
           formData.value['container'] = undefined // Clear the field if no value
         }
-        formData.value[key] = value
+        formData.value[key] = value as string
       } else {
         formData.value[key] = value
       }
@@ -201,6 +190,7 @@ export default defineComponent({
   width: unset;
   min-width: 0;
 }
+
 .sub-fields {
   margin-left: 20px;
 }
