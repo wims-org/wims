@@ -24,7 +24,7 @@ export const serverStream = defineStore('ServerStream', {
         import.meta.env.VITE_API_URL + '/stream?reader=' + reader_id,
       )
 
-      let aliveTimeout: number | null = null
+      let aliveTimeout: ReturnType<typeof setTimeout> | null = null
 
       this.eventSource.addEventListener(StreamEvent.SCAN, (event) => {
         console.log(StreamEvent.SCAN, event.data)

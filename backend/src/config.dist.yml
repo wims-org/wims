@@ -18,7 +18,10 @@ mqtt:
     topics:
         scan: "rfid/scan/#"
         result: "rfid/itemdata"
-        
+
+camera:
+    url: http://yourcamip/stream
+
 logging:
     level: "INFO"
 

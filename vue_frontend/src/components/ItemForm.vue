@@ -3,7 +3,7 @@
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
-    <div class="row mb-3">
+    <div class="d-flex justify-content-between mb-3">
       <button @click="toggleDetails" type="button" class="btn btn-secondary mt-3 mr-auto"
         data-testid="toggle-details-button">
         {{ showDetails ? 'Hide Details' : 'Show Details' }}

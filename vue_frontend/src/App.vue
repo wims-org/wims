@@ -25,7 +25,6 @@ export default {
 
       // Handle scan event from event bus
       eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
-        console.log('App received redirect event:', data)
         router.push('/items/' + data.rfid)
       })
     })

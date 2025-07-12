@@ -5,7 +5,7 @@
     </button>
     <h1 class="mb-4">Compare {{ item_org?.short_name }}</h1>
     <form v-if="item_org && formData_org" @submit.prevent="handleSubmit">
-      <div class="row p-2 justify-content-between align-items-center">
+      <div class="d-flex p-2 justify-content-between align-items-center">
         <div class="col-2">Old Value</div>
         <button type="button" class="btn btn-primary mt-3" @click="applyNewValuesToOrg">
           <font-awesome-icon icon="arrow-left" />

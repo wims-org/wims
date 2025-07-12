@@ -18,6 +18,7 @@ mqtt:
     topics:
         scan: "rfid/scan/#"
         result: "rfid/itemdata"
+
 logging:
     level: "INFO"
 

@@ -11,6 +11,7 @@ from loguru import logger
 from database_connector import MongoDBConnector
 from models.database import Item
 from modules import chatgpt
+from modules.camera import Camera
 from mqtt_client import MQTTClientManager, ReaderMessage
 from utils import find
 
@@ -60,6 +61,7 @@ class BackendService:
             self.llm_completion = chatgpt.ChatGPT(
                 api_key=find(key := "features.openai.api_key", config), response_schema=schema
             )
+            self.camera = Camera(find(key := "camera.url", config))
         except (KeyError, TypeError, openai.OpenAIError) as e:
             logger.error(
                 f"Error getting config key {key}, check config file and environment variables: {e}")
