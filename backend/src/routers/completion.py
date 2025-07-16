@@ -29,7 +29,7 @@ async def identification(
     try:
         # Parse JSON data from the request body
         body = await request.json()
-        use_camera = body.get("use_camera", False),
+        use_camera = body.get("use_camera", "False").lower() == "true"
         query = body.get("query")
         client_id = body.get("client_id")
         imageUrls = body.get("imageUrls", [])  # Base64-encoded image URLs
@@ -103,7 +103,6 @@ async def identification(
                 client_id, []).append(sse_message)
             return
 
-        logger.debug(f"ChatGPT response: {chatgpt_response}")
         sse_message = SseMessage(
             data=SseMessage.SseMessageData(
                 reader_id=client_id,
