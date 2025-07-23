@@ -4,14 +4,12 @@
       <div class="mb-2 d-flex justify-content-between align-items-center">
         <span class="text-nowrap mr-2">
           <font-awesome-icon icon="file-csv" />
-          Upload .CSV:</span
-        >
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          @change="handleCsvUpload"
-          class="form-control-file"
-        />
+          Upload .CSV:</span>
+        <input type="file" accept=".csv,text/csv" @change="handleCsvUpload" class="form-control-file" />
+        <button type="button" class="btn btn-secondary btn-sm ml-2" @click="resetColumnWidths">
+          <font-awesome-icon icon="trash" />
+          Reset Columns
+        </button>
         <button type="button" class="btn btn-secondary btn-sm ml-2" @click="copyColumnNames">
           <font-awesome-icon icon="clipboard" />
           Copy Column Names to clipboard
@@ -21,39 +19,25 @@
         <table class="table table-bordered table-sm">
           <thead>
             <tr>
-              <th
-                v-for="col in columns"
-                :key="col"
-                :style="{ width: columnWidths[col] + 'px' }"
-                class="draggable-th"
-              >
+              <th v-for="col in columns" :key="col" :style="{ width: columnWidths[col] + 'px' }" class="draggable-th">
                 <div class="th-content">
                   {{ formFields[col]?.label || col }}
                   <span class="resize-handle" @mousedown="startResize($event, col)"></span>
                 </div>
               </th>
-              <th>
-                <button
-                  type="button"
-                  class="btn btn-success btn-sm"
-                  @click="toggleColumnDropdown()"
-                >
+              <th class="button-column">
+                <button type="button" class="btn btn-success btn-sm" @click="toggleColumnDropdown()">
                   Add Column
                 </button>
                 <div v-if="columnDropDown" class="dropdown-menu">
-                  <button
-                    v-for="(field, key) in formFields"
-                    :key="key"
-                    class="dropdown-item"
-                    @click="
-                      () => {
-                        columns.indexOf(key) === -1
-                          ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
-                          : columns.splice(columns.indexOf(key), 1)
-                        columnDropDown = false
-                      }
-                    "
-                  >
+                  <button v-for="(field, key) in formFields" :key="key" class="dropdown-item" @click="
+                    () => {
+                      columns.indexOf(key) === -1
+                        ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
+                        : columns.splice(columns.indexOf(key), 1)
+                      columnDropDown = false
+                    }
+                  ">
                     <font-awesome-icon v-if="columns.indexOf(key) !== -1" icon="check" />
                     {{ field.label || key }}
                   </button>
@@ -62,45 +46,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, rowIdx) in items"
-              :key="rowIdx"
-              :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }"
-            >
-              <td
-                v-for="col in columns"
-                :key="col"
-                :class="{
-                  'invalid-cell':
-                    !rowEmpty(item) &&
-                    formFields[col]?.required &&
-                    (item[col] === undefined || item[col] === ''),
-                }"
-              >
-                <component
-                  v-if="formFields[col]"
-                  :is="getFieldComponent(formFields[col].type)"
-                  :name="col"
-                  :label="formFields[col].label"
-                  :value="item[col]"
-                  :disabled="!item[col]"
-                  :required="!rowEmpty(item) && formFields[col].required"
-                  hide-label
-                  borderless
-                  @update:value="
+            <tr v-for="(item, rowIdx) in items" :key="item.tag_uuid || rowIdx"
+              :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }">
+              <td v-for="col in columns" :key="col" :class="{
+                'invalid-cell':
+                  !rowEmpty(item) &&
+                  formFields[col]?.required &&
+                  (item[col] === undefined || item[col] === ''),
+              }">
+                <component v-if="formFields[col]" :is="getFieldComponent(formFields[col].type)" :name="col"
+                  :label="formFields[col].label" :value="item[col]" :disabled="false"
+                  :required="!rowEmpty(item) && formFields[col].required" hide-label borderless @update:value="
                     (val: string | number | boolean | string[]) =>
                       updateField(val, rowIdx, col, formFields[col].type)
-                  "
-                />
+                  " />
                 <span v-else>-</span>
               </td>
-              <td>
-                <button
-                  v-if="items.length > 1 && rowIdx !== items.length - 1"
-                  type="button"
-                  class="btn btn-danger btn-sm"
-                  @click="removeRow(rowIdx)"
-                >
+              <td class="button-column">
+                <button v-if="items.length > 1 && rowIdx !== items.length - 1" type="button"
+                  class="btn btn-danger btn-sm" @click="removeRow(rowIdx)">
                   Remove
                 </button>
               </td>
@@ -108,7 +72,9 @@
           </tbody>
         </table>
       </div>
-      <button type="submit" class="btn btn-primary mt-2">Submit All</button>
+      <div class="d-flex justify-content-between align-items-center">
+        <button type="submit" class="btn btn-primary mt-2">Submit All</button>
+      </div>
     </form>
     <div v-if="submitErrorStatus === 406" class="alert alert-danger mt-2">
       <span> Some items were not updated because they already exist in the database.</span>
@@ -177,6 +143,7 @@ export default defineComponent({
     const emptyItem: Partial<Item> = { consumable: false, amount: 1 }
     const items = reactive<Array<Partial<Item>>>([Object.assign({}, emptyItem)])
     const columnDropDown = ref(false)
+    const editable = ref(true)
 
     // Draggable column widths
     const defaultWidth = 160
@@ -201,10 +168,63 @@ export default defineComponent({
       document.addEventListener('mouseup', stopResize)
     }
 
+    /**
+     * Handles resizing of table columns by dragging the resize handle.
+     * Resizes the selected column and proportionally adjusts the widths of columns to its right,
+     * ensuring no column becomes smaller than the minimum width.
+     */
     const onResize = (e: MouseEvent) => {
       if (!resizingCol.value) return
+      const col = resizingCol.value
       const dx = e.clientX - startX
-      columnWidths[resizingCol.value] = Math.max(60, startWidth + dx)
+
+      // Initialize column widths if missing
+      columns.forEach((c) => {
+        if (!isFinite(columnWidths[c])) columnWidths[c] = defaultWidth
+      })
+
+      const colIdx = columns.indexOf(col)
+      const rightCols = columns.slice(colIdx + 1)
+      if (!rightCols.length) return // No columns to the right, do not resize
+
+      const viewWidth = document.documentElement.clientWidth
+      const parentWidth = document.querySelector('.table-responsive')?.clientWidth || viewWidth
+
+
+      // Ensure right columns have initialized widths
+      rightCols.forEach((c) => {
+        if (!isFinite(columnWidths[c])) columnWidths[c] = defaultWidth
+      })
+
+      const minWidth = 60
+      const newWidth = Math.max(minWidth, startWidth + dx)
+      const delta = newWidth - columnWidths[col]
+      const rightTotalWidth = rightCols.reduce((sum, c) => sum + columnWidths[c], 0)
+
+      // Check if resizing would shrink any right column below minWidth
+      const canResize = rightCols.every((c) => {
+        const proportion = columnWidths[c] / rightTotalWidth
+        const newRightWidth = columnWidths[c] - delta * proportion
+        return newRightWidth >= minWidth && newRightWidth <= parentWidth
+      })
+      if (!canResize) return
+
+      // Apply new width to the resizing column
+      columnWidths[col] = newWidth
+
+      // Adjust right columns proportionally
+      rightCols.forEach((c) => {
+        const proportion = columnWidths[c] / rightTotalWidth
+        columnWidths[c] -= delta * proportion
+      })
+
+      // Correct rounding errors to keep total width constant
+      const totalWidth = columns.reduce((sum, c) => sum + columnWidths[c], 0)
+      const expectedTotal = columns.length * defaultWidth
+      if (Math.abs(totalWidth - expectedTotal) > 1) {
+        const last = rightCols[rightCols.length - 1]
+        columnWidths[last] += expectedTotal - totalWidth
+      }
     }
 
     const stopResize = () => {
@@ -228,7 +248,6 @@ export default defineComponent({
     )
 
     const toggleColumnDropdown = () => {
-      console.log('Toggling column dropdown')
       columnDropDown.value = !columnDropDown.value
     }
     const removeRow = (idx: number) => {
@@ -259,7 +278,7 @@ export default defineComponent({
             console.warn(
               'Some items were not updated due to validation errors:',
               error.response?.data?.detail?.error_items,
-              errorItems
+              errorItems,
             )
           } else {
             submitError.value = error.response?.data?.message || 'Failed to import items.'
@@ -308,18 +327,19 @@ export default defineComponent({
           columnWidths[col] = parsedWidths[col]
         })
       }
-      console.log('Column widths set from storage:', columnWidths, columns)
     }
 
     onMounted(() => {
       saved_action.value = clientStore().expected_event_action
       setColumnWidthsFromStorage()
       clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-      eventBus.on('scan', async (scanData: { rfid: string }) => fetchAndAddItemToTable(scanData))
+      eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) =>
+        fetchAndAddItemToTable(scanData),
+      )
     })
 
     onUnmounted(() => {
-      eventBus.off('scan')
+      eventBus.off(EventAction.FORM_SCAN_ADD)
       if (saved_action.value) clientStore().setExpectedEventAction(saved_action.value)
     })
 
@@ -340,7 +360,10 @@ export default defineComponent({
       col: string,
       type: string,
     ) => {
-      console.log(`Updating field: row ${rowIdx}, column ${col}, type ${type}, value:`, value)
+      if (!editable.value) {
+        console.warn('Edit blocked, not updating field:', col)
+        return
+      }
       submitSuccess.value = false
       if (type === 'checkbox') {
         items[rowIdx][col] = Boolean(value)
@@ -351,6 +374,7 @@ export default defineComponent({
       } else if (type === 'array') {
         items[rowIdx][col] = value
       } else if (col === 'container_tag_uuid') {
+        items[rowIdx][col] = '' + value
         if (value) {
           axios
             .get<Item>(`/items/${value}`)
@@ -432,7 +456,6 @@ export default defineComponent({
               item[key] = row[key]
             }
           })
-          console.log('Parsed item from CSV:', item)
           items.splice(items.length - 1, 0, item)
         })
       }
@@ -443,8 +466,36 @@ export default defineComponent({
 
     const copyColumnNames = () => {
       const columnNames = Object.keys(formFields).join(',')
-      navigator.clipboard.writeText(columnNames)
-      alert(`Column names copied to clipboard:\n${columnNames}`)
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === 'function'
+      ) {
+        navigator.clipboard
+          .writeText(columnNames)
+          .then(() => alert(`Column names copied to clipboard:\n${columnNames}`))
+          .catch(() => fallbackCopyTextToClipboard(columnNames))
+      } else {
+        fallbackCopyTextToClipboard(columnNames)
+      }
+    }
+
+    const resetColumnWidths = () => {
+      columns.splice(0, columns.length, ...DEFAULT_COLUMNS)
+      columns.forEach((col) => {
+        columnWidths[col] = defaultWidth
+      })
+      localStorage.removeItem('itemsFormListColumnWidths')
+    }
+
+    const fallbackCopyTextToClipboard = (text: string) => {
+      const textArea = document.createElement('textarea')
+      textArea.value = text
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert(`Column names copied to clipboard:\n${text}`)
     }
 
     return {
@@ -465,28 +516,73 @@ export default defineComponent({
       toggleColumnDropdown,
       columnDropDown,
       copyColumnNames,
+      resetColumnWidths,
       filterErrorUUIDs,
       errorItems,
     }
   },
 })
 </script>
-
 <style scoped>
-td .form-group > label {
-  display: none !important;
+:global(#app) {
+  max-width: 100vw !important;
 }
-td .form-group > input.form-control {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0.1rem 0.2rem !important;
-  min-width: 0;
+
+/* Table Styles */
+.table-responsive {
+  width: 100%;
+  max-width: 100vw;
 }
+
+.table {
+  /* width: 92%;  enable for scrolling */
+  width: unset;
+  table-layout: fixed;
+}
+
+@media screen and (max-width: 768px) {
+  .table {
+    width: 92%;
+  }
+}
+
+th,
+td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+th:last-child,
+td:last-child {
+  width: 1%;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: initial;
+}
+
+.button-column {
+  max-width: 100px;
+  border: none;
+}
+
+/* Form Field Styles */
 td .form-group {
+  padding: 0 !important;
   margin-bottom: 0 !important;
 }
 
+td .form-group>label {
+  display: none !important;
+}
+
+td .form-group>input.form-control {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Validation & Error Styles */
 td.invalid-cell {
   background-color: #f8d7da;
   color: #721c24;
@@ -496,18 +592,19 @@ td.invalid-cell {
   background-color: #fdde9a;
   color: #e99f00;
 }
-/* Draggable column styles */
+
 .draggable-th {
   position: relative;
   user-select: none;
   min-width: 60px;
-  /* Prevents columns from being too small */
 }
+
 .th-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .resize-handle {
   width: 8px;
   height: 100%;
@@ -517,16 +614,18 @@ td.invalid-cell {
   right: 0;
   top: 0;
   z-index: 2;
+  background: transparent;
+  transition: background 0.2s;
 }
+
 .resize-handle:hover {
   background-color: #ddd;
 }
+
 .resize-handle:active {
   background-color: #bbb;
 }
-.dropdown-menu-anchor {
-  position: relative;
-}
+
 .dropdown-menu {
   position: absolute;
   display: block;

@@ -5,6 +5,13 @@
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+input[type='checkbox'] {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.5rem;
 }
 
 a,

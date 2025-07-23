@@ -3,7 +3,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl iputils-ping mosquitto && apt-get clean
+RUN apt-get update && apt-get install -y curl iputils-ping mosquitto libgl1 libglib2.0-0 && apt-get clean
 
 RUN pip install --no-cache-dir poetry
 

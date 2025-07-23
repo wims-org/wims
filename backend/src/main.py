@@ -9,7 +9,7 @@ from loguru import logger
 # Use absolute import
 from dependencies.backend_service import BackendService
 from dependencies.config import read_config
-from routers import completion, healthz, items, readers, stream
+from routers import completion, healthz, items, readers, stream, camera
 from utils import find
 
 # Read config
@@ -26,7 +26,8 @@ def setup_middleware(app):
     origins = [
         "*",
     ]
-    origins.append(f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
+    origins.append(
+        f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -48,7 +49,8 @@ async def lifespan(app: FastAPI):
     try:
         scan_topic = find(key := "mqtt.topics.scan", config)
     except (KeyError, TypeError) as e:
-        logger.error(f"Error updating config key {key}, check config file and environment variables: {e}")
+        logger.error(
+            f"Error updating config key {key}, check config file and environment variables: {e}")
     app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan/#")
     yield
     app.state.backend_service.close()
@@ -63,6 +65,7 @@ app.include_router(readers.router)
 app.include_router(items.router)
 app.include_router(stream.router)
 app.include_router(healthz.router)
+app.include_router(camera.router)
 
 if find("features.openai", config):
     app.include_router(completion.router)

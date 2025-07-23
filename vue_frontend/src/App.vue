@@ -2,13 +2,8 @@
 import { useRouter, useRoute } from 'vue-router'
 import { onMounted, watch } from 'vue'
 import TitleComponent from './components/TitleComponent.vue'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
 import { serverStream } from './stores/serverStream'
 import { clientStore } from './stores/clientStore'
-// Import Bootstrap and BootstrapVue CSS files (order is important)
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 import eventBus, { type Events } from './stores/eventBus'
 import { EventAction } from './interfaces/EventAction'
 import { setReaderId } from './utils'
@@ -29,12 +24,8 @@ export default {
       setReaderId(router)
 
       // Handle scan event from event bus
-      eventBus.on('scan', (data: Events['scan']) => {
-        console.log('Scan event:', data)
-        if (client_store.expected_event_action === EventAction.REDIRECT) {
-          router.push('/items/' + data.rfid)
-        } 
-
+      eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
+        router.push('/items/' + data.rfid)
       })
     })
 

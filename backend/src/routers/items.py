@@ -17,8 +17,8 @@ def get_db(request: Request) -> MongoDBConnector:
 
 class ItemChangedResponse(pydantic.BaseModel):
     message: str
-    error_items: list[str]
-    errors: list[str] 
+    error_items: list[str] = []
+    errors: list[str] = []
 
 
 @router.put("/{rfid}", response_model=ItemChangedResponse)
@@ -50,15 +50,11 @@ async def put_item(
 @router.post("", response_model=ItemChangedResponse)
 async def post_item(
     request: Request,
-    item: ItemRequest | None = None,
+    item: ItemRequest,
 ) -> ItemChangedResponse:
-    if item is None:
-        item = await request.json()
-    # create item
-    item = {k: v for k, v in item.items() if v is not None}
-    item_data = ItemRequest.model_validate(
-        item, strict=False, from_attributes=True)
-    item = Item.model_validate(item_data, strict=False, from_attributes=True)
+    item_dict = item.model_dump(exclude_unset=True, exclude_none=True)
+    logger.warning(f"Creating item: {item_dict}")
+    item = Item.model_validate(item_dict, strict=True, from_attributes=True)
     try:
         updated_rows = get_db(request).create(
             collection_name="items",
@@ -68,7 +64,7 @@ async def post_item(
         raise HTTPException(
             status_code=400, detail="Item already exists") from e
     if updated_rows:
-        logger.debug(f"Item created: {item_data}, {updated_rows}")
+        logger.debug(f"Item created: {item}, {updated_rows}")
         return ItemChangedResponse(message="Item created successfully")
     else:
         raise HTTPException(
@@ -124,6 +120,19 @@ async def get_item_with_containers(
     if not recursive_containers:
         raise HTTPException(status_code=404, detail="Item not found")
     return recursive_containers
+
+
+@router.get("/{rfid}/content", response_model=list[Item])
+async def get_item_content(
+    request: Request,
+    rfid: str,
+) -> list[Item]:
+    content = get_db(request).read(
+        collection_name="items",
+        query={"container_tag_uuid": rfid})
+    if not content:
+        raise HTTPException(status_code=404, detail="Item content not found")
+    return content
 
 
 @router.get("", response_model=list[Item])

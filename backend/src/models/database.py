@@ -54,7 +54,7 @@ class Item(BaseModel):
     # Item Details
     description: str | None = None
     min_amount: int | None = None  # Minimum amount of items, for alerts
-    tags: set[str] = {}  # custom tags for categorization
+    tags: set[str] = Field(default_factory=set)  # custom tags for categorization
     # Bindata image document id, <16MB, collection "images"
     images: list[str] = []
     cost_new: float | None = None  # per item in Euros when new

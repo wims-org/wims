@@ -49,24 +49,30 @@ export default defineComponent({
   mounted() {
     console.log('SearchModal mounted')
   },
-  
-  onChange() {
-    console.log('SearchModal onChange')
-    if (this.show) {
-      this.listenToScanEvent()
-    } else {
-      this.closeModal()
-    }
+
+  watch: {
+    show(newVal) {
+      console.log('SearchModal show changed:', newVal)
+      if (newVal) {
+        this.listenToScanEvent()
+      } else {
+        this.closeModal()
+      }
+    },
   },
 
   methods: {
     listenToScanEvent() {
       this.saved_action = clientStore().expected_event_action
       clientStore().setExpectedEventAction(EventAction.CONTAINER_SCAN)
-      eventBus.on('scan', (data: Events['scan']) => {
-        if (clientStore().expected_event_action !== EventAction.CONTAINER_SCAN) {
-          this.handleSelect(data.rfid)
-        }
+      eventBus.on(EventAction.CONTAINER_SCAN, (data: Events[EventAction.CONTAINER_SCAN]) => {
+        console.log(
+          'SearchModal received scan event:',
+          data,
+          clientStore().expected_event_action,
+          clientStore().expected_event_action === EventAction.CONTAINER_SCAN,
+        )
+        this.handleSelect(data.rfid)
       })
     },
     returnNone() {
@@ -74,11 +80,12 @@ export default defineComponent({
       this.closeModal()
     },
     closeModal() {
-      eventBus.off('scan')
+      eventBus.off(EventAction.CONTAINER_SCAN)
       clientStore().setExpectedEventAction(this.saved_action)
       this.$emit('close')
     },
     handleSelect(tag: string) {
+      console.log('SearchModal handleSelect called with tag:', tag)
       this.$emit('select', tag)
       this.closeModal()
     },

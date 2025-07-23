@@ -5,3 +5,5 @@ __pycache__/
 backend/src/config.yml
 config.yml
 volar.config.js
+docker/mosquitto-conf
+Inventory\ -\ Items.csv
