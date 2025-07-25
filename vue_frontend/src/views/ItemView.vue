@@ -2,23 +2,45 @@
   <main>
     <div v-if="saveError" class="sticky-note">Error saving changes</div>
     <h1 class="m-4">{{ item?.short_name }}</h1>
-    <b-tabs class="mt-3" content-class="mt-3">
-      <b-tab title="Container Tree" :active="items?.length > 0 && !newItem && !isComparing">
-        <ContainerListComponent v-if="item?.tag_uuid" :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
-          @update:value="handleContainerSelect" />
-        <ItemList :items="items" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
+    <b-tabs class="mt-3" content-class="mt-3" @activate-tab="(e) => console.log(e)">
+      <b-tab title="Container Tree" :active="activeTab == 'containerTree'">
+        <ContainerListComponent
+          v-if="item?.tag_uuid"
+          :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
+          @update:value="handleContainerSelect"
+        />
+        <ItemList
+          :items="items"
+          @select="handleItemSelect"
+          :title="`Items in ${item?.short_name}`"
+        />
         <div class="d-flex justify-content-center mt-3">
-          <button @click="() => { showModal = true }" class="btn btn-primary mb-3" data-testid="add-content-button">Add
-            content
-            now</button>
+          <button
+            @click="() => (showModal = true)"
+            class="btn btn-primary mb-3"
+            data-testid="add-content-button"
+          >
+            Add content now
+          </button>
         </div>
       </b-tab>
-      <b-tab title="Item Data" :active="items?.length === 0 || isComparing">
-        <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
-          @submit="handleFormSubmit" />
+      <b-tab title="Item Data" :active="activeTab == 'itemData'">
+        <button v-if="completion"
+          @click="() => (isComparing = !isComparing)"
+          class="btn btn-secondary mb-3"
+        >
+          Toggle Comparison
+        </button>
+        <ItemCompare
+          v-if="isComparing"
+          :item_org="item"
+          :item_new="completion"
+          :newItem="newItem"
+          @submit="handleFormSubmit"
+        />
         <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
       </b-tab>
-      <b-tab title="Object detection" :active="newItem && !isComparing">
+      <b-tab title="Object detection" :active="activeTab == 'objectDetection'">
         <LLMCompletion />
       </b-tab>
     </b-tabs>
@@ -62,6 +84,8 @@ const noContent = ref(false)
 const showModal = ref(false)
 
 const clientStore = useClientStore()
+const activeTab = ref<string>('itemData')
+const tabCheck = ref(0)
 
 eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
   if (data) {
@@ -85,8 +109,8 @@ const fetchItem = async () => {
       console.error('Error fetching item:', error)
     }
   }
+  tabCheck.value++
 }
-
 
 const fetchContainerContent = async () => {
   try {
@@ -104,6 +128,7 @@ const fetchContainerContent = async () => {
     noContent.value = true
     items.value = []
   }
+  tabCheck.value++
 }
 
 onMounted(fetchItem)
@@ -117,6 +142,32 @@ watch(
       await fetchItem()
       await fetchContainerContent()
     }
+  },
+)
+
+watch(
+  () => tabCheck.value,
+  () => {
+    if (isComparing.value) {
+      activeTab.value = 'itemData'
+    } else if (newItem.value) {
+      activeTab.value = 'objectDetection'
+    } else if (items.value?.length > 0) {
+      activeTab.value = 'containerTree'
+    } else {
+      activeTab.value = 'itemData'
+    }
+
+    console.log(
+      'Active tab changed to:',
+      activeTab.value,
+      'isComparing:',
+      isComparing.value,
+      'newItem:',
+      newItem.value,
+      'items length:',
+      items.value.length,
+    )
   },
 )
 
@@ -136,6 +187,7 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     saveError.value = 'Could not save changes. Please try again.'
     console.error('Error submitting form:', error)
   }
+  tabCheck.value++
 }
 
 const handleCompletion = (result: { data: { response: object } }) => {
@@ -145,6 +197,7 @@ const handleCompletion = (result: { data: { response: object } }) => {
   } else {
     isComparing.value = false
   }
+  tabCheck.value++
 }
 
 const handleItemSelect = (item: Item) => {
@@ -155,8 +208,8 @@ const handleItemSelect = (item: Item) => {
 const handleContentSelect = async (tag: string) => {
   try {
     const selectedItem = await axios.get(`/items/${tag}`)
-    selectedItem.data["container_tag_uuid"] = itemId.value
-    selectedItem.data["container_name"] = item.value?.short_name
+    selectedItem.data['container_tag_uuid'] = itemId.value
+    selectedItem.data['container_name'] = item.value?.short_name
 
     await axios.put(`/items/${tag}`, selectedItem.data)
   } catch (error) {

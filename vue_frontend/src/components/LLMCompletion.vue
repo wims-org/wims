@@ -18,7 +18,10 @@
             Use Cam
           </div>
           <div v-if="webCamUrl && useCam">
-            <div> <font-awesome-icon icon="camera" aria-label="Camera" />Webcam camera is currenly not working and under development.</div>
+            <div>
+              <font-awesome-icon icon="camera" aria-label="Camera" />Webcam camera is currenly not
+              working and under development.
+            </div>
             <div class="wrap mb-2">
               <iframe id="scaled-frame" :src="webCamUrl" />
             </div>
@@ -94,6 +97,16 @@ onMounted(() => {
     })
 })
 
+eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
+  requestError.value = ''
+  console.log('Completion event received:', data)
+  requestInProgress.value = false
+})
+eventBus.on(EventAction.ERROR, (data: Events[EventAction.ERROR]) => {
+  requestError.value = data?.data?.message
+  requestInProgress.value = false
+})
+
 const fetchIdentification = async () => {
   try {
     if (requestInProgress.value) {
@@ -101,19 +114,7 @@ const fetchIdentification = async () => {
       return
     }
     requestInProgress.value = true
-    eventBus.on(EventAction.ERROR, (data: Events[EventAction.ERROR]) => {
-      requestError.value = data?.data?.message
-      eventBus.off(EventAction.ERROR)
-      eventBus.off(EventAction.COMPLETION)
-      requestInProgress.value = false
-    })
-    eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
-      requestError.value = ''
-      console.log('Completion event received:', data)
-      eventBus.off(EventAction.ERROR)
-      eventBus.off(EventAction.COMPLETION)
-      requestInProgress.value = false
-    })
+
     const body = {
       query: stringInput.value,
       client_id: clientStore().client_id,

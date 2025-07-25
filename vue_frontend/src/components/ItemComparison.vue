@@ -20,8 +20,7 @@
             'table-danger':
               key in formData_new &&
               formData_new[key] != null &&
-              formData_org[key] !== formData_new[key],
-          }" v-show="!field.hidden">
+              ''+formData_org[key] !== ''+formData_new[key]}" v-show="!field.hidden">
             <td>
               <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
                 :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
@@ -32,7 +31,8 @@
               <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mt-3"
                 :disabled="(!(key in formData_new) ||
                   formData_new[key] == null ||
-                  formData_org[key] == formData_new[key]) ?? undefined
+                  formData_org[key] == formData_new[key]) ??
+                  undefined
                   ">
                 <font-awesome-icon v-if="
                   key in formData_new &&
@@ -46,7 +46,11 @@
                 <font-awesome-icon icon="clipboard" />
               </button>
             </td>
-            <td>{{ getFieldModel(formData_new, String(key), field.type) }}</td>
+            <td>
+              <component :is="getFieldComponent(field.type)" :name="String(key)" :value="formData_new[key]"
+                :disabled="true" @update:value="updateFieldModel($event, String(key), field.type)"
+                @click="handleInputClick(key)" />
+            </td>
           </tr>
         </tbody>
       </table>
@@ -85,6 +89,7 @@ import type { components } from '@/interfaces/api-types'
 
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 import type { PropType } from 'vue'
+import { fieldTypeToComponent } from '@/utils/form.helper'
 export default defineComponent({
   name: 'ItemComparison',
   components: {
@@ -100,7 +105,6 @@ export default defineComponent({
     ImageThumbnailField,
   },
   props: {
-
     item_org: {
       type: Object as PropType<Item | undefined>,
       required: true,
@@ -175,26 +179,7 @@ export default defineComponent({
     }
 
     const getFieldComponent = (type: string) => {
-      switch (type) {
-        case 'textarea':
-          return 'TextAreaField'
-        case 'object':
-          return 'ObjectField'
-        case 'loading':
-          return 'LoadingField'
-        case 'checkbox':
-          return 'CheckboxField'
-        case 'array':
-          return 'ArrayField'
-        case 'uuid':
-          return 'ModalField'
-        case 'images':
-          return 'ImageThumbnailField'
-        case 'number':
-          return 'NumberField'
-        default:
-          return 'TextField'
-      }
+      return fieldTypeToComponent(type)
     }
 
     const updateFieldModel = (value: unknown, key: string, type: string) => {
