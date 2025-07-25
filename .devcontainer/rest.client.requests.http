@@ -35,7 +35,7 @@ GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174000/containers 
 
 ###
 
-POST http://localhost:5005/itemsHTTP/1.1
+POST http://localhost:5005/items  HTTP/1.1
 content-type: application/json
 
 {
@@ -45,7 +45,7 @@ content-type: application/json
 
 ###
 
-PUT http://localhost:5005/itemsHTTP/1.1
+PUT http://localhost:5005/items  HTTP/1.1
 content-type: application/json
 
 {
