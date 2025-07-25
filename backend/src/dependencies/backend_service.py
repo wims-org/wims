@@ -23,6 +23,7 @@ class Event(enum.Enum):
     SCAN = "SCAN"
     COMPLETION = "COMPLETION"
     ALIVE = "ALIVE"
+    ERROR = "ERROR"
 
 
 class SseMessage(pydantic.BaseModel):

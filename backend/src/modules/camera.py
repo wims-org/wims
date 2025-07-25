@@ -13,6 +13,9 @@ class Camera:
         # This method gets the current webcam image and returns it as URL Encoded image.
         cap = cv2.VideoCapture(self.url)
         ret, frame = cap.read()
+        cap.release()
+        if not ret or frame is None or frame.size == 0:
+            return []
         if ret:
             _, buffer = cv2.imencode('.jpg', frame)
             self.last_image = [f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"]

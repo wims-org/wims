@@ -22,6 +22,9 @@ class ChatGPT(LLMCompletion):
 
     def identify_object(self, query: str = None, imageUrls: list[str] = None):
         image_url = imageUrls[0] if imageUrls else None
+        message = {"role": "user", "content": [{"type": "text", "text": query}]}
+        if image_url:
+            message["content"].append({"type": "image_url", "image_url": {"url": image_url}})
         return self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -37,16 +40,7 @@ class ChatGPT(LLMCompletion):
                         }
                     ],
                 },
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": query},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_url},
-                        },
-                    ],
-                },
+                message
             ],
             response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,

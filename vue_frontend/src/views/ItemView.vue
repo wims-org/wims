@@ -1,11 +1,9 @@
 <template>
   <main>
     <div v-if="saveError" class="sticky-note">Error saving changes</div>
-
-    <LLMCompletion />
     <h1 class="m-4">{{ item?.short_name }}</h1>
     <b-tabs class="mt-3" content-class="mt-3">
-      <b-tab title="Container Tree" :active="items?.length > 0">
+      <b-tab title="Container Tree" :active="items?.length > 0 && !newItem && !isComparing">
         <ContainerListComponent v-if="item?.tag_uuid" :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
           @update:value="handleContainerSelect" />
         <ItemList :items="items" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
@@ -15,10 +13,13 @@
             now</button>
         </div>
       </b-tab>
-      <b-tab title="Item Data" :active="items?.length === 0">
+      <b-tab title="Item Data" :active="items?.length === 0 || isComparing">
         <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
           @submit="handleFormSubmit" />
         <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
+      </b-tab>
+      <b-tab title="Object detection" :active="newItem && !isComparing">
+        <LLMCompletion />
       </b-tab>
     </b-tabs>
 

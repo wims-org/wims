@@ -36,6 +36,11 @@ export const serverStream = defineStore('ServerStream', {
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         eventBus.emit(EventAction.COMPLETION, parsedData)
       })
+      this.eventSource.addEventListener(StreamEvent.ERROR, (event) => {
+        console.error(StreamEvent.ERROR, event.data)
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
+        eventBus.emit(EventAction.ERROR, parsedData)
+      })
       this.eventSource.addEventListener(StreamEvent.ALIVE, () => {
         console.log(StreamEvent.ALIVE)
         this.alive = true

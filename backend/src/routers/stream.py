@@ -27,7 +27,7 @@ async def message_stream(request: Request, reader: str):
             if new_messages():
                 message = request.app.state.backend_service.readers[reader].pop(0)
                 if message["event"] != Event.ALIVE.value:
-                    logger.debug(f"Sending message: {message}")
+                    logger.debug(f"Sending message: {str(message)[:100]}")
                 message["data"] = json.dumps(message["data"])
                 yield message
             await asyncio.sleep(MESSAGE_STREAM_DELAY)
