@@ -1,41 +1,31 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-    data-testid="image-thumbnail-field"
-  >
-    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-    <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
-      <div
-        v-for="(image, index) in value"
-        :key="index"
-        class="thumbnail-container m-2"
-        @click="openImageModal(image)"
-      >
-        <img :src="image" class="thumbnail" alt="Image Thumbnail" />
-        <button type="button" class="remove-btn" @click.stop="removeImage(index)">
-          <font-awesome-icon icon="times" />
-        </button>
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+      data-testid="image-thumbnail-field">
+      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
+      <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
+        <div v-for="(image, index) in value" :key="index" class="thumbnail-container m-2"
+          @click="openImageModal(image)">
+          <img :src="image" class="thumbnail" alt="Image Thumbnail" />
+          <button type="button" class="remove-btn" @click.stop="removeImage(index)">
+            <font-awesome-icon icon="times" />
+          </button>
+        </div>
+        <div v-if="value.length === 0" class="text-center m-2">
+          <font-awesome-icon icon="camera" size="xl" />
+          <p>No images</p>
+        </div>
+        <div class="add-image-container m-2" v-if="!disabled">
+          <input ref="cameraInput" type="file" class="d-none" accept="image/*" capture="environment"
+            @change="addImage" />
+          <button type="button" class="btn btn-primary add-image-btn" @click="triggerCameraInput">
+            +
+          </button>
+        </div>
       </div>
-      <div v-if="value.length === 0" class="text-center m-2">
-        <font-awesome-icon icon="camera" size="xl" />
-        <p>No images</p>
-      </div>
-      <div class="add-image-container m-2" v-if="!disabled">
-        <input
-          ref="cameraInput"
-          type="file"
-          class="d-none"
-          accept="image/*"
-          capture="environment"
-          @change="addImage"
-        />
-        <button type="button" class="btn btn-primary add-image-btn" @click="triggerCameraInput">
-          +
-        </button>
-      </div>
+      <ImageModal v-if="showModal && selectedImage" :image="selectedImage" @close="closeImageModal" />
     </div>
-    <ImageModal v-if="showModal && selectedImage" :image="selectedImage" @close="closeImageModal" />
-  </div>
+  </container>
 </template>
 
 <script lang="ts">

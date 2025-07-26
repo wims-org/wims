@@ -1,21 +1,13 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wra  p p-2"
-    data-testid="text-field"
-  >
-    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-    <input
-      :type="type || 'text'"
-      :name="name"
-      :disabled="disabled ?? undefined"
-      :value="value"
-      :required="required"
-      @input="updateField"
-      class="form-control"
-      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
-      :placeholder="hideLabel ? '' : label"
-    />
-  </div>
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="text-field">
+      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
+      <input :type="type || 'text'" :name="name" :disabled="disabled ?? undefined" :value="value" :required="required"
+        @input="updateField" class="form-control"
+        :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+        :placeholder="hideLabel ? '' : label" />
+    </div>
+  </container>
 </template>
 
 <script lang="ts">
@@ -71,6 +63,7 @@ export default defineComponent({
 .borderless span {
   display: none !important;
 }
+
 .borderless-input {
   border: none !important;
   background: transparent !important;

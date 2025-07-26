@@ -1,6 +1,4 @@
 <template>
-
-
   <BContainer>
     <BRow align-v="center">
       <BCol>
@@ -14,7 +12,7 @@
           </span>
         </div>
       </BCol>
-      <BCol sm=7>
+      <BCol>
         <BInputGroup v-if="!disabled" class="borderless-input flex-nowrap">
           <BInput v-model="newItem" :disabled="disabled" @keydown.enter.prevent="addItem"
             placeholder="Add items separated by ," :class="{ 'borderless-input': borderless }"

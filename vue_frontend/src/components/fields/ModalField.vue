@@ -1,22 +1,13 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-    data-testid="modal-field"
-  >
-    <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
-    <input
-      type="text"
-      :name="name"
-      :disabled="disabled"
-      :value="value"
-      @input="updateField"
-      @click="openModal"
-      class="form-control"
-      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
-      :placeholder="hideLabel ? '' : 'click to open search'"
-    />
-    <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
-  </div>
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="modal-field">
+      <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
+      <input type="text" :name="name" :disabled="disabled" :value="value" @input="updateField" @click="openModal"
+        class="form-control" :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+        :placeholder="hideLabel ? '' : 'click to open search'" />
+      <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
+    </div>
+  </container>
 </template>
 
 <script lang="ts">
@@ -92,6 +83,7 @@ export default defineComponent({
 .borderless label {
   display: none !important;
 }
+
 .borderless-input {
   border: none !important;
   background: transparent !important;

@@ -1,20 +1,13 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-    data-testid="text-area-field"
-  >
-    <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
-    <textarea
-      :name="name"
-      :disabled="disabled ?? undefined"
-      :value="value"
-      @input="updateField"
-      class="form-control"
-      :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
-      :required="required"
-      :placeholder="hideLabel ? '' : label"
-    ></textarea>
-  </div>
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+      data-testid="text-area-field">
+      <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
+      <textarea :name="name" :disabled="disabled ?? undefined" :value="value" @input="updateField" class="form-control"
+        :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]" :required="required"
+        :placeholder="hideLabel ? '' : label"></textarea>
+    </div>
+  </container>
 </template>
 
 <script lang="ts">
@@ -63,5 +56,4 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,31 +1,19 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-    data-testid="object-field"
-  >
-    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-    <div class="card p-3">
-      <div
-        v-for="(subValue, subKey) in value"
-        :key="subKey"
-        class="form-group d-flex align-items-center justify-content-between flex-wrap"
-        v-show="subValue !== null && subValue !== undefined"
-        data-testid="object-field-text-field"
-      >
-        <span v-if="!hideLabel || !label" :for="`${name}-${subKey}`" class="mr-2">{{ subKey }}</span>
-        <input
-          :type="typeof subValue === 'number' ? 'number' : 'text'"
-          :name="`${name}-${subKey}`"
-          :value="subValue"
-          :disabled="disabled"
-          @input="updateField($event, subKey)"
-          class="form-control"
-          :class="{ 'borderless-input': borderless }"
-          :required="required"
-        />
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="object-field">
+      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
+      <div class="card p-3">
+        <div v-for="(subValue, subKey) in value" :key="subKey"
+          class="form-group d-flex align-items-center justify-content-between flex-wrap"
+          v-show="subValue !== null && subValue !== undefined" data-testid="object-field-text-field">
+          <span v-if="!hideLabel || !label" :for="`${name}-${subKey}`" class="mr-2">{{ subKey }}</span>
+          <input :type="typeof subValue === 'number' ? 'number' : 'text'" :name="`${name}-${subKey}`" :value="subValue"
+            :disabled="disabled" @input="updateField($event, subKey)" class="form-control"
+            :class="{ 'borderless-input': borderless }" :required="required" />
+        </div>
       </div>
     </div>
-  </div>
+  </container>
 </template>
 
 <script lang="ts">
@@ -79,6 +67,7 @@ export default defineComponent({
 .borderless label {
   display: none !important;
 }
+
 .borderless-input {
   border: none !important;
   background: transparent !important;

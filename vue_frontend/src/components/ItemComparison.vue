@@ -21,21 +21,20 @@
               key in formData_new &&
               formData_new[key] != null &&
               '' + formData_org[key] !== '' + formData_new[key]
-          }" v-show="formData_new[key] && !field.hidden">
+          }" v-show="formData_new[key] && !field.hidden && (!field.details || showDetails)">
             <td>
               <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
                 :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
                 @update:value="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)"
                 :class="{ 'is-invalid': field.required && item_org.value && item_org?.[key] }" />
             </td>
-            <td class="text-center">
-              <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mt-3"
+            <td class="text-center col-2 align-content-center">
+              <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mr-3"
                 :disabled="(!(key in formData_new) ||
                   formData_new[key] == null ||
                   formData_org[key] == formData_new[key]) ??
                   undefined
-                  " 
-                  title="Overwrite">
+                  " title="Overwrite">
                 <font-awesome-icon v-if="
                   key in formData_new &&
                   formData_new[key] != null &&
@@ -43,17 +42,13 @@
                 " icon="arrow-left" />
                 <font-awesome-icon v-else icon="equals" />
               </button>
-                <button
-                type="button"
-                v-if="Array.isArray(formData_org[key]) && Array.isArray(formData_new[key])"
+              <button type="button" v-if="Array.isArray(formData_org[key]) && Array.isArray(formData_new[key])"
                 @click="() => ((formData_org[key] as unknown[]).push(...(formData_new[key] as unknown[])))"
-                class="btn btn-primary mt-3"
-                title="Append all new values to the old array"
-                >
+                class="btn btn-primary ml-3" title="Append all new values to the old array">
                 <font-awesome-icon icon="plus" />
-                </button>
+              </button>
               <button type="button" :v-if="formData_new[key]" title="Copy to clipboard"
-                @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''" class="btn btn-secondary mt-3">
+                @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''" class="btn btn-secondary ml-3">
                 <font-awesome-icon icon="clipboard" />
               </button>
             </td>

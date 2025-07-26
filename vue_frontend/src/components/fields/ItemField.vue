@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <container>
     <div class="d-flex justify-content align-items-center p-2">
       <span :for="name">{{ label }}</span>
       <a
@@ -47,7 +47,7 @@
     <div v-else class="card p-3 mb-3">
       <span>No fields available</span>
     </div>
-  </div>
+  </container>
 </template>
 
 <script lang="ts">

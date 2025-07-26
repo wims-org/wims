@@ -16,7 +16,7 @@
         :name="String(key)" :label="field.label || key" :value="formData[key]" :disabled="field.disabled ?? undefined"
         :required="field.required" :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
         @update:value="updateFieldModel($event, String(key), field.type)"
-        v-show="!field.hidden && (!field.details || (showDetails && field.details))" />
+        v-show="!field.hidden && (!field.details || showDetails)" />
       <button type="button" class="btn btn-primary mt-3" @click="handleSubmit">Submit</button>
     </form>
     <div v-else>
@@ -74,7 +74,7 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
-    errors: 
+    errors:
     {
       type: Array as () => string[],
       default: () => [],
@@ -88,7 +88,7 @@ export default defineComponent({
     watch(
       () => props.item,
       (newItem) => {
-        formData.value = { ...newItem}
+        formData.value = { ...newItem }
         unsavedChanges.value = false // Reset unsaved changes when item prop changes
       },
       { immediate: true, deep: true },

@@ -1,19 +1,12 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-    data-testid="checkbox-field"
-  >
-    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-    <input
-      type="checkbox"
-      :name="name"
-      :checked="value"
-      :disabled="disabled"
-      @change="updateField"
-      class="ml-3"
-      :required="required"
-    />
-  </div>
+  <container>
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+      data-testid="checkbox-field">
+      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
+      <input type="checkbox" :name="name" :checked="value" :disabled="disabled" @change="updateField" class="ml-3"
+        :required="required" />
+    </div>
+  </container>
 </template>
 
 <script lang="ts">
