@@ -1,25 +1,30 @@
 <template>
-  <div
-    class="form-group d-flex align-items-center flex-wrap pills-container p-2"
-    data-testid="array-field"
-  >
-    <span v-if="!hideLabel" :for="name" class="mr-auto">{{ label }}</span>
-    <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
-      {{ item }}
-      <button type="button" @click="removeItem(index)" class="pill-remove">&times;</button>
-    </span>
-    <input
-      v-if="!disabled"
-      type="text"
-      v-model="newItem"
-      :disabled="disabled"
-      @keyup.enter="addItem()"
-      class="form-control"
-      :class="{ 'borderless-input': borderless }"
-      :placeholder="hideLabel ? '' : 'Add item'"
-      :required="!value.length && required"
-    />
-  </div>
+
+
+  <BContainer>
+    <BRow align-v="center">
+      <BCol>
+        <span v-if="!hideLabel || !label" :for="name" class="mr-auto">{{ label }}</span>
+      </BCol>
+      <BCol cols="12" md="auto">
+        <div class="pills-wrapper">
+          <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
+            {{ item }}
+            <button type="button" @click="removeItem(index)" class="pill-remove" title="Remove item">&times;</button>
+          </span>
+        </div>
+      </BCol>
+      <BCol sm=7>
+        <BInputGroup v-if="!disabled" class="borderless-input flex-nowrap">
+          <BInput v-model="newItem" :disabled="disabled" @keydown.enter.prevent="addItem"
+            placeholder="Add items separated by ," :class="{ 'borderless-input': borderless }"
+            :required="!value.length && required" />
+          <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items"><font-awesome-icon
+              icon="fa-solid fa-plus" /></BButton>
+        </BInputGroup>
+      </BCol>
+    </BRow>
+  </BContainer>
 </template>
 
 <script lang="ts">
@@ -35,7 +40,7 @@ export default defineComponent({
     },
     label: {
       type: String,
-      required: true,
+      default: '',
     },
     value: {
       type: Array as PropType<string[]>,
@@ -65,14 +70,14 @@ export default defineComponent({
 
     const addItem = () => {
       if (newItem.value.trim() !== '') {
-        emit('update:value', [
-          ...props.value,
-          ...newItem.value
-            .trim()
-            .split(new RegExp(',|;'))
-            .map((item) => item.trim()),
-        ])
-        newItem.value = ''
+        const itemsToAdd = newItem.value
+          .trim()
+          .split(new RegExp(',|;'))
+          .map((item) => item.trim())
+          .filter((item) => item !== '')
+
+        emit('update:value', [...props.value, ...itemsToAdd])
+        newItem.value = '' // Clear the input after adding items
       }
     }
 
@@ -97,6 +102,13 @@ export default defineComponent({
   flex-wrap: wrap;
   gap: 0.2rem;
   margin-bottom: 10px;
+  justify-content: space-between;
+}
+
+.pills-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
 }
 
 .pill {
@@ -104,14 +116,14 @@ export default defineComponent({
   align-items: center;
   background-color: #e0e0e0;
   border-radius: 15px;
-  padding: 5px 10px;
+  padding: 0px .75rem;
 }
 
 .pill-remove {
   background: none;
   border: none;
   font-size: 1.2em;
-  margin-left: 5px;
+  margin: 0;
   cursor: pointer;
 }
 
@@ -121,8 +133,5 @@ export default defineComponent({
   box-shadow: none !important;
   padding: 0.1rem 0.2rem !important;
   min-width: 0;
-}
-.borderless label {
-  display: none !important;
 }
 </style>

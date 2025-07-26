@@ -2,48 +2,29 @@
   <main>
     <div v-if="saveError" class="sticky-note">Error saving changes</div>
     <h1 class="m-4">{{ item?.short_name }}</h1>
-    <b-tabs class="mt-3" content-class="mt-3" @activate-tab="(e) => console.log(e)">
-      <b-tab title="Container Tree" :active="activeTab == 'containerTree'">
-        <ContainerListComponent
-          v-if="item?.tag_uuid"
-          :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
-          @update:value="handleContainerSelect"
-        />
-        <ItemList
-          :items="items"
-          @select="handleItemSelect"
-          :title="`Items in ${item?.short_name}`"
-        />
+    <BTabs class="mt-3" content-class="mt-3" @activate-tab="(e) => console.log(e)" v-model="activeTab">
+      <BTab title="Container Tree" id="containerTree">
+        <ContainerListComponent v-if="item?.tag_uuid" :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
+          @update:value="handleContainerSelect" />
+        <ItemList :items="items" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
         <div class="d-flex justify-content-center mt-3">
-          <button
-            @click="() => (showModal = true)"
-            class="btn btn-primary mb-3"
-            data-testid="add-content-button"
-          >
+          <button @click="() => (showModal = true)" class="btn btn-primary mb-3" data-testid="add-content-button">
             Add content now
           </button>
         </div>
-      </b-tab>
-      <b-tab title="Item Data" :active="activeTab == 'itemData'">
-        <button v-if="completion"
-          @click="() => (isComparing = !isComparing)"
-          class="btn btn-secondary mb-3"
-        >
+      </BTab>
+      <BTab title="Item Data" id="itemData">
+        <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
           Toggle Comparison
         </button>
-        <ItemCompare
-          v-if="isComparing"
-          :item_org="item"
-          :item_new="completion"
-          :newItem="newItem"
-          @submit="handleFormSubmit"
-        />
+        <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
+          @submit="handleFormSubmit" />
         <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
-      </b-tab>
-      <b-tab title="Object detection" :active="activeTab == 'objectDetection'">
+      </BTab>
+      <BTab title="Object detection" id="objectDetection">
         <LLMCompletion />
-      </b-tab>
-    </b-tabs>
+      </BTab>
+    </BTabs>
 
     <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
   </main>
@@ -109,6 +90,9 @@ const fetchItem = async () => {
       console.error('Error fetching item:', error)
     }
   }
+  // for testing comparison view
+  // completion.value = item.value
+  // isComparing.value = true
   tabCheck.value++
 }
 

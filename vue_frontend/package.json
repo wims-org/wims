@@ -17,7 +17,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@sentry/vue": "^9.39.0",
-    "@vue/compat": "^3.5.13",
     "@vuelidate/core": "^2.0.3",
     "@vuelidate/validators": "^2.0.4",
     "axios": "^1.7.9",

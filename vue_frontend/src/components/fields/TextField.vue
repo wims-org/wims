@@ -3,7 +3,7 @@
     class="form-group d-flex align-items-center justify-content-between flex-wra  p p-2"
     data-testid="text-field"
   >
-    <span v-if="!hideLabel" :for="name">{{ label }}</span>
+    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
     <input
       :type="type || 'text'"
       :name="name"
@@ -30,7 +30,7 @@ export default defineComponent({
     },
     label: {
       type: String,
-      required: true,
+      default: '',
     },
     type: {
       type: String,

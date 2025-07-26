@@ -3,7 +3,7 @@
     class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="image-thumbnail-field"
   >
-    <span v-if="!hideLabel" :for="name">{{ label }}</span>
+    <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
     <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
       <div
         v-for="(image, index) in value"

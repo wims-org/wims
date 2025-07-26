@@ -76,7 +76,7 @@ export default defineComponent({
     },
     label: {
       type: String,
-      required: true,
+      default: '',
     },
     value: {
       type: Object as PropType<Record<string, unknown>>,

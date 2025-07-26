@@ -17,11 +17,7 @@ export default defineConfig({
     vueDevTools(),
     vue({
       template: {
-        compilerOptions: {
-          compatConfig: {
-            MODE: 2
-          },
-        },
+      
       },
     }),
     Components({
@@ -30,7 +26,6 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      vue: '@vue/compat',
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },

@@ -3,7 +3,7 @@
     class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="number-field"
   >
-    <span v-if="!hideLabel" :for="name" class="me-2">{{ label }}</span>
+    <span v-if="!hideLabel || !label" :for="name" class="me-2">{{ label }}</span>
     <div class="number-input-wrapper d-flex align-items-center">
       <input
         type="number"
@@ -53,7 +53,7 @@ export default defineComponent({
     },
     label: {
       type: String,
-      required: true,
+      default: '',
     },
     value: {
       type: [String, Number],

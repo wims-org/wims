@@ -8,7 +8,7 @@
         data-testid="toggle-details-button">
         {{ showDetails ? 'Hide Details' : 'Show Details' }}
       </button>
-      <button @click="handleSubmit" type="submit" class="btn btn-primary mt-3">Submit</button>
+      <button @click="handleSubmit" type="button" class="btn btn-primary mt-3">Submit</button>
     </div>
     <h1 class="mb-4">{{ item?.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
@@ -17,7 +17,7 @@
         :required="field.required" :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
         @update:value="updateFieldModel($event, String(key), field.type)"
         v-show="!field.hidden && (!field.details || (showDetails && field.details))" />
-      <button type="submit" class="btn btn-primary mt-3">Submit</button>
+      <button type="button" class="btn btn-primary mt-3" @click="handleSubmit">Submit</button>
     </form>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>

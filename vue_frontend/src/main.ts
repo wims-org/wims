@@ -2,7 +2,6 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import configureCompat from "@vue/compat"
 import App from './App.vue'
 import router from './router'
 import axios from 'axios'
@@ -15,12 +14,6 @@ import * as Sentry from "@sentry/vue";
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
-new configureCompat({
-  ATTR_FALSE_VALUE: false,
-  RENDER_FUNCTION: false,
-  COMPONENT_ASYNC: false,
-  WATCH_ARRAY: false,
-})
 const app = createApp(App)
 
 if (import.meta.env.VITE_SENTRY_DSN) {

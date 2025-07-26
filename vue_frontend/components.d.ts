@@ -9,6 +9,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     ArrayField: typeof import('./src/components/fields/ArrayField.vue')['default']
+    BButton: typeof import('bootstrap-vue-next/components/BButton')['BButton']
+    BCol: typeof import('bootstrap-vue-next/components/BContainer')['BCol']
+    BContainer: typeof import('bootstrap-vue-next/components/BContainer')['BContainer']
+    BInput: typeof import('bootstrap-vue-next/components/BFormInput')['BInput']
+    BInputGroup: typeof import('bootstrap-vue-next/components/BInputGroup')['BInputGroup']
+    BRow: typeof import('bootstrap-vue-next/components/BContainer')['BRow']
     BTab: typeof import('bootstrap-vue-next/components/BTabs')['BTab']
     BTabs: typeof import('bootstrap-vue-next/components/BTabs')['BTabs']
     CheckboxField: typeof import('./src/components/fields/CheckboxField.vue')['default']

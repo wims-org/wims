@@ -4,7 +4,7 @@
       {{ showDetails ? 'Hide Details' : 'Show Details' }}
     </button>
     <h1 class="mb-4">Compare {{ item_org?.short_name }}</h1>
-    <form v-if="item_org && formData_org" @submit.prevent="handleSubmit">
+    <form v-if="item_org && formData_org" @submit.prevent="">
       <div class="d-flex p-2 justify-content-between align-items-center">
         <div class="col-2">Old Value</div>
         <button type="button" class="btn btn-primary mt-3" @click="applyNewValuesToOrg">
@@ -20,7 +20,8 @@
             'table-danger':
               key in formData_new &&
               formData_new[key] != null &&
-              ''+formData_org[key] !== ''+formData_new[key]}" v-show="!field.hidden">
+              '' + formData_org[key] !== '' + formData_new[key]
+          }" v-show="formData_new[key] && !field.hidden">
             <td>
               <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
                 :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
@@ -33,7 +34,8 @@
                   formData_new[key] == null ||
                   formData_org[key] == formData_new[key]) ??
                   undefined
-                  ">
+                  " 
+                  title="Overwrite">
                 <font-awesome-icon v-if="
                   key in formData_new &&
                   formData_new[key] != null &&
@@ -41,7 +43,16 @@
                 " icon="arrow-left" />
                 <font-awesome-icon v-else icon="equals" />
               </button>
-              <button type="button" :v-if="formData_new[key]"
+                <button
+                type="button"
+                v-if="Array.isArray(formData_org[key]) && Array.isArray(formData_new[key])"
+                @click="() => ((formData_org[key] as unknown[]).push(...(formData_new[key] as unknown[])))"
+                class="btn btn-primary mt-3"
+                title="Append all new values to the old array"
+                >
+                <font-awesome-icon icon="plus" />
+                </button>
+              <button type="button" :v-if="formData_new[key]" title="Copy to clipboard"
                 @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''" class="btn btn-secondary mt-3">
                 <font-awesome-icon icon="clipboard" />
               </button>
@@ -54,7 +65,7 @@
           </tr>
         </tbody>
       </table>
-      <button type="submit" class="btn btn-primary mt-3">Submit</button>
+      <button type="button" class="btn btn-primary mt-3">Submit</button>
     </form>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
@@ -191,14 +202,14 @@ export default defineComponent({
       } else if (type === 'number') {
         formData_org.value[key] = Number(value)
       } else if (type === 'array') {
-        formData_org.value[key] = (value as string).split(',|;').map((item) => item.trim())
+        formData_org.value[key] = ('' + value).split(/[;,]\s*|\s+/).map((item) => item.trim())
       } else {
         // text uuid object
         formData_org.value[key] = value
       }
     }
     const copyToClipboard = (value: string | unknown | undefined) => {
-      if (value && typeof value == 'string') navigator.clipboard.writeText(value)
+      if (value) navigator.clipboard.writeText('' + value)
     }
     return {
       formData_org,

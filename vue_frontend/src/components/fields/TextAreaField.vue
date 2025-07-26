@@ -3,7 +3,7 @@
     class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
     data-testid="text-area-field"
   >
-    <label v-if="!hideLabel" :for="name">{{ label }}</label>
+    <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
     <textarea
       :name="name"
       :disabled="disabled ?? undefined"
@@ -29,7 +29,7 @@ export default defineComponent({
     },
     label: {
       type: String,
-      required: true,
+      default: '',
     },
     value: {
       type: String,
