@@ -34,14 +34,40 @@ GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174001  HTTP/1.1
 GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174000/containers  HTTP/1.1
 
 ###
-
-POST http://localhost:5005/items  HTTP/1.1
+GET http://localhost:5005/items  HTTP/1.1
 content-type: application/json
 
 {
-    "short_name": "sample",
-    "tag_uuid": "123e4567-e89b-12d3-a456-426614174000"
+    "query":{
+    "tags": ["tbd"],
+    }
 }
+###
+
+POST http://localhost:5005/items/backlog  HTTP/1.1
+content-type: application/json
+
+{
+    "tag_uuid": "123e4567-e89b-12d3-a456-426614174120",
+    "tags": ["tbd"],
+    
+}
+
+###
+
+PUT http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174120  HTTP/1.1
+content-type: application/json
+
+{
+    "tag_uuid": "123e4567-e89b-12d3-a456-426614174120",
+    "short_name": "sample_updated"
+}
+###
+
+GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174120  HTTP/1.1
+
+###
+DELETE  http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174120  HTTP/1.1
 
 ###
 
@@ -53,11 +79,43 @@ content-type: application/json
     "tag_uuid": "123e4567-e89b-12d3-a456-426614174000"
 }
 
+###
 
+POST http://localhost:5005/queries
+Content-Type: application/json
 
+{
+  "name": "Monthly Sales Report",
+  "description": "Query to fetch sales data for the current month",
+  "query": { "tag_uuid": "123e4567-e89b-12d3-a456-426614174000" }
+}
+###
 
+POST http://localhost:5005/queries
+Content-Type: application/json
 
+{
+  "name": "Item Backlog",
+  "description": "Items that need to be edited",
+  "query": { "tags": "tbd" }
+}
+###
 
+GET http://localhost:5005/queries
+###
+
+PUT http://localhost:5005/queries/68875a0d3eb338f0eb394b92
+Content-Type: application/json
+
+{
+     "name": "Updated Monthly Sales Report",
+  "description": "Updated query to fetch sales data for the current month",
+  "query": { "tag_uuid": "123e4567-e89b-12d3-a456-426614174000" }
+}
+
+### 
+
+DELETE http://localhost:5005/queries/68875655b6ff3abd55480912
 
 
 

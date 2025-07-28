@@ -8,24 +8,18 @@ from pymongo.errors import ServerSelectionTimeoutError  # Add this import
 
 
 class RecursiveContainerObject(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(
-        orm_mode=True,
-        arbitrary_types_allowed=True
-    )
+    model_config = pydantic.ConfigDict(orm_mode=True, arbitrary_types_allowed=True)
 
     tag_uuid: str
     short_name: str | None = None
     container: "RecursiveContainerObject | None" = None
 
+
 class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
         try:
             self.client = MongoClient(
-                uri,
-                username="root",
-                password="example",
-                authSource="admin",
-                authMechanism="SCRAM-SHA-256"
+                uri, username="root", password="example", authSource="admin", authMechanism="SCRAM-SHA-256"
             )
             # Attempt to trigger server selection to catch connection errors early
             self.client.server_info()
@@ -70,10 +64,8 @@ class MongoDBConnector:
         ]
         return next(collection.aggregate(pipeline), None)
 
-
-
     def get_recursive_container_tags(self, collection_name: str, rfid: str) -> RecursiveContainerObject | None:
-        """ Returns a recursive nested object each containing their container tag and respective short_name attribute for a given RFID tag.
+        """Returns a recursive nested object each containing their container tag and respective short_name attribute for a given RFID tag.
          example:
         {
             "tag_uuid": "RFID1",
@@ -88,22 +80,22 @@ class MongoDBConnector:
                         }
                 }
         }
-            """
+        """
         collection: Collection = self.db[collection_name]
 
         def get_container_recursive(tag_uuid: str) -> dict[str, Any] | None:
-            doc = collection.find_one({"tag_uuid": tag_uuid}, {
-                                      "_id": 0, "tag_uuid": 1, "short_name": 1, "container_tag_uuid": 1})
+            doc = collection.find_one(
+                {"tag_uuid": tag_uuid}, {"_id": 0, "tag_uuid": 1, "short_name": 1, "container_tag_uuid": 1}
+            )
             if not doc:
                 return None
             container_tag_uuid = doc.get("container_tag_uuid")
-            container = get_container_recursive(
-                container_tag_uuid) if container_tag_uuid and container_tag_uuid is not tag_uuid else None
-            return {
-                "tag_uuid": doc["tag_uuid"],
-                "short_name": doc.get("short_name"),
-                "container": container
-            }
+            container = (
+                get_container_recursive(container_tag_uuid)
+                if container_tag_uuid and container_tag_uuid is not tag_uuid
+                else None
+            )
+            return {"tag_uuid": doc["tag_uuid"], "short_name": doc.get("short_name"), "container": container}
 
         return get_container_recursive(rfid)
 
@@ -112,9 +104,7 @@ class MongoDBConnector:
             logger.error("No database connection available for read operation.")
             return []
         collection: Collection = self.db[collection_name]
-        documents = list(collection.find(
-            query or {}, projection={"_id": False}))
-        logger.debug(f"Documents found: {documents}")
+        documents = list(collection.find(query or {}, projection={"_id": False}))
         return documents
 
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
@@ -123,7 +113,7 @@ class MongoDBConnector:
             return 0
         collection: Collection = self.db[collection_name]
         result = collection.update_many(query, {"$set": update_values})
-        logger.debug(f"Documents updated: {result}")
+        logger.debug(f"Documents updated: {str(result)[:100]}")
         return result.modified_count
 
     def delete(self, collection_name: str, query: dict[str, Any]) -> int:

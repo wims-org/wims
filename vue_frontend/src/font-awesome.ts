@@ -22,7 +22,8 @@ import {
   faFileCsv,
   faExternalLinkAlt,
   faTrash,
-  faPlus
+  faPlus,
+  faPenToSquare
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -46,7 +47,8 @@ library.add(
   faFileCsv,
   faExternalLinkAlt,
   faTrash,
-  faPlus
+  faPlus,
+  faPenToSquare
 )
 
 export { FontAwesomeIcon }

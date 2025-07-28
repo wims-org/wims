@@ -1,4 +1,3 @@
-
 import base64
 
 import cv2
@@ -17,7 +16,7 @@ class Camera:
         if not ret or frame is None or frame.size == 0:
             return []
         if ret:
-            _, buffer = cv2.imencode('.jpg', frame)
+            _, buffer = cv2.imencode(".jpg", frame)
             self.last_image = [f"data:image/jpeg;base64,{base64.b64encode(buffer).decode()}"]
             return self.last_image
         return []

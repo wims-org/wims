@@ -19,6 +19,7 @@ class ItemChangedResponse(pydantic.BaseModel):
     error_items: list[str] = []
     errors: list[str] = []
 
+
 @router.put("/{rfid}", response_model=ItemChangedResponse)
 async def put_item(
     request: Request,
@@ -28,21 +29,23 @@ async def put_item(
     # update item
     if item is None:
         item = await request.json()
-    item_data = Item.model_validate(item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True)
+    item_data = Item.model_validate(
+        item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True
+    )
 
     old_item: dict = get_db(request).find_by_rfid(collection_name="items", rfid=rfid)
     if not old_item:
         raise HTTPException(status_code=404, detail="Item not found for update")
     old_item.update(item_data.model_dump(exclude_unset=True, exclude_none=True))
     try:
-        old_item_data =Item.model_validate(old_item, strict=False, from_attributes=True)
+        old_item_data = Item.model_validate(old_item, strict=False, from_attributes=True)
     except pydantic.ValidationError as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
 
     updated_rows = get_db(request).update(
         collection_name="items",
         query={"$or": [{"tag_uuid": rfid}]},
-        update_values=old_item_data.model_dump(mode="json", by_alias=True)
+        update_values=old_item_data.model_dump(mode="json", by_alias=True),
     )
     if updated_rows:
         return ItemChangedResponse(message="Item updated successfully")
@@ -71,11 +74,10 @@ async def post_item(
     except pymongo.errors.DuplicateKeyError as e:
         raise HTTPException(status_code=400, detail="Item already exists") from e
     if updated_rows:
-        #logger.debug(f"Item created: {str(item)[:100]}, {updated_rows}")
+        # logger.debug(f"Item created: {str(item)[:100]}, {updated_rows}")
         return ItemChangedResponse(message="Item created successfully")
     else:
         raise HTTPException(status_code=500, detail="Failed to create item, please try again later")
-
 
 
 @router.post("/backlog", response_model=ItemChangedResponse)
@@ -184,13 +186,22 @@ async def get_items(
                 ]
             },
         )
+        logger.debug(f"Found {len(items)} items matching query: {query}")
     else:
         items = get_db(request).read(collection_name="items")
-
     if items:
         return items
     else:
         raise HTTPException(status_code=404, detail="Item not found")
+
+
+@router.post("/search", response_model=list[Item])
+async def get_item_search(request: Request, query: dict) -> list[Item]:
+    logger.debug(f"Searching items with query: {query.get('query', '')}")
+    items = get_db(request).read(collection_name="items", query=query.get("query", ""))
+    if not items:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return items
 
 
 @router.patch("", response_model=list[Item])

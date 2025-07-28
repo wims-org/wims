@@ -47,8 +47,7 @@ class BackendService:
             database=db_config.get("database", "inventory"),
         )
         self.mqtt_client_manager = MQTTClientManager(
-            callback=self.handle_message, mqtt_config=mqtt_config.get(
-                "broker", {})
+            callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
         # todo refactor to clients or sth
         self.readers: dict[str, list[dict]] = {}
@@ -64,8 +63,7 @@ class BackendService:
             )
             self.camera = Camera(find(key := "camera.url", config))
         except (KeyError, TypeError, openai.OpenAIError) as e:
-            logger.error(
-                f"Error getting config key {key}, check config file and environment variables: {e}")
+            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
         asyncio.create_task(self.push_heartbeats())
 
     async def handle_message(self, message, topic):
@@ -79,20 +77,17 @@ class BackendService:
         data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
             mode="json", exclude_none=True
         )
-        self.readers[msg.reader_id].append(SseMessage(
-            data=data, event=Event.SCAN).model_dump(mode="json"))
+        self.readers[msg.reader_id].append(SseMessage(data=data, event=Event.SCAN).model_dump(mode="json"))
 
         # Send db data to reader
         # todo don't fetch data from db twice
         item_raw = self.db.find_by_rfid("items", msg.tag_id)
         if item_raw is None:
             # Item not found
-            self.mqtt_client_manager.publish(
-                self.item_data_topic + f"/{msg.reader_id}", "null")
+            self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
         else:
             try:
-                item = Item.model_validate(
-                    item_raw, strict=False, from_attributes=True)
+                item = Item.model_validate(item_raw, strict=False, from_attributes=True)
                 self.mqtt_client_manager.publish(
                     self.item_data_topic + f"/{msg.reader_id}",
                     str(
@@ -112,15 +107,15 @@ class BackendService:
                 )
             except pydantic.ValidationError as e:
                 logger.error(f"Error validating item: {e}")
-                self.mqtt_client_manager.publish(
-                    self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
+                self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
 
     def start_mqtt(self):
         try:
             self.mqtt_client_manager.connect()
         except ConnectionRefusedError:
             logger.error(
-                "MQTT connection refused. This results in unexpected behavior! Please check your MQTT broker configuration.")
+                "MQTT connection refused. This results in unexpected behavior! Please check your MQTT broker configuration."
+            )
 
     def add_mqtt_topic(self, topic):
         self.mqtt_client_manager.add_topic(topic)

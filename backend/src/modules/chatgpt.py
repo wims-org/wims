@@ -40,7 +40,7 @@ class ChatGPT(LLMCompletion):
                         }
                     ],
                 },
-                message
+                message,
             ],
             response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,

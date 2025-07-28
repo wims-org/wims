@@ -19,6 +19,7 @@ def get_bs(request: Request) -> BackendService:
 class EmptyResponseException(Exception):
     pass
 
+
 class IdentificationRequest(pydantic.BaseModel):
     data: pydantic.Json | None = None
     images: list[UploadFile] = None

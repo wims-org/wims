@@ -44,7 +44,6 @@ class ItemRequest(BaseModel):
     owner: str | None = None
 
 
-
 class ItemBacklogRequest(ItemRequest):
     short_name: str | None = None
     ai_generated: set[str] | None = None
