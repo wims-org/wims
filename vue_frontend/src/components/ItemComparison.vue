@@ -7,7 +7,7 @@
     <form v-if="item_org && formData_org" @submit.prevent="">
       <div class="d-flex p-2 justify-content-between align-items-center">
         <div class="col-2">Old Value</div>
-        <button type="button" class="btn btn-primary mt-3" @click="applyNewValuesToOrg">
+        <button v-if="showDetails" type="button" class="btn btn-primary mt-3" @click="applyNewValuesToOrg">
           <font-awesome-icon icon="arrow-left" />
           <font-awesome-icon icon="arrow-left" />
           <span class="ml-1">Apply All</span>

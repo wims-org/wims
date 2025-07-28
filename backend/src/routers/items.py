@@ -5,10 +5,9 @@ from loguru import logger
 
 from database_connector import MongoDBConnector, RecursiveContainerObject
 from models.database import Item
-from models.requests import ItemRequest
+from models.requests import ItemBacklogRequest, ItemRequest
 
-router = APIRouter(
-    prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
 
 def get_db(request: Request) -> MongoDBConnector:
@@ -20,31 +19,35 @@ class ItemChangedResponse(pydantic.BaseModel):
     error_items: list[str] = []
     errors: list[str] = []
 
-
 @router.put("/{rfid}", response_model=ItemChangedResponse)
 async def put_item(
     request: Request,
     rfid: str,
     item: ItemRequest | None = None,
 ) -> ItemChangedResponse:
+    # update item
     if item is None:
         item = await request.json()
-    # update item
-    item_data = ItemRequest.model_validate(
-        item, strict=False, from_attributes=True)
-    item_data = Item.model_validate(
-        item_data, strict=False, from_attributes=True)
-    logger.debug(f"Updating item with rfid {rfid}: {item_data}")
+    item_data = Item.model_validate(item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True)
+
+    old_item: dict = get_db(request).find_by_rfid(collection_name="items", rfid=rfid)
+    if not old_item:
+        raise HTTPException(status_code=404, detail="Item not found for update")
+    old_item.update(item_data.model_dump(exclude_unset=True, exclude_none=True))
+    try:
+        old_item_data =Item.model_validate(old_item, strict=False, from_attributes=True)
+    except pydantic.ValidationError as e:
+        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
+
     updated_rows = get_db(request).update(
         collection_name="items",
         query={"$or": [{"tag_uuid": rfid}]},
-        update_values=item_data.model_dump(mode="json", by_alias=True),
+        update_values=old_item_data.model_dump(mode="json", by_alias=True)
     )
     if updated_rows:
         return ItemChangedResponse(message="Item updated successfully")
     else:
-        raise HTTPException(
-            status_code=404, detail="Failed to update item, item not found or no changes made")
+        raise HTTPException(status_code=404, detail="Failed to update item, item not found or no changes made")
 
 
 @router.post("", response_model=ItemChangedResponse)
@@ -52,23 +55,56 @@ async def post_item(
     request: Request,
     item: ItemRequest,
 ) -> ItemChangedResponse:
+    """
+    Create an item. If the item already exists, an error is raised.
+    """
     item_dict = item.model_dump(exclude_unset=True, exclude_none=True)
-    logger.warning(f"Creating item: {item_dict}")
-    item = Item.model_validate(item_dict, strict=True, from_attributes=True)
+    logger.debug(f"Creating item: {str(item_dict)[:100]}")
     try:
+        item = Item.model_validate(item_dict, from_attributes=True)
         updated_rows = get_db(request).create(
             collection_name="items",
             document=item.model_dump(mode="json", by_alias=True),
         )
+    except pydantic.ValidationError as e:
+        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
     except pymongo.errors.DuplicateKeyError as e:
-        raise HTTPException(
-            status_code=400, detail="Item already exists") from e
+        raise HTTPException(status_code=400, detail="Item already exists") from e
     if updated_rows:
-        logger.debug(f"Item created: {item}, {updated_rows}")
+        #logger.debug(f"Item created: {str(item)[:100]}, {updated_rows}")
         return ItemChangedResponse(message="Item created successfully")
     else:
-        raise HTTPException(
-            status_code=500, detail="Failed to create item, please try again later")
+        raise HTTPException(status_code=500, detail="Failed to create item, please try again later")
+
+
+
+@router.post("/backlog", response_model=ItemChangedResponse)
+async def post_backlog_item(
+    request: Request,
+    item: ItemBacklogRequest,
+) -> ItemChangedResponse:
+    """
+    Create a backlog item (no strict validation). If the item already exists, an error is raised.
+    """
+    item_dict = item.model_dump(exclude_unset=True, exclude_none=True)
+    logger.debug(f"Creating item: {str(item_dict)[:100]}")
+    if not item_dict.get("short_name"):
+        item_dict["short_name"] = ""
+    try:
+        item = Item.model_validate(item_dict, from_attributes=True)
+    except pydantic.ValidationError as e:
+        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
+    try:
+        updated_rows = get_db(request).create(
+            collection_name="items",
+            document=item.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True),
+        )
+    except pymongo.errors.DuplicateKeyError as e:
+        raise HTTPException(status_code=400, detail="Item already exists") from e
+    if updated_rows:
+        return ItemChangedResponse(message="Item created successfully")
+    else:
+        raise HTTPException(status_code=500, detail="Failed to create item, please try again later")
 
 
 @router.delete("/{rfid}", response_model=ItemChangedResponse)
@@ -83,8 +119,7 @@ async def delete_item(
     if updated_rows:
         return ItemChangedResponse(message="Item deleted successfully")
     else:
-        raise HTTPException(
-            status_code=404, detail="Failed to update item, item not found")
+        raise HTTPException(status_code=404, detail="Failed to update item, item not found")
 
 
 @router.get("/{rfid}", response_model=Item)
@@ -97,13 +132,12 @@ async def get_item(
         try:
             return Item.model_validate(item, strict=False, from_attributes=True)
         except pydantic.ValidationError as e:
-            logger.error(f"Error validating item: {item=}, {e}")
+            logger.error(f"Error validating item: {str(item)[:100]}, {e}")
             errors = [
                 f"{'.'.join(map(str, err.get('loc', [])))} {err.get('type')}: {err.get('msg')}" for err in e.errors()
             ]
             valid_item = Item.model_construct(**item)
-            res = valid_item.model_dump(
-                exclude_unset=True, exclude_defaults=True, exclude_none=True)
+            res = valid_item.model_dump(exclude_unset=True, exclude_defaults=True, exclude_none=True)
             res["errors"] = errors
             return res
     else:
@@ -115,8 +149,7 @@ async def get_item_with_containers(
     request: Request,
     rfid: str,
 ) -> RecursiveContainerObject:
-    recursive_containers = get_db(request).get_recursive_container_tags(
-        collection_name="items", rfid=rfid)
+    recursive_containers = get_db(request).get_recursive_container_tags(collection_name="items", rfid=rfid)
     if not recursive_containers:
         raise HTTPException(status_code=404, detail="Item not found")
     return recursive_containers
@@ -127,9 +160,7 @@ async def get_item_content(
     request: Request,
     rfid: str,
 ) -> list[Item]:
-    content = get_db(request).read(
-        collection_name="items",
-        query={"container_tag_uuid": rfid})
+    content = get_db(request).read(collection_name="items", query={"container_tag_uuid": rfid})
     if not content:
         raise HTTPException(status_code=404, detail="Item content not found")
     return content
@@ -168,8 +199,7 @@ async def patch_items(
 ) -> list[Item]:
     items = get_db(request).read(collection_name="items")
     for item_data in items:
-        item = Item.model_validate(
-            item_data, strict=False, from_attributes=True)
+        item = Item.model_validate(item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
         _ = get_db(request).update(
             collection_name="items",
@@ -199,10 +229,8 @@ async def bulk_import_items(
     for idx, item_req in enumerate(items):
         try:
             # Remove None values, use defaults for missing fields
-            item_dict = {k: v for k, v in item_req.model_dump(
-                exclude_none=True).items()}
-            item = Item.model_validate(
-                item_dict, strict=False, from_attributes=True)
+            item_dict = {k: v for k, v in item_req.model_dump(exclude_none=True).items()}
+            item = Item.model_validate(item_dict, strict=False, from_attributes=True)
             # Try to update existing item
             result = db.update(
                 collection_name="items",
@@ -249,5 +277,4 @@ async def bulk_import_items(
     msg = f"{imported} item(s) imported, {updated} item(s) updated successfully."
     if errors:
         msg += f" {len(errors)} error(s): {'; '.join(errors)}"
-    return ItemChangedResponse(message=msg, errors=errors,
-                               error_items=error_items)
+    return ItemChangedResponse(message=msg, errors=errors, error_items=error_items)

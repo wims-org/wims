@@ -42,3 +42,15 @@ class ItemRequest(BaseModel):
     borrowed_at: int | None = None
     borrowed_until: int | None = None
     owner: str | None = None
+
+
+
+class ItemBacklogRequest(ItemRequest):
+    short_name: str | None = None
+    ai_generated: set[str] | None = None
+    tags: set[str] | None = None
+    changes: list[Change] | None = None
+    images: list[str] | None = None
+    vendors: list[str] | None = None
+    shop_url: list[str] | None = None
+    documentation: list[str] | None = None
