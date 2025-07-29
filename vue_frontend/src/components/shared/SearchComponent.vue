@@ -21,7 +21,7 @@
               </BDropdownItem>
             </BDropdownMenu>
             <BDropdownDivider />
-            <BDropdownItem @click="isEditing = !isEditing">              
+            <BDropdownItem @click="isEditing = !isEditing">
               <font-awesome-icon :icon="isEditing ? 'xmark' : 'pen-to-square'" />
               {{ isEditing ? 'Close' : 'Add / Edit Query' }}
             </BDropdownItem>
@@ -31,7 +31,7 @@
     </BRow>
     <BRow class="mt-2">
       <BCol>
-        <QueryEditor v-if="isEditing" :existingQuery="selectedSavedQuery" @update:query="selectedSavedQuery = $event" />
+        <QueryEditor v-if="isEditing" :existingQuery="selectedSavedQuery" @update:query="selectQuery($event)" />
       </BCol>
     </BRow>
     <BRow align-v="center">
@@ -60,6 +60,7 @@ import type { Query } from '@/interfaces/queries'
 
 
 const searchQuery = ref('')
+const searchedQuery = ref<Record<string, unknown>>({})
 const items = ref([])
 const noResults = ref(false)
 const isEditing = ref(false)
@@ -78,13 +79,15 @@ onMounted(() => {
 
 const fetchSearchTerm = async (query: string) => {
   fetchItems('get', '/items', { params: { query } })
+  searchedQuery.value = { query }
 }
 
 const fetchSearchQuery = async (query: Record<string, unknown>) => {
-  fetchItems('post', '/items/search', {  query } )
+  fetchItems('post', '/items/search', { query })
+  searchedQuery.value = query 
 }
 
-const fetchItems = async (method: "get" | "post", endpoint:string, body:Record<string, unknown>) => {
+const fetchItems = async (method: "get" | "post", endpoint: string, body: Record<string, unknown>) => {
   try {
     const response = await axios[method](endpoint, body)
     // Check if response is array
@@ -133,6 +136,6 @@ const selectQuery = (query: Query) => {
 }
 
 const handleSelect = (item: Record<string, unknown>) => {
-  emit('select', item.tag_uuid)
+  emit('select', item.tag_uuid, searchedQuery.value || null, items.value.indexOf(item))
 }
 </script>

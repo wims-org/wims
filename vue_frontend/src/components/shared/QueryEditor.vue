@@ -19,7 +19,7 @@
                             placeholder="Enter MongoDB query as JSON" rows="5"></BFormTextarea>
                     </BFormGroup>
 
-                    <BButton type="submit" variant="primary">
+                    <BButton type="button" @click="submitQuery" variant="primary" class="mt-3">
                         {{ isEditing ? "Update Query" : "Create Query" }}
                     </BButton>
                 </BForm>
@@ -39,6 +39,7 @@
 import { defineComponent, type PropType } from "vue";
 import axios from "axios";
 import type { Query } from "@/interfaces/queries";
+import { logger } from "@sentry/vue";
 
 
 export default defineComponent({
@@ -80,8 +81,25 @@ export default defineComponent({
             try {
                 this.errorMessage = null;
                 this.successMessage = null;
-                // Format the query as pretty JSON
-                this.query.query = JSON.parse(this.query.query)
+                // Sanitize and format the JSON with best effort
+                let parsedQuery;
+                try {
+                    // Replace single quotes with double quotes, remove trailing commas, etc.
+                    const input = this.query.query
+                        .replace(/'/g, '"')
+                        .replace(/,\s*}/g, '}')
+                        .replace(/,\s*]/g, ']');
+
+//                        console.log("Submitting query:", this.query);
+                    
+                    parsedQuery = JSON.parse(input);
+                } catch (e) {
+                    logger.error("Invalid JSON format in query", e);
+                    this.errorMessage = "Invalid JSON format in query. Please check your input." + (e.message ?? "");
+                    return;
+                }
+                const submit_query = { ...this.query, query: parsedQuery };
+                console.log("Submitting query:", submit_query);
 
                 const endpoint = this.isEditing
                     ? `/queries/${this.query._id}`
@@ -89,12 +107,13 @@ export default defineComponent({
 
                 const method = this.isEditing ? "put" : "post";
 
-                const response = await axios[method](endpoint, this.query);
-
+                const response = await axios[method](endpoint, submit_query);
+                this.query = response.data;
+                this.query.query = JSON.stringify(this.query.query, null, 2);
                 this.successMessage = this.isEditing
                     ? "Query updated successfully!"
                     : "Query created successfully!";
-                this.$emit("query-saved", response.data);
+                this.$emit("update:query", this.query);
             } catch (error: unknown) {
                 if (axios.isAxiosError(error)) {
                     this.errorMessage =

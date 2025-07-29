@@ -1,33 +1,75 @@
 <template>
-  <main>
-    <div v-if="saveError" class="sticky-note">Error saving changes</div>
-    <h1 class="m-4">{{ item?.short_name }}</h1>
-    <BTabs class="mt-3" content-class="mt-3" @activate-tab="(e) => console.log(e)" v-model="activeTab">
-      <BTab title="Container Tree" id="containerTree">
-        <ContainerListComponent v-if="item?.tag_uuid" :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
-          @update:value="handleContainerSelect" />
-        <ItemList :items="items" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
-        <div class="d-flex justify-content-center mt-3">
-          <button @click="() => (showModal = true)" class="btn btn-primary mb-3" data-testid="add-content-button">
-            Add content now
+  <BContainer fluid class="d-flex row">
+    <BCol class="align-content-center col-1 p-0 width-1 text-end">
+      <router-link
+        v-show="previousItemId"
+        :to="`/items/${previousItemId}?offset=${+offset - 1 || 0}&query=${encodeURIComponent(query)}`"
+        class="text-decoration-none"
+        ><font-awesome-icon icon="arrow-left"
+      /></router-link>
+    </BCol>
+    <BCol>
+      <div v-if="saveError" class="sticky-note">Error saving changes</div>
+      <h1 class="m-4">{{ item?.short_name }}</h1>
+      <BTabs
+        class="mt-3"
+        content-class="mt-3"
+        @activate-tab="(e) => console.log(e)"
+        v-model="activeTab"
+      >
+        <BTab title="Container Tree" id="containerTree">
+          <ContainerListComponent
+            v-if="item?.tag_uuid"
+            :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
+            @update:value="handleContainerSelect"
+          />
+          <ItemList
+            :items="items"
+            @select="handleItemSelect"
+            :title="`Items in ${item?.short_name}`"
+          />
+          <div class="d-flex justify-content-center mt-3">
+            <button
+              @click="() => (showModal = true)"
+              class="btn btn-primary mb-3"
+              data-testid="add-content-button"
+            >
+              Add content now
+            </button>
+          </div>
+        </BTab>
+        <BTab title="Item Data" id="itemData">
+          <button
+            v-if="completion"
+            @click="() => (isComparing = !isComparing)"
+            class="btn btn-secondary mb-3"
+          >
+            Toggle Comparison
           </button>
-        </div>
-      </BTab>
-      <BTab title="Item Data" id="itemData">
-        <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
-          Toggle Comparison
-        </button>
-        <ItemCompare v-if="isComparing" :item_org="item" :item_new="completion" :newItem="newItem"
-          @submit="handleFormSubmit" />
-        <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
-      </BTab>
-      <BTab title="Object Identification" id="objectIdentification">
-        <LLMCompletion />
-      </BTab>
-    </BTabs>
-
+          <ItemCompare
+            v-if="isComparing"
+            :item_org="item"
+            :item_new="completion"
+            :newItem="newItem"
+            @submit="handleFormSubmit"
+          />
+          <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
+        </BTab>
+        <BTab title="Object Identification" id="objectIdentification">
+          <LLMCompletion />
+        </BTab>
+      </BTabs>
+    </BCol>
+    <BCol class="align-content-center col-1 p-0">
+      <router-link
+        v-show="nextItemId"
+        :to="`/items/${nextItemId}?offset=${+offset + 1}&query=${encodeURIComponent(query)}`"
+        class="text-decoration-none"
+        ><font-awesome-icon icon="arrow-right"
+      /></router-link>
+    </BCol>
     <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
-  </main>
+  </BContainer>
 </template>
 
 <script setup lang="ts">
@@ -46,6 +88,7 @@ import type { components } from '@/interfaces/api-types'
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
+import { decode } from 'punycode'
 
 const route = useRoute()
 const itemId = ref<string>(
@@ -63,6 +106,10 @@ const saveError = ref('')
 const items = ref<Item[]>([])
 const noContent = ref(false)
 const showModal = ref(false)
+const query = ref<string>(decodeURIComponent((route.query.query as string) || ''))
+const previousItemId = ref<string>('')
+const nextItemId = ref<string>('')
+const offset = ref<number>(0)
 
 const clientStore = useClientStore()
 const activeTab = ref<string>('itemData')
@@ -115,8 +162,52 @@ const fetchContainerContent = async () => {
   tabCheck.value++
 }
 
+const fetchPrevNextItems = async () => {
+  console.log(
+    'Fetching previous and next items for query:',
+    query.value,
+    'and offset:',
+    offset.value,
+  )
+  previousItemId.value = ''
+  nextItemId.value = ''
+  const parsedQuery = JSON.parse(query.value.trim().toLowerCase())
+  try {
+    if (offset.value && offset.value > 0) {
+      const prevItem = await axios.post('/items/search', {
+        query: parsedQuery,
+        offset: offset.value - 1,
+        limit: 1,
+      })
+      if (prevItem.data.length > 0) {
+        previousItemId.value = (prevItem.data.pop() as Item).tag_uuid
+      }
+    }
+    const nextItem = await axios.post('/items/search', {
+      query: parsedQuery,
+      offset: offset.value + 1,
+      limit: 1,
+    })
+    if (nextItem.data.length > 0) {
+      nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
+    }
+  } catch (error) {
+    console.error('Error fetching previous/next items:', error)
+  }
+}
+
 onMounted(fetchItem)
 onMounted(fetchContainerContent)
+onMounted(() => {
+  query.value = decodeURIComponent((route.query.query as string) || '')
+  offset.value = parseInt(route.query.offset as string, 10) || 0
+  if (query.value && query.value !== '') {
+    fetchPrevNextItems()
+  } else {
+    previousItemId.value = ''
+    nextItemId.value = ''
+  }
+})
 
 watch(
   () => route.params.tag_uuid,
@@ -125,6 +216,23 @@ watch(
       itemId.value = typeof newId === 'string' ? newId : ''
       await fetchItem()
       await fetchContainerContent()
+      await fetchPrevNextItems()
+    }
+  },
+)
+
+watch(
+  () => [route.query.query, route.query.offset],
+  async (newValues) => {
+    const [newQuery, newOffset] = newValues
+    if (newQuery && typeof newQuery === 'string') {
+      query.value = decodeURIComponent((newQuery as string) || '')
+      offset.value = parseInt(newOffset as string, 10) || 0
+      await fetchPrevNextItems()
+    } else {
+      query.value = ''
+      previousItemId.value = ''
+      nextItemId.value = ''
     }
   },
 )

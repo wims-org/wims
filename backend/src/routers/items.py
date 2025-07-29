@@ -195,10 +195,31 @@ async def get_items(
         raise HTTPException(status_code=404, detail="Item not found")
 
 
+class ItemSearchRequest(pydantic.BaseModel):
+    query: dict = {}
+    offset: int | None = None
+    limit: int | None = None
+
+
 @router.post("/search", response_model=list[Item])
-async def get_item_search(request: Request, query: dict) -> list[Item]:
-    logger.debug(f"Searching items with query: {query.get('query', '')}")
-    items = get_db(request).read(collection_name="items", query=query.get("query", ""))
+async def get_item_search(request: Request, item_search_req: ItemSearchRequest) -> list[Item]:
+    request.body = await request.body()
+    logger.debug(
+        f"Received search query: {item_search_req.query}, offset: {item_search_req.offset}, limit: {item_search_req.limit}, body: {request.body.decode('utf-8')}   "
+    )
+    items = (
+        get_db(request)
+        .db["items"]
+        .aggregate(
+            [
+                {"$match": item_search_req.query},
+                {"$skip": item_search_req.offset or 0},
+                {"$limit": item_search_req.limit or 1000},
+            ]
+        )
+    )
+    items = list(items)
+    logger.debug(f"Found {len(items)} items matching search query: {items}")
     if not items:
         raise HTTPException(status_code=404, detail="Item not found")
     return items
