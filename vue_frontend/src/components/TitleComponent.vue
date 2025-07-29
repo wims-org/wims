@@ -19,7 +19,6 @@
         >🔴 Not Connected to a reader, choose one at
         <router-link to="/readers">readers</router-link></span
       >
-      <span>Expected Action: {{ expectedAction }}</span>
     </div>
   </div>
 </template>

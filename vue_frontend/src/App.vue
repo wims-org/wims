@@ -11,7 +11,7 @@ import { setReaderId } from './utils'
 export default {
   name: 'App',
   components: {
-    TitleComponent,
+    TitleComponent
   },
   setup() {
     const client_store = clientStore()
@@ -46,7 +46,7 @@ export default {
 </script>
 
 <template>
-  <div class="col-12 h-100">
+  <div class=" h-100">
     <header>
       <div class="wrapper">
         <TitleComponent msg="WIMS?" />
