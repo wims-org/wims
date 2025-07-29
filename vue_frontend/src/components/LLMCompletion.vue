@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <div class="col border p-3">
-      <h3 class="row p-2">Object Identification</h3>
       <div class="row p-2 justify-content-between align-items-center">
         <input
           type="text"
