@@ -21,7 +21,7 @@
           @submit="handleFormSubmit" />
         <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
       </BTab>
-      <BTab title="Object detection" id="objectDetection">
+      <BTab title="Object Identification" id="objectIdentification">
         <LLMCompletion />
       </BTab>
     </BTabs>
@@ -135,7 +135,7 @@ watch(
     if (isComparing.value) {
       activeTab.value = 'itemData'
     } else if (newItem.value) {
-      activeTab.value = 'objectDetection'
+      activeTab.value = 'objectIdentification'
     } else if (items.value?.length > 0) {
       activeTab.value = 'containerTree'
     } else {
