@@ -57,11 +57,13 @@ import ItemList from '@/components/ItemList.vue'
 import { useTemplateRef } from 'vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
+import type { components } from '@/interfaces/api-types';
+type Item = components['schemas']['Item'] & { [key: string]: unknown };
 
 
 const searchQuery = ref('')
 const searchedQuery = ref<Record<string, unknown>>({})
-const items = ref([])
+const items = ref<Item[]>([])
 const noResults = ref(false)
 const isEditing = ref(false)
 let debounceTimeout: ReturnType<typeof setTimeout>
@@ -135,7 +137,7 @@ const selectQuery = (query: Query) => {
   fetchSearchQuery(query.query)
 }
 
-const handleSelect = (item: Record<string, unknown>) => {
+const handleSelect = (item: Item) => {
   emit('select', item.tag_uuid, searchedQuery.value || null, items.value.indexOf(item))
 }
 </script>

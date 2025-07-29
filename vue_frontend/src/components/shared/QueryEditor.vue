@@ -94,8 +94,10 @@ export default defineComponent({
                     
                     parsedQuery = JSON.parse(input);
                 } catch (e) {
-                    logger.error("Invalid JSON format in query", e);
-                    this.errorMessage = "Invalid JSON format in query. Please check your input." + (e.message ?? "");
+                    logger.error("Invalid JSON format in query {e}", { e });
+                    if (e instanceof Error) {
+                        this.errorMessage = "Invalid JSON format in query. Please check your input." + (e.message ?? "");
+                    }
                     return;
                 }
                 const submit_query = { ...this.query, query: parsedQuery };
