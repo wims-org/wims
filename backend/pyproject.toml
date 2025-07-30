@@ -1,10 +1,11 @@
 [project]
-authors = [{name = "EeveesEyes", email = "a@kailus.dev"}]
+authors = [{name = "EeveesEyes"}]
 description = ""
 name = "backend"
 readme = "README.md"
 requires-python = ">=3.12"
 version = "0.1.0"
+license = {text = "GPL-3.0-or-later"}
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
