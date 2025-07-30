@@ -14,84 +14,81 @@
       </BCol>
       <BCol>
         <BInputGroup v-if="!disabled" class="borderless-input flex-nowrap">
-          <BInput v-model="newItem" :disabled="disabled" @keydown.enter.prevent="addItem"
-            placeholder="Add items separated by ," :class="{ 'borderless-input': borderless }"
-            :required="!value.length && required" />
-          <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items"><font-awesome-icon
-              icon="fa-solid fa-plus" /></BButton>
+          <BInput
+            v-model="newItem"
+            :disabled="disabled"
+            @keydown.enter.prevent="addItem"
+            placeholder="Add items separated by ,"
+            :class="{ 'borderless-input': borderless }"
+            :required="!value.length && required"
+          />
+          <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items">
+            <font-awesome-icon icon="fa-solid fa-plus" />
+          </BButton>
         </BInputGroup>
       </BCol>
     </BRow>
   </BContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
-import type { PropType } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { PropType } from 'vue';
 
-export default defineComponent({
-  name: 'ArrayField',
-  props: {
-    name: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
-    value: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-      required: true,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    hideLabel: {
-      type: Boolean,
-      default: false,
-    },
-    borderless: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  emits: ['update:value'],
-  setup(props, { emit }) {
-    const newItem = ref('')
-
-    const addItem = () => {
-      if (newItem.value.trim() !== '') {
-        const itemsToAdd = newItem.value
-          .trim()
-          .split(new RegExp(',|;'))
-          .map((item) => item.trim())
-          .filter((item) => item !== '')
-
-        emit('update:value', [...props.value, ...itemsToAdd])
-        newItem.value = '' // Clear the input after adding items
-      }
-    }
-
-    const removeItem = (index: number) => {
-      const newValue = [...props.value]
-      newValue.splice(index, 1)
-      emit('update:value', newValue)
-    }
-
-    return {
-      newItem,
-      addItem,
-      removeItem,
-    }
+  label: {
+    type: String,
+    default: '',
   },
-})
+  value: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+    required: true,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  hideLabel: {
+    type: Boolean,
+    default: false,
+  },
+  borderless: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(['update:value']);
+
+const newItem = ref('');
+
+const addItem = () => {
+  if (newItem.value.trim() !== '') {
+    const itemsToAdd = newItem.value
+      .trim()
+      .split(new RegExp(',|;'))
+      .map((item) => item.trim())
+      .filter((item) => item !== '');
+
+    emit('update:value', [...props.value, ...itemsToAdd]);
+    newItem.value = '';
+  }
+};
+
+const removeItem = (index: number) => {
+  const newValue = [...props.value];
+  newValue.splice(index, 1);
+  emit('update:value', newValue);
+};
 </script>
 
 <style scoped>

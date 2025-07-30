@@ -1,5 +1,5 @@
 <template>
-  <container>
+  <BContainer>
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="object-field">
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
       <div class="card p-3">
@@ -13,54 +13,53 @@
         </div>
       </div>
     </div>
-  </container>
+  </BContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue'
 
-export default defineComponent({
-  name: 'ObjectField',
-  props: {
-    name: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
-    value: {
-      type: Object as PropType<Record<string, unknown>>,
-      default: undefined,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    hideLabel: {
-      type: Boolean,
-      default: false,
-    },
-    borderless: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  emits: ['update:value'],
-  methods: {
-    updateField(event: Event, subKey: string | number) {
-      const target = event.target as HTMLInputElement
-      const value = target.type === 'number' ? Number(target.value) : target.value
-      const newValue = { ...this.value, [subKey]: value }
-      this.$emit('update:value', newValue)
-    },
+  label: {
+    type: String,
+    default: '',
+  },
+  value: {
+    type: Object,
+    default: () => ({}),
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  hideLabel: {
+    type: Boolean,
+    default: false,
+  },
+  borderless: {
+    type: Boolean,
+    default: false,
   },
 })
+
+const emit = defineEmits<{
+  (e: 'update:value', value: Record<string, unknown>): void
+}>()
+
+function updateField(event: Event, subKey: string | number) {
+  const target = event.target as HTMLInputElement
+  const value = target.type === 'number' ? Number(target.value) : target.value
+  const newValue = { ...props.value, [subKey]: value }
+  emit('update:value', newValue)
+}
 </script>
 
 <style scoped>

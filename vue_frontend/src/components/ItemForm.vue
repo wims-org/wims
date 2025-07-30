@@ -4,19 +4,31 @@
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
     <div class="d-flex justify-content-between mb-3">
-      <button @click="toggleDetails" type="button" class="btn btn-secondary mt-3 mr-auto"
-        data-testid="toggle-details-button">
+      <button
+        @click="toggleDetails"
+        type="button"
+        class="btn btn-secondary mt-3 mr-auto"
+        data-testid="toggle-details-button"
+      >
         {{ showDetails ? 'Hide Details' : 'Show Details' }}
       </button>
       <button @click="handleSubmit" type="button" class="btn btn-primary mt-3">Submit</button>
     </div>
     <h1 class="mb-4">{{ item?.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
-      <component v-for="(field, key, fieldIndex) in formFields" :is="getFieldComponent(field.type)" :key="key"
-        :name="String(key)" :label="field.label || key" :value="formData[key]" :disabled="field.disabled ?? undefined"
-        :required="field.required" :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
+      <component
+        v-for="(field, key, fieldIndex) in formFields"
+        :is="getFieldComponent(field.type)"
+        :key="key"
+        :name="String(key)"
+        :label="field.label || key"
+        :value="formData[key]"
+        :disabled="field.disabled ?? undefined"
+        :required="field.required"
+        :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
         @update:value="updateFieldModel($event, String(key), field.type)"
-        v-show="!field.hidden && (!field.details || showDetails)" />
+        v-show="!field.hidden && (!field.details || showDetails)"
+      />
       <button type="button" class="btn btn-primary mt-3" @click="handleSubmit">Submit</button>
     </form>
     <div v-else>
@@ -31,158 +43,99 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
-import { formFields } from '@/interfaces/FormField.interface'
-import TextField from '@/components/fields/TextField.vue'
-import TextAreaField from '@/components/fields/TextAreaField.vue'
-import ObjectField from '@/components/fields/ObjectField.vue'
-import LoadingField from '@/components/fields/LoadingField.vue'
-import CheckboxField from '@/components/fields/CheckboxField.vue'
-import ArrayField from '@/components/fields/ArrayField.vue'
-import ModalField from '@/components/fields/ModalField.vue'
-import NumberField from '@/components/fields/NumberField.vue'
-import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
-import ItemField from '@/components/fields/ItemField.vue'
-import { fieldTypeToComponent } from '@/utils/form.helper'
-import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
-import axios from 'axios'
-import type { components } from '@/interfaces/api-types'
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { formFields } from '@/interfaces/FormField.interface';
+import { fieldTypeToComponent } from '@/utils/form.helper';
+import axios from 'axios';
+import type { components } from '@/interfaces/api-types';
 
-export default defineComponent({
-  name: 'ItemForm',
-  components: {
-    TextField,
-    TextAreaField,
-    ObjectField,
-    LoadingField,
-    CheckboxField,
-    ArrayField,
-    ModalField,
-    NumberField,
-    ItemField,
-    ImageThumbnailField,
-    ContainerListComponent,
+type Item = components['schemas']['Item'] & { [key: string]: unknown };
+
+// Props
+const props = defineProps({
+  item: {
+    type: Object as () => Item,
+    default: () => ({} as Item),
+    required: true,
   },
-  props: {
-    item: {
-      type: Object as () => Item | undefined,
-      required: true
-    },
-    isNewItem: {
-      type: Boolean,
-      required: true,
-    },
-    errors:
-    {
-      type: Array as () => string[],
-      default: () => [],
-    },
+  isNewItem: {
+    type: Boolean,
+    required: true,
   },
-  setup(props, { emit }) {
-    const formData = ref() // form data is the live data in the form
-    const unsavedChanges = ref(false)
-    const saveError = ref('')
-
-    watch(
-      () => props.item,
-      (newItem) => {
-        formData.value = { ...newItem }
-        unsavedChanges.value = false // Reset unsaved changes when item prop changes
-      },
-      { immediate: true, deep: true },
-    )
-
-    const showDetails = ref(false)
-
-    const toggleDetails = () => {
-      showDetails.value = !showDetails.value
-    }
-
-    const handleSubmit = async () => {
-      await emit('submit', formData.value)
-      unsavedChanges.value = false
-    }
-
-    const preventEnterKey = (event: KeyboardEvent) => {
-      if (event.key === 'Enter') {
-        event.preventDefault()
-      }
-    }
-
-    const formatDate = (timestamp: number): string => {
-      if (!timestamp) return ''
-      const date = new Date(timestamp * 1000)
-      return isNaN(date.getTime()) ? '' : date.toISOString().split('T')[0]
-    }
-
-    const getFieldModel = (key: string, type: string) => {
-      if (type === 'checkbox') {
-        return formData.value[key] ? 'checked' : ''
-      } else if (type === 'epoch') {
-        return formatDate(formData.value[key] as number)
-      }
-      return formData.value[key]
-    }
-
-    const getFieldComponent = (type: string) => {
-      return fieldTypeToComponent(type)
-    }
-
-    const updateFieldModel = (value: unknown, key: string, type: string) => {
-      if (value === formData.value[key]) return // No change, do nothing
-      console.log(`Updating field ${key} with value:`, value)
-      if (type === 'checkbox') {
-        formData.value[key] = Boolean(value)
-      } else if (type === 'epoch') {
-        formData.value[key] = new Date(value as string).getTime() / 1000
-      } else if (type === 'number') {
-        formData.value[key] = Number(value)
-      } else if (type === 'array') {
-        formData.value[key] = value
-      } else if (key === 'container_tag_uuid') {
-        if (typeof (value) === 'string' && value.trim() !== '') {
-          axios
-            .get<Item>(`/items/${value}`)
-            .then((response) => (formData.value['container'] = response.data))
-            .catch(() => {
-              // new container
-              console.warn(`Container with UUID ${value} not found, creating new container entry`)
-
-              formData.value['container'] = { tag_uuid: value } as Item
-            })
-        } else {
-          formData.value['container'] = undefined // Clear the field if no value
-        }
-        formData.value[key] = value as string
-      } else {
-        formData.value[key] = value
-      }
-      unsavedChanges.value = true // Mark changes as unsaved
-    }
-
-    const removeImage = (index: number) => {
-      if (!Array.isArray(formData.value.imageUrls)) return
-      formData.value.imageUrls.splice(index, 1)
-    }
-
-    return {
-      formData,
-      formFields,
-      showDetails,
-      toggleDetails,
-      handleSubmit,
-      preventEnterKey,
-      getFieldComponent,
-      getFieldModel,
-      updateFieldModel,
-      removeImage,
-      unsavedChanges,
-      saveError,
-    }
+  errors: {
+    type: Array as () => string[],
+    default: () => [],
   },
-})
+});
+
+// Emits
+const emit = defineEmits(['submit']);
+
+// Reactive State
+const formData = ref<Record<string, unknown>>({});
+const unsavedChanges = ref(false);
+const showDetails = ref(false);
+
+// Watchers
+watch(
+  () => props.item,
+  (newItem) => {
+    formData.value = { ...newItem };
+    unsavedChanges.value = false; // Reset unsaved changes when item prop changes
+  },
+  { immediate: true, deep: true }
+);
+
+// Methods
+const toggleDetails = () => {
+  showDetails.value = !showDetails.value;
+};
+
+const handleSubmit = async () => {
+  emit('submit', formData.value);
+  unsavedChanges.value = false;
+};
+
+const preventEnterKey = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+  }
+};
+
+const getFieldComponent = (type: string) => {
+  return fieldTypeToComponent(type);
+};
+
+const updateFieldModel = (value: unknown, key: string, type: string) => {
+  if (value === formData.value[key]) return; // No change, do nothing
+  console.log(`Updating field ${key} with value:`, value);
+  if (type === 'checkbox') {
+    formData.value[key] = Boolean(value);
+  } else if (type === 'epoch') {
+    formData.value[key] = new Date(value as string).getTime() / 1000;
+  } else if (type === 'number') {
+    formData.value[key] = Number(value);
+  } else if (type === 'array') {
+    formData.value[key] = value;
+  } else if (key === 'container_tag_uuid') {
+    if (typeof value === 'string' && value.trim() !== '') {
+      axios
+        .get<Item>(`/items/${value}`)
+        .then((response) => (formData.value['container'] = response.data))
+        .catch(() => {
+          console.warn(`Container with UUID ${value} not found, creating new container entry`);
+          formData.value['container'] = { tag_uuid: value } as Item;
+        });
+    } else {
+      formData.value['container'] = undefined; // Clear the field if no value
+    }
+    formData.value[key] = value as string;
+  } else {
+    formData.value[key] = value;
+  }
+  unsavedChanges.value = true; // Mark changes as unsaved
+};
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <container>
+  <BContainer>
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
       data-testid="image-thumbnail-field">
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
@@ -25,97 +25,82 @@
       </div>
       <ImageModal v-if="showModal && selectedImage" :image="selectedImage" @close="closeImageModal" />
     </div>
-  </container>
+  </BContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType, ref } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import ImageModal from '@/components/shared/ImageModal.vue'
 
-export default defineComponent({
-  name: 'ImageThumbnailField',
-  components: {
-    ImageModal,
+const props = defineProps({
+  name: {
+    type: String,
+    required: false,
   },
-  props: {
-    name: {
-      type: String,
-      required: false,
-    },
-    label: {
-      type: String,
-      required: false,
-    },
-    value: {
-      type: Array as PropType<string[]>,
-      required: true,
-      default: () => [],
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    hideLabel: {
-      type: Boolean,
-      default: false,
-    },
-    borderless: {
-      type: Boolean,
-      default: false,
-    },
+  label: {
+    type: String,
+    required: false,
   },
-  emits: ['update:value'],
-  setup(props, { emit }) {
-    const cameraInput = ref<HTMLInputElement | null>(null)
-    const showModal = ref(false)
-    const selectedImage = ref<string | null>(null)
-
-    const triggerCameraInput = () => {
-      cameraInput.value?.click()
-    }
-
-    const addImage = (event: Event) => {
-      const input = event.target as HTMLInputElement
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0]
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            const updatedValue = [...props.value, e.target.result as string]
-            emit('update:value', updatedValue) // Emit updated value
-          }
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-
-    const removeImage = (index: number) => {
-      const updatedValue = props.value.filter((_, i) => i !== index)
-      emit('update:value', updatedValue) // Emit updated value
-    }
-
-    const openImageModal = (image: string) => {
-      selectedImage.value = image
-      showModal.value = true
-    }
-
-    const closeImageModal = () => {
-      showModal.value = false
-      selectedImage.value = null
-    }
-
-    return {
-      cameraInput,
-      triggerCameraInput,
-      addImage,
-      removeImage,
-      showModal,
-      selectedImage,
-      openImageModal,
-      closeImageModal,
-    }
+  value: {
+    type: Array,
+    default: () => [],
+    required: true,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  hideLabel: {
+    type: Boolean,
+    default: false,
+  },
+  borderless: {
+    type: Boolean,
+    default: false,
   },
 })
+
+const emit = defineEmits<{
+  (e: 'update:value', value: string[]): void
+}>()
+
+const cameraInput = ref<HTMLInputElement | null>(null)
+const showModal = ref(false)
+const selectedImage = ref<string | null>(null)
+
+function triggerCameraInput() {
+  cameraInput.value?.click()
+}
+
+function addImage(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0]
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        const updatedValue = [...props.value, e.target.result as string]
+        emit('update:value', updatedValue)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function removeImage(index: number) {
+  const updatedValue = props.value.filter((_, i) => i !== index)
+  emit('update:value', updatedValue)
+}
+
+function openImageModal(image: string) {
+  selectedImage.value = image
+  showModal.value = true
+}
+
+function closeImageModal() {
+  showModal.value = false
+  selectedImage.value = null
+}
 </script>
 
 <style scoped>

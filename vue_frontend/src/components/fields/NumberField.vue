@@ -1,5 +1,5 @@
 <template>
-  <container>
+  <BContainer>
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="number-field">
       <span v-if="!hideLabel || !label" :for="name" class="me-2">{{ label }}</span>
       <div class="number-input-wrapper d-flex align-items-center">
@@ -16,64 +16,65 @@
         </button>
       </div>
     </div>
-  </container>
+  </BContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue'
 
-export default defineComponent({
-  name: 'NumberField',
-  props: {
-    name: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
-    value: {
-      type: [String, Number],
-      default: undefined,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    hideLabel: {
-      type: Boolean,
-      default: false,
-    },
-    borderless: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  emits: ['update:value'],
-  methods: {
-    updateField(event: Event) {
-      const target = event.target as HTMLInputElement
-      this.$emit('update:value', Number(target.value))
-    },
-    increment() {
-      if (this.disabled) return
-      let val = Number(this.value) || 0
-      val++
-      this.$emit('update:value', val)
-    },
-    decrement() {
-      if (this.disabled) return
-      let val = Number(this.value) || 0
-      val--
-      this.$emit('update:value', val)
-    },
+  label: {
+    type: String,
+    default: '',
+  },
+  value: {
+    type: [String, Number],
+    default: '',
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  hideLabel: {
+    type: Boolean,
+    default: false,
+  },
+  borderless: {
+    type: Boolean,
+    default: false,
   },
 })
+
+const emit = defineEmits<{
+  (e: 'update:value', value: number): void
+}>()
+
+function updateField(event: Event) {
+  const target = event.target as HTMLInputElement
+  emit('update:value', Number(target.value))
+}
+
+function increment() {
+  if (props.disabled) return
+  let val = Number(props.value) || 0
+  val++
+  emit('update:value', val)
+}
+
+function decrement() {
+  if (props.disabled) return
+  let val = Number(props.value) || 0
+  val--
+  emit('update:value', val)
+}
 </script>
 
 <style scoped>

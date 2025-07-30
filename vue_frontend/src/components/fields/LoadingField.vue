@@ -7,10 +7,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'LoadingField',
-});
+<script setup lang="ts">
+// No props or logic needed for LoadingField
 </script>

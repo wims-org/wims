@@ -7,24 +7,18 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+defineProps<{
+  image: string
+}>()
 
-export default defineComponent({
-  name: 'ImageModal',
-  props: {
-    image: {
-      type: String,
-      required: true,
-    },
-  },
-  emits: ['close'],
-  methods: {
-    close() {
-      this.$emit('close')
-    },
-  },
-})
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
+function close() {
+  emit('close')
+}
 </script>
 
 <style scoped>

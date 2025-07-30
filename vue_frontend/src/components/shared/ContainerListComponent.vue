@@ -40,10 +40,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted, watch } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
-import { type ItemContainers } from '@/interfaces/items.interface'
+import type { ItemContainers } from '@/interfaces/items.interface'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 interface ContainerItem {
@@ -51,80 +51,65 @@ interface ContainerItem {
   short_name: string
 }
 
-export default defineComponent({
-  name: 'ContainerListComponent',
-  components: { SearchModal },
-  props: {
-    itemId: {
-      type: [String, null],
-      required: true,
-    },
-  },
-  emits: ['update:value'],
-  setup(props, { emit }) {
-    const loading = ref(true)
-    const containerChain = ref<ContainerItem[]>([])
-    const error = ref<string | null>(null)
-    const showSearchModal = ref(false)
+const props = defineProps<{
+  itemId: string | null
+}>()
 
-    const fetchContainerChain = async () => {
-      loading.value = true
-      error.value = null
+const emit = defineEmits<{
+  (e: 'update:value', value: string): void
+}>()
+
+const loading = ref(true)
+const containerChain = ref<ContainerItem[]>([])
+const error = ref<string | null>(null)
+const showSearchModal = ref(false)
+
+const fetchContainerChain = async () => {
+  loading.value = true
+  error.value = null
+  containerChain.value = []
+  if (!props.itemId || typeof props.itemId !== 'string') {
+    containerChain.value = []
+    return
+  }
+  try {
+    const { data } = await axios.get<ItemContainers>(`/items/${props.itemId}/containers`)
+    const flattenContainers = (item: ItemContainers | null): ContainerItem[] => {
+      const result: ContainerItem[] = []
+      while (item && item.container) {
+        item = item.container
+        if (item) {
+          result.unshift({
+            tag_uuid: item.tag_uuid,
+            short_name: item.short_name,
+          })
+        }
+      }
+      return result
+    }
+    if (!data || !data.container) {
       containerChain.value = []
-      if (!props.itemId || typeof props.itemId !== 'string') {
-        containerChain.value = []
-        return
-      }
-      try {
-        const { data } = await axios.get<ItemContainers>(`/items/${props.itemId}/containers`)
-        // flatten container chain recursively
-        const flattenContainers = (item: ItemContainers | null): ContainerItem[] => {
-          const result: ContainerItem[] = []
-          while (item && item.container) {
-            item = item.container
-            if (item) {
-              result.unshift({
-                tag_uuid: item.tag_uuid,
-                short_name: item.short_name,
-              })
-            }
-          }
-          return result
-        }
-        if (!data || !data.container) {
-          containerChain.value = []
-        } else {
-          containerChain.value = flattenContainers(data)
-        }
-      } catch (err) {
-        // Log and show error
-        console.error('Error fetching container chain:', err)
-        error.value = 'Failed to load container chain.'
-      } finally {
-        loading.value = false
-      }
+    } else {
+      containerChain.value = flattenContainers(data)
     }
+  } catch (err) {
+    console.error('Error fetching container chain:', err)
+    error.value = 'Failed to load container chain.'
+  } finally {
+    loading.value = false
+  }
+}
 
-    const handleContainerSelect = async (tag: string) => {
-      showSearchModal.value = false
-      if (tag && tag !== '') {
-        emit('update:value', tag)
-        loading.value = true
-      }
-    }
+const handleContainerSelect = async (tag: string) => {
+  showSearchModal.value = false
+  if (tag && tag !== '') {
+    emit('update:value', tag)
+    loading.value = true
+  }
+}
 
-    onMounted(fetchContainerChain)
-    watch(() => props.itemId, fetchContainerChain)
-
-    return {
-      loading,
-      containerChain,
-      error,
-      showSearchModal,
-      handleContainerSelect,
-    }
-  },
-})
+onMounted(fetchContainerChain)
+watch(() => props.itemId, fetchContainerChain)
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <container>
+  <BContainer>
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="modal-field">
       <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
       <input type="text" :name="name" :disabled="disabled" :value="value" @input="updateField" @click="openModal"
@@ -7,76 +7,68 @@
         :placeholder="hideLabel ? '' : 'click to open search'" />
       <SearchModal :show="showModal" @close="closeModal" @select="handleSelect" />
     </div>
-  </container>
+  </BContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, defineProps, defineEmits } from 'vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
-export default defineComponent({
-  name: 'ModalField',
-  components: {
-    SearchModal,
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
   },
-  props: {
-    name: {
-      type: String,
-      required: true,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
-    value: {
-      type: String,
-      default: undefined,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    hideLabel: {
-      type: Boolean,
-      default: false,
-    },
-    borderless: {
-      type: Boolean,
-      default: false,
-    },
+  label: {
+    type: String,
+    default: '',
   },
-  emits: ['update:value'],
-  data() {
-    return {
-      showModal: false,
-    }
+  value: {
+    type: String,
+    default: '',
   },
-  methods: {
-    updateField(event: Event) {
-      const target = event.target as HTMLInputElement
-      this.$emit('update:value', target.value)
-    },
-
-    openModal() {
-      this.showModal = true
-    },
-
-    closeModal() {
-      this.showModal = false
-    },
-
-    handleSelect(tag: string) {
-      if (this.disabled) return
-      console.log('Selected tag:', tag)
-      this.$emit('update:value', tag)
-      this.closeModal()
-    },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  hideLabel: {
+    type: Boolean,
+    default: false,
+  },
+  borderless: {
+    type: Boolean,
+    default: false,
   },
 })
+
+const emit = defineEmits<{
+  (e: 'update:value', value: string): void
+}>()
+
+const showModal = ref(false)
+
+function updateField(event: Event) {
+  const target = event.target as HTMLInputElement
+  emit('update:value', target.value)
+}
+
+function openModal() {
+  showModal.value = true
+}
+
+function closeModal() {
+  showModal.value = false
+}
+
+function handleSelect(tag: string) {
+  if (props.disabled) return
+  emit('update:value', tag)
+  closeModal()
+}
 </script>
 
 <style scoped>

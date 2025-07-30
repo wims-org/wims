@@ -57,83 +57,68 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { ref, onMounted, defineComponent } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import type Reader from '@/interfaces/reader.interface'
 import { useRouter } from 'vue-router'
 
 const clientStoreInstance = clientStore()
+const router = useRouter()
+const readers = ref<Reader[]>([])
+const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
 
-export default defineComponent({
-  name: 'ReaderView',
-  setup() {
-    const router = useRouter()
-    const readers = ref<Reader[]>([])
-    const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
+async function fetchReaders(): Promise<void> {
+  try {
+    const response = await axios.get('/readers')
+    readers.value = response.data
+  } catch (error) {
+    console.error('Error fetching readers:', error)
+  }
+}
 
-    const fetchReaders = async (): Promise<void> => {
-      try {
-        const response = await axios.get('/readers')
-        readers.value = response.data
-      } catch (error) {
-        console.error('Error fetching readers:', error)
-      }
-    }
+function selectReader(readerId: string) {
+  clientStoreInstance.setReaderId(readerId)
+  sessionStorage.setItem('reader_id', readerId)
+  sessionStorage.setItem('reader_id_time', Date.now().toString())
+  const params = router.currentRoute.value.query
+  if (readerId !== '') {
+    params.reader_id = readerId
+  }
+  history.replaceState(
+    {},
+    '',
+    router.currentRoute.value.path +
+      '?' +
+      Object.keys(params)
+        .map((key) => {
+          return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
+        })
+        .join('&'),
+  )
+}
 
-    const selectReader = (readerId: string) => {
-      clientStoreInstance.setReaderId(readerId)
-      sessionStorage.setItem('reader_id', readerId)
-      sessionStorage.setItem('reader_id_time', Date.now().toString())
-      const params = router.currentRoute.value.query
-      if (readerId !== '') {
-        params.reader_id = readerId
-      }
-      history.replaceState(
-        {},
-        '',
-        router.currentRoute.value.path +
-          '?' +
-          Object.keys(params)
-            .map((key) => {
-              return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
-            })
-            .join('&'),
-      )
-    }
+async function submitReader(): Promise<void> {
+  try {
+    await axios.post('/readers', Object(newReader.value))
+    fetchReaders()
+  } catch (error) {
+    console.error('Error submitting reader:', error)
+  }
+}
 
-    const submitReader = async (): Promise<void> => {
-      try {
-        await axios.post('/readers', Object(newReader.value))
-        fetchReaders()
-      } catch (error) {
-        console.error('Error submitting reader:', error)
-      }
-    }
+async function deleteReader(readerId: string): Promise<void> {
+  try {
+    await axios.delete(`/readers/${readerId}`)
+    fetchReaders()
+  } catch (error) {
+    console.error('Error deleting reader:', error)
+  }
+}
 
-    const deleteReader = async (readerId: string): Promise<void> => {
-      try {
-        await axios.delete(`/readers/${readerId}`)
-        fetchReaders()
-      } catch (error) {
-        console.error('Error deleting reader:', error)
-      }
-    }
-
-    onMounted(() => {
-      fetchReaders()
-    })
-
-    return {
-      readers,
-      newReader,
-      selectReader,
-      submitReader,
-      deleteReader,
-      clientStoreInstance,
-    }
-  },
+onMounted(() => {
+  fetchReaders()
 })
 </script>
 

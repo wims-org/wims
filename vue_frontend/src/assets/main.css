@@ -2,7 +2,6 @@
 
 #app {
   max-width: 1280px;
-  min-width: 40vw;
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
@@ -37,8 +36,19 @@ a,
 
   #app {
     display: grid;
+    min-width: 60rem;
     /* grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  body {
+    display: block;
+  }
+
+  #app {
+    padding: 0 1rem;
   }
 }
 
