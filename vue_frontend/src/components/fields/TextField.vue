@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 
-const props = defineProps({
+defineProps({
   name: {
     type: String,
     required: true,
