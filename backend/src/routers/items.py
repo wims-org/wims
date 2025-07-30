@@ -7,7 +7,8 @@ from database_connector import MongoDBConnector, RecursiveContainerObject
 from models.database import Item
 from models.requests import ItemBacklogRequest, ItemRequest
 
-router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
 
 def get_db(request: Request) -> MongoDBConnector:
@@ -33,14 +34,19 @@ async def put_item(
         item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True
     )
 
-    old_item: dict = get_db(request).find_by_rfid(collection_name="items", rfid=rfid)
+    old_item: dict = get_db(request).find_by_rfid(
+        collection_name="items", rfid=rfid)
     if not old_item:
-        raise HTTPException(status_code=404, detail="Item not found for update")
-    old_item.update(item_data.model_dump(exclude_unset=True, exclude_none=True))
+        raise HTTPException(
+            status_code=404, detail="Item not found for update")
+    old_item.update(item_data.model_dump(
+        exclude_unset=True, exclude_none=True))
     try:
-        old_item_data = Item.model_validate(old_item, strict=False, from_attributes=True)
+        old_item_data = Item.model_validate(
+            old_item, strict=False, from_attributes=True)
     except pydantic.ValidationError as e:
-        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
+        raise HTTPException(
+            status_code=422, detail=f"Validation error: {e}") from None
 
     updated_rows = get_db(request).update(
         collection_name="items",
@@ -50,7 +56,8 @@ async def put_item(
     if updated_rows:
         return ItemChangedResponse(message="Item updated successfully")
     else:
-        raise HTTPException(status_code=404, detail="Failed to update item, item not found or no changes made")
+        raise HTTPException(
+            status_code=404, detail="Failed to update item, item not found or no changes made")
 
 
 @router.post("", response_model=ItemChangedResponse)
@@ -70,14 +77,17 @@ async def post_item(
             document=item.model_dump(mode="json", by_alias=True),
         )
     except pydantic.ValidationError as e:
-        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
+        raise HTTPException(
+            status_code=422, detail=f"Validation error: {e}") from None
     except pymongo.errors.DuplicateKeyError as e:
-        raise HTTPException(status_code=400, detail="Item already exists") from e
+        raise HTTPException(
+            status_code=400, detail="Item already exists") from e
     if updated_rows:
         # logger.debug(f"Item created: {str(item)[:100]}, {updated_rows}")
         return ItemChangedResponse(message="Item created successfully")
     else:
-        raise HTTPException(status_code=500, detail="Failed to create item, please try again later")
+        raise HTTPException(
+            status_code=500, detail="Failed to create item, please try again later")
 
 
 @router.post("/backlog", response_model=ItemChangedResponse)
@@ -95,18 +105,22 @@ async def post_backlog_item(
     try:
         item = Item.model_validate(item_dict, from_attributes=True)
     except pydantic.ValidationError as e:
-        raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
+        raise HTTPException(
+            status_code=422, detail=f"Validation error: {e}") from None
     try:
         updated_rows = get_db(request).create(
             collection_name="items",
-            document=item.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True),
+            document=item.model_dump(
+                mode="json", by_alias=True, exclude_none=True, exclude_unset=True),
         )
     except pymongo.errors.DuplicateKeyError as e:
-        raise HTTPException(status_code=400, detail="Item already exists") from e
+        raise HTTPException(
+            status_code=400, detail="Item already exists") from e
     if updated_rows:
         return ItemChangedResponse(message="Item created successfully")
     else:
-        raise HTTPException(status_code=500, detail="Failed to create item, please try again later")
+        raise HTTPException(
+            status_code=500, detail="Failed to create item, please try again later")
 
 
 @router.delete("/{rfid}", response_model=ItemChangedResponse)
@@ -121,7 +135,8 @@ async def delete_item(
     if updated_rows:
         return ItemChangedResponse(message="Item deleted successfully")
     else:
-        raise HTTPException(status_code=404, detail="Failed to update item, item not found")
+        raise HTTPException(
+            status_code=404, detail="Failed to update item, item not found")
 
 
 @router.get("/{rfid}", response_model=Item)
@@ -139,7 +154,8 @@ async def get_item(
                 f"{'.'.join(map(str, err.get('loc', [])))} {err.get('type')}: {err.get('msg')}" for err in e.errors()
             ]
             valid_item = Item.model_construct(**item)
-            res = valid_item.model_dump(exclude_unset=True, exclude_defaults=True, exclude_none=True)
+            res = valid_item.model_dump(
+                exclude_unset=True, exclude_defaults=True, exclude_none=True)
             res["errors"] = errors
             return res
     else:
@@ -151,7 +167,8 @@ async def get_item_with_containers(
     request: Request,
     rfid: str,
 ) -> RecursiveContainerObject:
-    recursive_containers = get_db(request).get_recursive_container_tags(collection_name="items", rfid=rfid)
+    recursive_containers = get_db(request).get_recursive_container_tags(
+        collection_name="items", rfid=rfid)
     if not recursive_containers:
         raise HTTPException(status_code=404, detail="Item not found")
     return recursive_containers
@@ -162,7 +179,8 @@ async def get_item_content(
     request: Request,
     rfid: str,
 ) -> list[Item]:
-    content = get_db(request).read(collection_name="items", query={"container_tag_uuid": rfid})
+    content = get_db(request).read(collection_name="items",
+                                   query={"container_tag_uuid": rfid})
     if not content:
         raise HTTPException(status_code=404, detail="Item content not found")
     return content
@@ -199,14 +217,26 @@ class ItemSearchRequest(pydantic.BaseModel):
     query: dict = {}
     offset: int | None = None
     limit: int | None = None
+    term: str | None = None
 
 
 @router.post("/search", response_model=list[Item])
 async def get_item_search(request: Request, item_search_req: ItemSearchRequest) -> list[Item]:
     request.body = await request.body()
-    logger.debug(
-        f"Received search query: {item_search_req.query}, offset: {item_search_req.offset}, limit: {item_search_req.limit}, body: {request.body.decode('utf-8')}   "
-    )
+    #this is kind of dirty
+    if item_search_req.query.get("term", None):
+        item_search_req.term = item_search_req.query.pop("term")
+    if term := item_search_req.term:
+        item_search_req.query.update({
+                "$or": [
+                    {"tag_uuid": {"$regex": term, "$options": "i"}},
+                    {"short_name": {"$regex": term, "$options": "i"}},
+                    {"item_type": {"$regex": term, "$options": "i"}},
+                    {"tags": {"$regex": term, "$options": "i"}},
+                    {"manufacturer": {"$regex": term, "$options": "i"}},
+                ]
+            })
+
     items = (
         get_db(request)
         .db["items"]
@@ -219,7 +249,6 @@ async def get_item_search(request: Request, item_search_req: ItemSearchRequest) 
         )
     )
     items = list(items)
-    logger.debug(f"Found {len(items)} items matching search query: {items}")
     if not items:
         raise HTTPException(status_code=404, detail="Item not found")
     return items
@@ -231,7 +260,8 @@ async def patch_items(
 ) -> list[Item]:
     items = get_db(request).read(collection_name="items")
     for item_data in items:
-        item = Item.model_validate(item_data, strict=False, from_attributes=True)
+        item = Item.model_validate(
+            item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
         _ = get_db(request).update(
             collection_name="items",
@@ -261,8 +291,10 @@ async def bulk_import_items(
     for idx, item_req in enumerate(items):
         try:
             # Remove None values, use defaults for missing fields
-            item_dict = {k: v for k, v in item_req.model_dump(exclude_none=True).items()}
-            item = Item.model_validate(item_dict, strict=False, from_attributes=True)
+            item_dict = {k: v for k, v in item_req.model_dump(
+                exclude_none=True).items()}
+            item = Item.model_validate(
+                item_dict, strict=False, from_attributes=True)
             # Try to update existing item
             result = db.update(
                 collection_name="items",
@@ -300,7 +332,7 @@ async def bulk_import_items(
         raise HTTPException(
             status_code=422,
             detail={
-                "message": f"Validation error: Some items are invalid. Please check your input.",
+                "message": "Validation error: Some items are invalid. Please check your input.",
                 "errors": errors,
                 "error_items": error_items,
             },

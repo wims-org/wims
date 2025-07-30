@@ -96,9 +96,9 @@ onMounted(() => {
   fetchQueries()
 })
 
-const fetchSearchTerm = async (query: string) => {
-  fetchItems('get', '/items', { params: { query } })
-  searchedQuery.value = { query }
+const fetchSearchTerm = async (term: string) => {
+  fetchItems('post', '/items/search', { term })
+  searchedQuery.value = { term }
 }
 
 const fetchSearchQuery = async (query: Record<string, unknown>) => {
