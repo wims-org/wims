@@ -23,7 +23,9 @@ import {
   faExternalLinkAlt,
   faTrash,
   faPlus,
-  faPenToSquare
+  faPenToSquare,
+  faList,
+  faGripLines
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -48,7 +50,9 @@ library.add(
   faExternalLinkAlt,
   faTrash,
   faPlus,
-  faPenToSquare
+  faPenToSquare,
+  faList,
+  faGripLines
 )
 
 export { FontAwesomeIcon }
