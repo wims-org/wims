@@ -8,8 +8,7 @@ from pymongo.errors import ServerSelectionTimeoutError  # Add this import
 
 
 class RecursiveContainerObject(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(
-        orm_mode=True, arbitrary_types_allowed=True)
+    model_config = pydantic.ConfigDict(orm_mode=True, arbitrary_types_allowed=True)
 
     tag_uuid: str
     short_name: str | None = None
@@ -32,8 +31,7 @@ class MongoDBConnector:
 
     def create(self, collection_name: str, document: dict[str, Any]) -> str | None:
         if self.db is None:
-            logger.error(
-                "No database connection available for create operation.")
+            logger.error("No database connection available for create operation.")
             return None
         collection: Collection = self.db[collection_name]
         result = collection.insert_one(document)
@@ -41,8 +39,7 @@ class MongoDBConnector:
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
         if self.db is None:
-            logger.error(
-                "No database connection available for find_by_rfid operation.")
+            logger.error("No database connection available for find_by_rfid operation.")
             return None
         collection: Collection = self.db[collection_name]
         # todo
@@ -68,7 +65,7 @@ class MongoDBConnector:
         return next(collection.aggregate(pipeline), None)
 
     def get_recursive_container_tags(self, collection_name: str, rfid: str) -> RecursiveContainerObject | None:
-        """Returns a recursive nested object each containing their container tag and 
+        """Returns a recursive nested object each containing their container tag and
             respective short_name attribute for a given RFID tag.
          example:
         {
@@ -89,8 +86,7 @@ class MongoDBConnector:
 
         def get_container_recursive(tag_uuid: str) -> dict[str, Any] | None:
             doc = collection.find_one(
-                {"tag_uuid": tag_uuid}, {"_id": 0, "tag_uuid": 1,
-                                         "short_name": 1, "container_tag_uuid": 1}
+                {"tag_uuid": tag_uuid}, {"_id": 0, "tag_uuid": 1, "short_name": 1, "container_tag_uuid": 1}
             )
             if not doc:
                 return None
@@ -106,18 +102,15 @@ class MongoDBConnector:
 
     def read(self, collection_name: str, query: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         if self.db is None:
-            logger.error(
-                "No database connection available for read operation.")
+            logger.error("No database connection available for read operation.")
             return []
         collection: Collection = self.db[collection_name]
-        documents = list(collection.find(
-            query or {}, projection={"_id": False}))
+        documents = list(collection.find(query or {}, projection={"_id": False}))
         return documents
 
     def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
         if self.db is None:
-            logger.error(
-                "No database connection available for update operation.")
+            logger.error("No database connection available for update operation.")
             return 0
         collection: Collection = self.db[collection_name]
         result = collection.update_many(query, {"$set": update_values})
@@ -126,8 +119,7 @@ class MongoDBConnector:
 
     def delete(self, collection_name: str, query: dict[str, Any]) -> int:
         if self.db is None:
-            logger.error(
-                "No database connection available for delete operation.")
+            logger.error("No database connection available for delete operation.")
             return 0
         collection: Collection = self.db[collection_name]
         result = collection.delete_many(query)

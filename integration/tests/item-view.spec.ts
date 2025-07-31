@@ -36,7 +36,6 @@ test.afterAll(() => {
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.context().clearCookies();
-  await connectToReader(page, "04-04-46-42-CD-66-81");
   await page.goto("/");
 });
 
@@ -44,6 +43,8 @@ test.describe("Item View", () => {
   test("should display empty item form when unknown item is selected", async ({
     page,
   }) => {
+    await connectToReader(page, "04-04-46-42-CD-66-81");
+    await page.goto("/");
     // Publish a message
     const message = {
       reader_id: "04-04-46-42-CD-66-81",
@@ -58,6 +59,8 @@ test.describe("Item View", () => {
     });
     // Expect redirection to item view
     await expect(page).toHaveURL(/\/items\/[0-9a-fA-F-]*/);
+    await expect(page.getByTestId("object-identification")).toContainClass("active");
+    await page.getByRole('tab', { name: 'Item Data' }).click();
     // click show details button
     await page.getByTestId("toggle-details-button").click();
 
@@ -139,6 +142,8 @@ test.describe("Item View", () => {
   });
 
   test("should display item form with known item", async ({ page }) => {
+    await connectToReader(page, "04-04-46-42-CD-66-81");
+    await page.goto("/");
     // Publish a message
     const message = {
       reader_id: "04-04-46-42-CD-66-81",
@@ -154,6 +159,7 @@ test.describe("Item View", () => {
 
     // Expect redirection to item view
     await expect(page).toHaveURL(/\/items\/[0-9a-fA-F-]*/);
+    await page.getByRole('tab', { name: 'Item Data' }).click();
     // click show details button
     await page.getByTestId("toggle-details-button").click();
 

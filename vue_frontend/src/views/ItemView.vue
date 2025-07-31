@@ -12,8 +12,8 @@
     <BCol>
       <div v-if="saveError" class="sticky-note">Error saving changes</div>
       <h1 class="m-4">{{ item?.short_name }}</h1>
-      <BTabs class="mt-3" content-class="mt-3" v-model="activeTab">
-        <BTab title="Container Tree" id="containerTree">
+      <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
+        <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
           <ContainerListComponent
             v-if="item?.tag_uuid"
             :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
@@ -34,7 +34,7 @@
             </button>
           </div>
         </BTab>
-        <BTab title="Item Data" id="itemData">
+        <BTab title="Item Data" id="itemData" data-testid="item-data">
           <button
             v-if="completion"
             @click="() => (isComparing = !isComparing)"
@@ -56,7 +56,7 @@
             @submit="handleFormSubmit"
           />
         </BTab>
-        <BTab title="Object Identification" id="objectIdentification">
+        <BTab title="Object Identification" id="objectIdentification" data-testid="object-identification">
           <LLMCompletion />
         </BTab>
       </BTabs>

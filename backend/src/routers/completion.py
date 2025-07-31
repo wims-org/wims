@@ -109,7 +109,7 @@ async def identification(
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             ).model_dump(mode="json")
-            get_bs(request).readers.setdefault(client_id, []).append(sse_message)
+            await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
             return
         except Exception as e:
             print(e)
@@ -131,9 +131,7 @@ async def identification(
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         ).model_dump(mode="json")
-        get_bs(request).readers.setdefault(client_id, []).append(sse_message)
+        await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
 
     asyncio.create_task(start_identification(time.time(), imageUrls))
     return {"message": "Identification process started"}
-
-test={}
