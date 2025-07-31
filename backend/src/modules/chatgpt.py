@@ -1,4 +1,5 @@
 from openai import OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
 
@@ -20,7 +21,7 @@ class ChatGPT(LLMCompletion):
         self.client = OpenAI(api_key=api_key)
         self.response_schema = response_schema
 
-    def identify_object(self, query: str = None, imageUrls: list[str] = None):
+    def identify_object(self, query: str = None, imageUrls: list[str] = None) -> ChatCompletion:
         image_url = imageUrls[0] if imageUrls else None
         message = {"role": "user", "content": [{"type": "text", "text": query}]}
         if image_url:
