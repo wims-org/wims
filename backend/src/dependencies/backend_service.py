@@ -143,10 +143,13 @@ class BackendService:
             await self.append_message_to_all_queues(message=message)
             await asyncio.sleep(5)
 
+    async def has_stream_id(self, stream_id: str) -> bool:
+        async with self._queues_lock:
+            return stream_id in self.__message_queues
+
     async def get_message_queue(self, stream_id: str) -> MessageQueue:
         async with self._queues_lock:
-            res = self.__message_queues.get(stream_id).message_queue if stream_id in self.__message_queues else []
-        return res
+            return self.__message_queues.get(stream_id).message_queue if stream_id in self.__message_queues else []
 
     async def pop_first_message_from_queue(self, stream_id: str) -> SseMessage | None:
         async with self._queues_lock:
@@ -168,10 +171,23 @@ class BackendService:
             if stream_id not in self.__message_queues:
                 self.__message_queues[stream_id] = MessageQueue(subscriptions=set())
 
+    async def has_subscription(self, stream_id: str, reader_id: str) -> bool:
+        async with self._queues_lock:
+            return (
+                stream_id in self.__message_queues
+                and reader_id in self.__message_queues[stream_id].subscriptions
+            )
+
     async def add_subscription(self, stream_id: str, reader: str):
         async with self._queues_lock:
             if stream_id in self.__message_queues:
                 self.__message_queues[stream_id].subscriptions.add(reader)
+
+
+    async def delete_subscription(self, stream_id: str, reader: str):
+        async with self._queues_lock:
+            if stream_id in self.__message_queues:
+                self.__message_queues[stream_id].subscriptions.discard(reader)
 
     async def delete_message_queue(self, stream_id: str):
         async with self._queues_lock:
@@ -193,6 +209,14 @@ class BackendService:
                 if len(self.__message_queues[stream_id].message_queue) >= 10:
                     del self.__message_queues[stream_id]
                     continue
+                msg = message.model_dump(mode="json")
+                msg["data"]["stream_id"] = str(stream_id)
+                msg["data"]["subscriptions"] = list(self.__message_queues[stream_id].subscriptions)
+                self.__message_queues[stream_id].message_queue.append(msg)
+
+    async def append_message_to_queue(self, stream_id: str, message: SseMessage):
+        async with self._queues_lock:
+            if stream_id in self.__message_queues:
                 msg = message.model_dump(mode="json")
                 msg["data"]["stream_id"] = str(stream_id)
                 self.__message_queues[stream_id].message_queue.append(msg)

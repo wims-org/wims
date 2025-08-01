@@ -72,10 +72,7 @@ const setReaderId = (router: Router) => {
     sessionStorage.removeItem('reader_id_time')
   }
 
-  if (client_store.reader_id) {
-    server_stream.connect(client_store.reader_id, 'reader_id')
-  }
-  server_stream.connect(client_store.client_id, 'client_id')
+  server_stream.connect()
 }
 
 export { formatDate, getFieldModel, updateFieldModel, setReaderId }

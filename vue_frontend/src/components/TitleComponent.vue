@@ -38,12 +38,11 @@ const connection_state = computed(() => {
   if (
     server_stream.alive &&
     client_store?.reader_id.length > 0 &&
-    client_store?.reader_id === server_stream.reader_id
+    client_store?.reader_id !== "loading"
   ) {
     return 0; // Connected
   } else if (
-    client_store?.reader_id.length > 0 &&
-    client_store?.reader_id === server_stream.reader_id
+    client_store?.reader_id.length > 0
   ) {
     return 1; // Connecting
   } else {

@@ -6,6 +6,7 @@ import time
 import openai
 import pydantic
 from fastapi import APIRouter, HTTPException, Request, UploadFile
+from loguru import logger
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
 from dependencies.backend_service import BackendService, Event, SseMessage
@@ -109,7 +110,7 @@ async def identification(
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             )
-            await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
+            await get_bs(request).append_message_to_queue(client_id, sse_message)
             return
         except Exception as e:
             print(e)
@@ -131,7 +132,7 @@ async def identification(
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         )
-        await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
+        await get_bs(request).append_message_to_queue(client_id, sse_message)
 
     asyncio.create_task(start_identification(time.time(), imageUrls))
     return {"message": "Identification process started"}

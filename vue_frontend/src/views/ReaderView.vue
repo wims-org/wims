@@ -6,7 +6,7 @@
         v-for="reader in readers"
         data-testid="reader-item"
         :key="reader.reader_id"
-        @click="selectReader(reader.reader_id)"
+        @click="reader.reader_id === clientStoreInstance?.reader_id ? deselectReader() : selectReader(reader.reader_id)"
         class="list-group-item d-flex justify-content-between align-items-center"
         :class="{ active: reader?.reader_id === (clientStoreInstance?.reader_id ?? '') }"
       >
@@ -78,14 +78,33 @@ async function fetchReaders(): Promise<void> {
   }
 }
 
-function selectReader(readerId: string) {
-  clientStoreInstance.setReaderId(readerId)
+async function selectReader(readerId: string) {
+  await clientStoreInstance.setReaderId(readerId)
   sessionStorage.setItem('reader_id', readerId)
   sessionStorage.setItem('reader_id_time', Date.now().toString())
   const params = router.currentRoute.value.query
   if (readerId !== '') {
     params.reader_id = readerId
   }
+  history.replaceState(
+    {},
+    '',
+    router.currentRoute.value.path +
+      '?' +
+      Object.keys(params)
+        .map((key) => {
+          return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
+        })
+        .join('&'),
+  )
+}
+
+async function deselectReader() {
+  await clientStoreInstance.unsetReaderId()
+  sessionStorage.removeItem('reader_id')
+  sessionStorage.removeItem('reader_id_time')
+  const params = router.currentRoute.value.query
+  delete params.reader_id
   history.replaceState(
     {},
     '',
