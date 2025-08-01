@@ -56,6 +56,7 @@ const setReaderId = (router: Router) => {
   const stored_reader_id = sessionStorage.getItem('reader_id')
   const stored_reader_id_time = sessionStorage.getItem('reader_id_time')
 
+  server_stream.connect().then(() => {
   if (route_param_reader) {
     client_store.reader_id = route_param_reader
     // Only store reader_id in sessionStorage if it was passed as a query parameter
@@ -66,13 +67,11 @@ const setReaderId = (router: Router) => {
     stored_reader_id_time &&
     Date.now() - parseInt(stored_reader_id_time) < stored_reader_id_ttl
   ) {
-    client_store.reader_id = stored_reader_id
+    client_store.setReaderId(stored_reader_id)
   } else {
     sessionStorage.removeItem('reader_id')
     sessionStorage.removeItem('reader_id_time')
-  }
-
-  server_stream.connect()
+  }})
 }
 
 export { formatDate, getFieldModel, updateFieldModel, setReaderId }

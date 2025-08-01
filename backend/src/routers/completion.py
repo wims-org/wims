@@ -6,7 +6,6 @@ import time
 import openai
 import pydantic
 from fastapi import APIRouter, HTTPException, Request, UploadFile
-from loguru import logger
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
 from dependencies.backend_service import BackendService, Event, SseMessage
