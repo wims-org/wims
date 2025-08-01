@@ -108,7 +108,7 @@ async def identification(
                     data={"message": str(e)}, reader_id=client_id, rfid="", duration=time.time() - start_time
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
-            ).model_dump(mode="json")
+            )
             await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
             return
         except Exception as e:
@@ -130,7 +130,7 @@ async def identification(
                 },
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
-        ).model_dump(mode="json")
+        )
         await get_bs(request).append_message_to_all_queues_with_reader(client_id, sse_message)
 
     asyncio.create_task(start_identification(time.time(), imageUrls))

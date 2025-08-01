@@ -57,7 +57,7 @@
           />
         </BTab>
         <BTab title="Object Identification" id="objectIdentification" data-testid="object-identification">
-          <LLMCompletion />
+          <LLMCompletion :images="item?.images" />
         </BTab>
       </BTabs>
     </BCol>

@@ -5,11 +5,14 @@
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
       <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
         <div v-for="(image, index) in value" :key="index" class="thumbnail-container m-2"
-          @click="openImageModal(image)">
+          @click="selector?selectImage(image):openImageModal(image)">
           <img :src="image" class="thumbnail" alt="Image Thumbnail" />
           <button type="button" class="remove-btn" @click.stop="removeImage(index)">
             <font-awesome-icon icon="times" />
           </button>
+          <div v-if="selector && selectedImages.includes(image)" class="selected-overlay">
+            <font-awesome-icon icon="check" />
+          </div>
         </div>
         <div v-if="value.length === 0" class="text-center m-2">
           <font-awesome-icon icon="camera" size="xl" />
@@ -58,15 +61,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  selector: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits<{
   (e: 'update:value', value: string[]): void
+  (e: 'update:selectedImages', value: string[]): void
 }>()
 
 const cameraInput = ref<HTMLInputElement | null>(null)
 const showModal = ref(false)
 const selectedImage = ref<string | null>(null)
+const selectedImages = ref<string[]>([])
 
 function triggerCameraInput() {
   cameraInput.value?.click()
@@ -100,6 +109,15 @@ function openImageModal(image: string) {
 function closeImageModal() {
   showModal.value = false
   selectedImage.value = null
+}
+
+function selectImage(image: string) {
+  if (selectedImages.value.includes(image)) {
+    selectedImages.value = selectedImages.value.filter((img) => img !== image)
+  } else {
+    selectedImages.value.push(image)
+  }
+  emit('update:selectedImages', selectedImages.value)
 }
 </script>
 
@@ -155,5 +173,17 @@ function closeImageModal() {
 
 .borderless label {
   display: none !important;
+}
+
+.selected-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 128, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

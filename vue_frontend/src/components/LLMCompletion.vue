@@ -46,14 +46,27 @@
         </div>
       </div>
       <div class="row mt-3">
-        <ImageThumbnailField :value="imageUrls" @update:value="updateImage($event)" />
+        <h5>Upload Images:</h5>
+        <ImageThumbnailField :value="uploadedImages" @update:value="updateImage($event)" />
+      </div>
+      <div class="row mt-3" v-if="images && images.length > 0">
+        <h5>Select existing Images:</h5>
+        <ImageThumbnailField
+          :value="images"
+          disabled
+          selector
+          @update:selectedImages="selectedImages = $event"
+        />
       </div>
 
       <button
         type="button"
         class="btn btn-primary"
         @click="fetchIdentification()"
-        :disabled="requestInProgress || (imageUrls.length === 0 && !stringInput)"
+        :disabled="
+          requestInProgress ||
+          (uploadedImages.length === 0 && !stringInput && selectedImages.length === 0)
+        "
       >
         <span v-if="requestInProgress"
           ><font-awesome-icon icon="spinner" spin /> Processing...</span
@@ -70,19 +83,24 @@
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 import eventBus, { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 
 const stringInput = ref('')
-const imageUrls = reactive<string[]>([]) // Store base64-encoded image URLs
+const uploadedImages = ref<string[]>([]) // Store base64-encoded image URLs
+const selectedImages = ref<string[]>([]) // Store base64-encoded image URLs
 const fileInput = ref<HTMLInputElement | null>(null)
 const cameraInput = ref<HTMLInputElement | null>(null)
 const webCamUrl = ref<string>()
 const requestInProgress = ref(false)
 const requestError = ref<string>()
 const useCam = ref(false)
+
+defineProps<{
+  images?: Array<string>
+}>()
 
 onMounted(() => {
   // Fetch the camera URL from the backend
@@ -117,7 +135,7 @@ const fetchIdentification = async () => {
     const body = {
       query: stringInput.value,
       client_id: clientStore().client_id,
-      imageUrls: [...imageUrls],
+      imageUrls: [...uploadedImages.value, ...selectedImages.value],
     }
     const response = await axios.post('/completion/identification', body)
     console.log({ ...response.data })
@@ -138,7 +156,7 @@ const takePhoto = () => {
       reader.onload = (e) => {
         if (e.target?.result) {
           const imageUrl = e.target.result as string
-          imageUrls.push(imageUrl) // Add base64-encoded URL to the list
+          uploadedImages.value.push(imageUrl) // Add base64-encoded URL to the list
         }
       }
       reader.readAsDataURL(response.data)
@@ -161,7 +179,7 @@ const uploadPhoto = async (event: Event) => {
       reader.onload = (e) => {
         if (e.target?.result) {
           const imageUrl = e.target.result as string
-          imageUrls.push(imageUrl) // Add base64-encoded URL to the list
+          uploadedImages.value.push(imageUrl) // Add base64-encoded URL to the list
         }
       }
       reader.readAsDataURL(file)
@@ -170,8 +188,8 @@ const uploadPhoto = async (event: Event) => {
 }
 
 const updateImage = (updatedValue: Array<string>) => {
-  imageUrls.length = 0 // Clear the existing array
-  imageUrls.push(...updatedValue) // Add the new URLs
+  uploadedImages.value.length = 0 // Clear the existing array
+  uploadedImages.value.push(...updatedValue) // Add the new URLs
 }
 </script>
 
