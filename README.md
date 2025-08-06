@@ -1,8 +1,25 @@
-# Where Is My Stuff
+```
+                _      _     _____ ____  _____   _  ____              
+      _/||\_   / \  /|/ \ /|/  __//  __\/  __/  / \/ ___\   _/||\_    
+      \    /   | |  ||| |_|||  \  |  \/||  \    | ||    \   \    /    
+      /    \__ | |/\||| | |||  /_ |    /|  /_   | |\___ | __/    \    
+       \||/ \/_\_/  \|\_/ \|\____\\_/\_\\____\  \_/\____/_\/ \||/     
+             |/                                         |/            
+          _  _     ___  _   ____  _____  _     _____ _____/\_       
+    _/||\_\|/ \__/|\  \//  / ___\/__ __\/ \ /\/    //    /  \|_/||\_
+    \    /  | |\/|| \  /   |    \  / \  | | |||  __\|  __\    \    /
+    /    \  | |  || / /    \___ |  | |  | \_/|| |   | |       /    \
+     \||/   \_/  \|/_/     \____/  \_/  \____/\_/   \_/        \||/ 
+
+```
 
 You might know your stuff, but do you know mine?
 
 _Where Is My Stuff_ is a makerspace inventory tool designed for use by people who may not know what is available or where it is located.
+
+![animated flow gif. A reader scans an rfid tag, the respective item is displayed in the connected frontend.](docs/files/wims_flow.gif?raw=true)
+
+*Pair a reader, scan and manage items*
 
 ## Setup
 The provided `docker-compose.yml` includes all necessary startup configurations. Adapt it to your liking.
