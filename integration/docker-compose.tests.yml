@@ -2,10 +2,9 @@ services:
   playwright:
     image: mcr.microsoft.com/playwright:v1.52.0-noble
     volumes:
-    - ./integration/tests:/workspaces/integration/tests:ro,cached # todo: this mount is empty?
+      - ./integration/tests:/workspaces/integration/tests:ro,cached
     working_dir: /workspaces/integration
-    entrypoint: ["npm", "i", "@playwright/test", "&&", "npx", "playwright", "install", "&&", "npx", "playwright", "test"]
-
+    entrypoint: [ "sh", "-c", "npm i @playwright/test && npx playwright install && npx playwright test" ]
     depends_on:
       - proxy
       - frontend

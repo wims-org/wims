@@ -43,22 +43,26 @@ test.describe("Item View", () => {
   test("should display empty item form when unknown item is selected", async ({
     page,
   }) => {
-    await connectToReader(page, "04-04-46-42-CD-66-81");
-    await page.goto("/");
-    // Publish a message
     const message = {
-      reader_id: "04-04-46-42-CD-66-81",
+      reader_id: "04-04-46-42-CD-66-84",
       tag_id: uuidv4(),
     };
-    client.publish(mqttTopic, JSON.stringify(message), { qos: 1 }, (err) => {
-      if (err) {
-        console.error("Failed to publish message:", err);
-      } else {
-        console.log("Message published:", message);
-      }
+    await connectToReader(page, "04-04-46-42-CD-66-84").then(async (readerId) => {
+      client.publish(mqttTopic, JSON.stringify(message), { qos: 1 }, (err) => {
+        if (err) {
+          console.error("Failed to publish message:", err);
+        } else {
+          console.log("Message published:", message);
+        }
+      });
     });
+    // Wait for the connection to be established
+    await page.waitForTimeout(1000);
     // Expect redirection to item view
+    await page.waitForURL(/\/items\/[0-9a-fA-F-]*/, { timeout: 5000 });
     await expect(page).toHaveURL(/\/items\/[0-9a-fA-F-]*/);
+    await expect(page.getByTestId("item-view")).toBeVisible();
+    await page.waitForTimeout(500);
     await expect(page.getByTestId("object-identification")).toContainClass("active");
     await page.getByRole('tab', { name: 'Item Data' }).click();
     // click show details button
@@ -140,23 +144,24 @@ test.describe("Item View", () => {
       await expect(input).toHaveValue("");
     }
   });
-
   test("should display item form with known item", async ({ page }) => {
-    await connectToReader(page, "04-04-46-42-CD-66-81");
-    await page.goto("/");
-    // Publish a message
     const message = {
-      reader_id: "04-04-46-42-CD-66-81",
+      reader_id: "04-04-46-42-CD-66-85",
       tag_id: "123e4567-e89b-12d3-a456-426614174000",
     };
-    client.publish(mqttTopic, JSON.stringify(message), { qos: 1 }, (err) => {
-      if (err) {
-        console.error("Failed to publish message:", err);
-      } else {
-        console.log("Message published:", message);
-      }
+    await connectToReader(page, "04-04-46-42-CD-66-85").then(async (readerId) => {
+      client.publish(mqttTopic, JSON.stringify(message), { qos: 1 }, (err) => {
+        if (err) {
+          console.error("Failed to publish message:", err);
+        } else {
+          console.log("Message published:", message);
+        }
+      });
     });
-
+    // Wait for the connection to be established
+    await page.waitForTimeout(1000);
+    // Expect redirection to item view
+    await page.waitForURL(/\/items\/[0-9a-fA-F-]*/, { timeout: 5000 });
     // Expect redirection to item view
     await expect(page).toHaveURL(/\/items\/[0-9a-fA-F-]*/);
     await page.getByRole('tab', { name: 'Item Data' }).click();

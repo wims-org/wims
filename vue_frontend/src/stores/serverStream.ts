@@ -44,7 +44,13 @@ export const serverStream = defineStore('ServerStream', {
         }
         aliveTimeout = setTimeout(() => {
           this.alive = false
-        }, 6000)
+        }, 10000)
+      })
+      return new Promise((resolve) => {
+        this.eventSource?.addEventListener('open', () => {
+          console.log('EventSource connection established')
+          resolve(true)
+        })
       })
     },
 

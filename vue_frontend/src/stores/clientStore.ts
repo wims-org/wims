@@ -25,10 +25,7 @@ export const clientStore = defineStore('client', {
       this.client_id = client_id
     },
     async setReaderId(reader_id: string) {
-      if (!serverStream().alive) {
-        setTimeout(() => { }, 1000)
-      }
-      if (this.reader_id.length) {
+      if (this.reader_id.length && this.reader_id !== reader_id) {
         await serverStream().unsubscribe(this.client_id, this.reader_id)
           .then(() => { this.reader_id = 'loading' }).catch(() => { })
       }

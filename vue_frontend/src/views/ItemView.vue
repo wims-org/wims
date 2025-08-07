@@ -1,5 +1,5 @@
 <template>
-  <BContainer fluid class="d-flex row">
+  <BContainer fluid class="d-flex row" data-testid="item-view">
     <BCol class="align-content-center col-1 p-0 width-1 text-end">
       <router-link
         v-show="previousItemId"
@@ -174,6 +174,10 @@ const fetchPrevNextItems = async () => {
         previousItemId.value = (prevItem.data.pop() as Item).tag_uuid
       }
     }
+  } catch (error) {
+    console.error('Error fetching previous items:', error)
+  }
+  try {
     const nextItem = await axios.post('/items/search', {
       query: parsedQuery,
       offset: offset.value + 1,
@@ -183,7 +187,7 @@ const fetchPrevNextItems = async () => {
       nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
     }
   } catch (error) {
-    console.error('Error fetching previous/next items:', error)
+    console.error('Error fetching next items:', error)
   }
 }
 
