@@ -1,31 +1,53 @@
-```
-                _      _     _____ ____  _____   _  ____              
-      _/||\_   / \  /|/ \ /|/  __//  __\/  __/  / \/ ___\   _/||\_    
-      \    /   | |  ||| |_|||  \  |  \/||  \    | ||    \   \    /    
-      /    \__ | |/\||| | |||  /_ |    /|  /_   | |\___ | __/    \    
-       \||/ \/_\_/  \|\_/ \|\____\\_/\_\\____\  \_/\____/_\/ \||/     
-             |/                                         |/            
-          _  _     ___  _   ____  _____  _     _____ _____/\_       
-    _/||\_\|/ \__/|\  \//  / ___\/__ __\/ \ /\/    //    /  \|_/||\_
-    \    /  | |\/|| \  /   |    \  / \  | | |||  __\|  __\    \    /
-    /    \  | |  || / /    \___ |  | |  | \_/|| |   | |       /    \
-     \||/   \_/  \|/_/     \____/  \_/  \____/\_/   \_/        \||/ 
+```  
+                        _      _     _____ ____  _____   _  ____            
+              _/||\_   / \  /|/ \ /|/  __//  __\/  __/  / \/ ___\   _/||\_  
+              \    /   | |  ||| |_|||  \  |  \/||  \    | ||    \   \    /  
+              /    \__ | |/\||| | |||  /_ |    /|  /_   | |\___ | __/    \  
+               \||/ \/_\_/  \|\_/ \|\____\\_/\_\\____\  \_/\____/_\/ \||/   
+                     |/                                         |/          
+                  _  _     ___  _   ____  _____  _     _____ _____/\_       
+            _/||\_\|/ \__/|\  \//  / ___\/__ __\/ \ /\/    //    /  \|_/||\_
+            \    /  | |\/|| \  /   |    \  / \  | | |||  __\|  __\    \    /
+            /    \  | |  || / /    \___ |  | |  | \_/|| |   | |       /    \
+             \||/   \_/  \|/_/     \____/  \_/  \____/\_/   \_/        \||/ 
 
 ```
+
+[![Build](https://github.com/wims-org/wims/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/wims-org/wims/actions/workflows/docker-publish.yml) 
+[![Integration Tests](https://github.com/wims-org/wims/actions/workflows/playwright.yml/badge.svg)](https://github.com/wims-org/wims/actions/workflows/playwright.yml)
+
+# :package: WIMS :computer:
 
 You might know your stuff, but do you know mine?
 
-_Where Is My Stuff_ is a makerspace inventory tool designed for use by people who may not know what is available or where it is located.
+_**W**here **I**s **M**y **S**tuff_ (*German: Wo is' mein Scheiß?*) is a makerspace inventory tool designed for use by people who may not know what is available or where it is located.
 
 ![animated flow gif. A reader scans an rfid tag, the respective item is displayed in the connected frontend.](docs/files/wims_flow.gif?raw=true)
 
-*Pair a reader, scan and manage items*
+*Pair a reader -> scan rfid tag -> browser opens item page*
+
+> [!IMPORTANT] 
+> Current State / Disclaimer:
+> WIMS is currently in a **minimum viable product**-phase. This means it will lack a lot of quality of life features, presents a rudimentary design and might contain several bugs.
+> 
+> This project is quite young and depends on your input, please consider contributing! :heart:
+
+## Components
+
+Since this is a monorepo, so here is an overview:
+
+* [Vue Frontend](vue_frontend)
+The frontend is the accessed via mobile devices by scanning the displayed qr code on the reader or on a desktop
+* [FastAPI Backend](backend)
+The backend mainly acts as a link between the frontend, database and mqtt broker. It has minimal logic. 
+* [Reader](hardware)
+The 3D printed reader features a rfid reader and display and is a minimal frontend on its own. It sends scanned rfid tags to the broker to forward the client to the scanned item page. Powered by battery pack of a popular drill brand. 
 
 ## Setup
 The provided `docker-compose.yml` includes all necessary startup configurations. Adapt it to your liking.
 
 1. Start with `docker compose up`.
-2. Visit [localhost:8080]() 
+2. Visit [localhost:8080](localhost:8080) 
 
 ### Adapting Service Configuration
 
@@ -86,6 +108,10 @@ To run full integration tests of all services together using playwright, you hav
    + Add `integration/start-services.sh` as to the playwright config. Then run option 1.
 
 When using the docker compose setup (all first three options), the volume of the database is reset each time the db container is restarted.
+
+### Contribution
+
+Pull requests are very much welcome! Also, consider opening an issue after looking into our open issues.
 
 ## Architecture
 
@@ -161,93 +187,7 @@ sequenceDiagram
     Backend-->>Frontend: Response
     Frontend->>Frontend: Update UI with Item Details
 ```
-And there is a proxy somewhere.
 
-## Use Cases:
+## License 
 
-* Storing items
-* Finding items
-* Analysis
-
-### Administrative:
-
-* Bulk item storage:
-
-    Using LLMs (e.g., ChatGPT) to pre-fill fields:
-
-    * Item:
-        - Name, ID, Storage Location, Tags/Category
-        - Container TAG ID: uuid
-        - Short Name: str
-        - Description
-        - Amount
-        - Category/Tags
-        - Image[]
-        - Storage Location
-        - Storage Location Tag ID
-        - Current Location
-        - Borrowed by
-        - Cost per Item
-        - Manufacturer
-        - Model Number
-        - UPC, ASIN
-        - Serial Number
-        - Vendor
-        - Shop URL
-        - Container Size
-        - Consumable: bool
-        - Documentation
-
-    * User:
-        - ID
-        - Name
-        - Permissions?
-
-* Dashboard:
-
-    Show items with 0 quantity.
-
-* Attribute Update Feature:
-
-    Update item attributes like amount, price, location, etc.
-
-### Daily Usage:
-
-* Access Frontend:
-    * Prerequisites:
-        - Currently requires local WLAN.
-        - Internet support planned for later.
-    * Access Methods:
-        - Scan QR Code of a generic reader (session bound to reader, anonymous).
-        - Scan QR Code of a personal reader (session bound to a specific user and reader).
-
-        - Scan NFC Tag:
-            - Generic Tag (just opens the frontend).
-            - Personal Tag (direct user login via URL + user_id).
-
-* Login:
-    * QR Code Photo:
-        - Username?
-
-    * Read NFC tag from Android phone (currently too complex).
-
-* Search Inventory:
-
-* Find & Use / Borrow Items:
-
-    Update the "borrowed by" field.
-
-* **Update Values**:
-
-    Update item amount, price, location, etc.
-
-* Delete/Archive Items:
-
-    Remove or archive items.
-
-### Future Features:
-* Generate eBay listings.
-* Automatic To-Dos:
-    - Restocking.
-    - Cleaning overdue items.
-* Sports/Decathlon Reader integration.
+[GNU V3](COPYING)

@@ -1,10 +1,11 @@
 services:
   playwright:
-    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    build: ./integration/
     volumes:
-      - ./integration/tests:/workspaces/integration/tests:ro,cached
-    working_dir: /workspaces/integration
-    entrypoint: [ "sh", "-c", "npm i @playwright/test && npx playwright install && npx playwright test" ]
+      - ./integration/playwright-results:/workspaces/integration/playwright-results
+    environment:
+      - CI=true
+      - MQTT_BROKER_URL=mqtt://mqtt:1883
     depends_on:
       - proxy
       - frontend

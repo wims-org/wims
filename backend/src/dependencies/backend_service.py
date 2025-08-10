@@ -64,12 +64,22 @@ class BackendService:
 
         try:
             self.item_data_topic = find(key := "mqtt.topics.result", config)
+        except (KeyError, TypeError, openai.OpenAIError) as e:
+            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
+            self.item_data_topic = None
+
+        try:
             self.llm_completion = chatgpt.ChatGPT(
                 api_key=find(key := "features.openai.api_key", config), response_schema=schema
             )
+        except (KeyError, TypeError, openai.OpenAIError) as e:
+            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
+            self.llm_completion = None
+        try:
             self.camera = Camera(find(key := "camera.url", config))
         except (KeyError, TypeError, openai.OpenAIError) as e:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
+            self.camera = None
         asyncio.create_task(self.push_heartbeats())
 
     async def handle_message(self, message, topic):
@@ -173,16 +183,12 @@ class BackendService:
 
     async def has_subscription(self, stream_id: str, reader_id: str) -> bool:
         async with self._queues_lock:
-            return (
-                stream_id in self.__message_queues
-                and reader_id in self.__message_queues[stream_id].subscriptions
-            )
+            return stream_id in self.__message_queues and reader_id in self.__message_queues[stream_id].subscriptions
 
     async def add_subscription(self, stream_id: str, reader: str):
         async with self._queues_lock:
             if stream_id in self.__message_queues:
                 self.__message_queues[stream_id].subscriptions.add(reader)
-
 
     async def delete_subscription(self, stream_id: str, reader: str):
         async with self._queues_lock:

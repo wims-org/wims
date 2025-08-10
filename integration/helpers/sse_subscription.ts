@@ -16,7 +16,7 @@ export async function connectToReader(page, reader_id: string): Promise<string> 
       /🔴 Not Connected to a reader, choose one a/
     );
   }
-  let readerItem = page.getByTestId("reader-item").filter({ hasText: reader_id });
+  let readerItem = page.getByTestId("reader-item").filter({ hasText: reader_id }).first();
   // create a reader item with the given reader_id
   if (await readerItem.count() === 0) {
     // if no reader item is found, create one
@@ -27,7 +27,7 @@ export async function connectToReader(page, reader_id: string): Promise<string> 
     await page.getByRole("button", { name: "Add Reader" }).click();
     await page.waitForTimeout(100); // Wait for the reader to be added
 
-    readerItem = page.getByTestId("reader-item").filter({ hasText: reader_id });
+    readerItem = page.getByTestId("reader-item").filter({ hasText: reader_id }).first();
   }
   await expect(readerItem).toBeVisible();
   const firstId = await readerItem.textContent().then((text) => {

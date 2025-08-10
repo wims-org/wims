@@ -18,6 +18,15 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
+
+    - name: print directory
+      run: |
+        pwd
+        ls -la
+        ls -la ./integration
+
     - name: Run Playwright Tests Container
       run: |
         docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml up --build --abort-on-container-exit
@@ -27,16 +36,16 @@ jobs:
       run: |
         docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml logs > ./integration/docker-compose-logs.txt || echo "Failed to capture logs."
 
-    - name: Cleanup Docker Compose
-      if: always()
-      run: |
-        docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml down
-
     - uses: actions/upload-artifact@v4
       if:  always()
       with:
         name: docker-compose-logs
         path: ./integration/docker-compose-logs.txt
+
+    - name: Cleanup Docker Compose
+      if: always()
+      run: |
+        docker compose -f ./docker-compose.yml -f ./integration/docker-compose.tests.yml down
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}

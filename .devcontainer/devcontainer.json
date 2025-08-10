@@ -46,7 +46,8 @@
         "bierner.markdown-mermaid",
         "zeshuaro.vscode-python-poetry",
         "ms-playwright.playwright",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "bierner.github-markdown-preview"
       ]
     }
   },

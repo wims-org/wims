@@ -12,19 +12,25 @@ def get_bs(request: Request) -> BackendService:
 @router.get("")
 def getCameraUrl(request: Request):
     bs = get_bs(request)
+    if not bs.camera:
+        raise HTTPException(status_code=404, detail="Camera is not initialized")
     return {"url": bs.camera.url}
 
 
 @router.get("/last_image")
 def getLastImage(request: Request):
     bs = get_bs(request)
+    if not bs.camera or not bs.camera.last_image:
+        raise HTTPException(status_code=404, detail="No last image available from camera")
     return {"image": bs.camera.last_image}
 
 
 @router.get("/snapshot")
 def getSnapshot(request: Request):
-    res = {"images": get_bs(request).camera.get_camera_image_urls()}
+    bs = get_bs(request)
+    if not bs.camera:
+        raise HTTPException(status_code=404, detail="Camera is not initialized")
+    res = {"images": bs.camera.get_camera_image_urls()}
     if not res["images"]:
-        logger.error("No images captured from camera")
-        raise HTTPException(status_code=400, detail="No images captured from camera")
+        raise HTTPException(status_code=404, detail="No images captured from camera")
     return res
