@@ -21,68 +21,62 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
 import SearchComponent from '@/components/shared/SearchComponent.vue'
 import eventBus, { type Events } from '@/stores/eventBus'
 import { clientStore } from '@/stores/clientStore'
 import { EventAction } from '@/interfaces/EventAction'
 
-export default defineComponent({
-  name: 'SearchModal',
-  components: {
-    SearchComponent,
-  },
-  data() {
-    return {
-      saved_action: EventAction.REDIRECT,
-    }
-  },
-  props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: ['close', 'select'],
+const props = defineProps<{
+  show: boolean
+}>()
 
-  mounted() {
-    console.log('SearchModal mounted')
-  },
-  
-  onChange() {
-    console.log('SearchModal onChange')
-    if (this.show) {
-      this.listenToScanEvent()
-    } else {
-      this.closeModal()
-    }
-  },
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'select', tag: string): void
+}>()
 
-  methods: {
-    listenToScanEvent() {
-      this.saved_action = clientStore().expected_event_action
-      clientStore().setExpectedEventAction(EventAction.CONTAINER_SCAN)
-      eventBus.on('scan', (data: Events['scan']) => {
-        if (clientStore().expected_event_action !== EventAction.CONTAINER_SCAN) {
-          this.handleSelect(data.rfid)
-        }
-      })
-    },
-    returnNone() {
-      this.$emit('select', '')
-      this.closeModal()
-    },
-    closeModal() {
-      eventBus.off('scan')
-      clientStore().setExpectedEventAction(this.saved_action)
-      this.$emit('close')
-    },
-    handleSelect(tag: string) {
-      this.$emit('select', tag)
-      this.closeModal()
-    },
-  },
+const saved_action = ref(EventAction.REDIRECT)
+
+function listenToScanEvent() {
+  saved_action.value = clientStore().expected_event_action
+  clientStore().setExpectedEventAction(EventAction.CONTAINER_SCAN)
+  eventBus.on(EventAction.CONTAINER_SCAN, (data: Events[EventAction.CONTAINER_SCAN]) => {
+    console.log(
+      'SearchModal received scan event:',
+      data,
+      clientStore().expected_event_action,
+      clientStore().expected_event_action === EventAction.CONTAINER_SCAN,
+    )
+    handleSelect(data.rfid)
+  })
+}
+
+function returnNone() {
+  emit('select', '')
+  closeModal()
+}
+
+function closeModal() {
+  eventBus.off(EventAction.CONTAINER_SCAN)
+  clientStore().setExpectedEventAction(saved_action.value)
+  emit('close')
+}
+
+function handleSelect(tag: string) {
+  console.log('SearchModal handleSelect called with tag:', tag)
+  emit('select', tag)
+  closeModal()
+}
+
+watch(() => props.show, (newVal) => {
+  console.log('SearchModal show changed:', newVal)
+  if (newVal) {
+    listenToScanEvent()
+  } else {
+    closeModal()
+  }
 })
 </script>
 

@@ -1,0 +1,23 @@
+# backend/configuration/config.yaml
+schema_version: 1.0
+
+database:
+    host: "db"
+    port: 27017
+    name: "test"
+    database: "test"
+    user: "root"
+    password: "example"
+
+mqtt:
+    broker: 
+        host: "mqtt"
+        port: 1883
+        username: "admin"
+        password: "1234"
+    topics:
+        scan: "rfid/scan/#"
+        result: "rfid/itemdata"
+
+logging:
+    level: "INFO"

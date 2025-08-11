@@ -7,46 +7,30 @@ services:
     network_mode: host
     volumes:
       - ..:/workspaces:cached
-    privileged: true
+
+  proxy:
+    profiles:
+      - skip
+    deploy:
+      replicas: 0
   
   frontend:
     profiles:
       - skip
     deploy:
       replicas: 0
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.2
+
   backend:
     profiles:
       - skip
     deploy:
       replicas: 0
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.3
+
   db:
-    container_name: mongo
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.4
     volumes:
-      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/init-mongo-db-with-items.js:ro
-  # DEV Mqtt broker
-  mqtt: # Todo mosquitto dies at startup
-    image: eclipse-mosquitto:latest
-    restart: unless-stopped
-    volumes:
-      - ./.devcontainer/mqtt/mosquitto-data:/mosquitto/data
-      - ./.devcontainer/mqtt/mosquitto-log:/mosquitto/log
-      - ./.devcontainer/mqtt/mosquitto-conf:/mosquitto/config
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/a_init-mongo-db-with-items.js:ro
     ports:
-      - 1883:1883
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.5
-      app-network:
-        ipv4_address: 172.19.128.5
+      - 27017:27017
 
   mongo-express:
     image: mongo-express
@@ -56,7 +40,7 @@ services:
     depends_on:
       - db
     environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_SERVER=db
       - ME_CONFIG_MONGODB_PORT=27017
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
@@ -64,12 +48,3 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=example
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=admin
-    networks:
-      dev-network:
-        ipv4_address: 172.20.128.6
-
-networks:
-  dev-network:
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

@@ -1,0 +1,30 @@
+# backend/configuration/config.yaml
+schema_version: 1.0
+
+database:
+    host: "127.0.0.1"
+    port: 3306
+    name: "test"
+    database: "test"
+    user: "test"
+    password: "test"
+
+mqtt:
+    broker: 
+        host: "127.0.0.1"
+        port: 1883
+        username: "test"
+        password: "test"
+    topics:
+        scan: "rfid/scan/#"
+        result: "rfid/itemdata"
+        
+camera:
+    url: http://yourcamip/stream
+
+logging:
+    level: "INFO"
+
+features:
+    openai:
+        api_key: "insert your API key here"

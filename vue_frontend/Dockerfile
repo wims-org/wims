@@ -1,12 +1,9 @@
 # Use an official Node.js runtime as a parent image
-FROM node:18-alpine as build-stage
-
-RUN npm install -g http-server
+FROM node:23-alpine AS builder
 
 # Set the working directory in the container
 WORKDIR /app
 
-RUN apk add --no-cache bash curl vim jq wget
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
@@ -16,9 +13,9 @@ RUN npm install
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 8080
-
 # Command to run the application
-RUN ["npm", "run", "build"]
-ENTRYPOINT [ "http-server", "-P", "http://0.0.0.0:8080?", "dist", "--cors" ]
+RUN npm run build --prod 
+
+FROM nginx:alpine
+COPY --from=builder /app/dist/ /app
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf

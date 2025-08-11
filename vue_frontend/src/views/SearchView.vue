@@ -10,11 +10,8 @@ import SearchComponent from '../components/shared/SearchComponent.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
-const handleSelect = (tag: string) => {
+const handleSelect = (tag: string, query: Record<string, unknown> | null, offset: number | null) => {
   console.log('Selected tag:', tag)
-  
-
-  router.push(`/items/${tag}`)
-  // Add your logic to handle the selected tag
+  router.push(`/items/${tag}` + (query ? `?query=${encodeURIComponent(JSON.stringify(query))}` : '') + (offset !== null ? `&offset=${offset}` : ''))
 }
 </script>

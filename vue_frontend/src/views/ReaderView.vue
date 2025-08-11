@@ -1,11 +1,12 @@
 <template>
   <div>
     <h1>Readers</h1>
-    <ul class="list-group block-item-list">
+    <ul class="list-group block-item-list" data-testid="reader-list">
       <li
         v-for="reader in readers"
+        data-testid="reader-item"
         :key="reader.reader_id"
-        @click="selectReader(reader.reader_id)"
+        @click="reader.reader_id === clientStoreInstance?.reader_id ? deselectReader() : selectReader(reader.reader_id)"
         class="list-group-item d-flex justify-content-between align-items-center"
         :class="{ active: reader?.reader_id === (clientStoreInstance?.reader_id ?? '') }"
       >
@@ -56,83 +57,87 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { ref, onMounted, defineComponent } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import type Reader from '@/interfaces/reader.interface'
 import { useRouter } from 'vue-router'
 
 const clientStoreInstance = clientStore()
+const router = useRouter()
+const readers = ref<Reader[]>([])
+const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
 
-export default defineComponent({
-  name: 'ReaderView',
-  setup() {
-    const router = useRouter()
-    const readers = ref<Reader[]>([])
-    const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
+async function fetchReaders(): Promise<void> {
+  try {
+    const response = await axios.get('/readers')
+    readers.value = response.data
+  } catch (error) {
+    console.error('Error fetching readers:', error)
+  }
+}
 
-    const fetchReaders = async (): Promise<void> => {
-      try {
-        const response = await axios.get('/readers')
-        readers.value = response.data
-      } catch (error) {
-        console.error('Error fetching readers:', error)
-      }
-    }
+async function selectReader(readerId: string) {
+  await clientStoreInstance.setReaderId(readerId)
+  sessionStorage.setItem('reader_id', readerId)
+  sessionStorage.setItem('reader_id_time', Date.now().toString())
+  const params = router.currentRoute.value.query
+  if (readerId !== '') {
+    params.reader_id = readerId
+  }
+  history.replaceState(
+    {},
+    '',
+    router.currentRoute.value.path +
+      '?' +
+      Object.keys(params)
+        .map((key) => {
+          return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
+        })
+        .join('&'),
+  )
+}
 
-    const selectReader = (readerId: string) => {
-      clientStoreInstance.setReaderId(readerId)
-      sessionStorage.setItem('reader_id', readerId)
-      sessionStorage.setItem('reader_id_time', Date.now().toString())
-      const params = router.currentRoute.value.query
-      if (readerId !== '') {
-        params.reader_id = readerId
-      }
-      history.replaceState(
-        {},
-        '',
-        router.currentRoute.value.path +
-          '?' +
-          Object.keys(params)
-            .map((key) => {
-              return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
-            })
-            .join('&'),
-      )
-    }
+async function deselectReader() {
+  await clientStoreInstance.unsetReaderId()
+  sessionStorage.removeItem('reader_id')
+  sessionStorage.removeItem('reader_id_time')
+  const params = router.currentRoute.value.query
+  delete params.reader_id
+  history.replaceState(
+    {},
+    '',
+    router.currentRoute.value.path +
+      '?' +
+      Object.keys(params)
+        .map((key) => {
+          return encodeURIComponent(key) + '=' + encodeURIComponent('' + (params[key] ?? ''))
+        })
+        .join('&'),
+  )
+}
 
-    const submitReader = async (): Promise<void> => {
-      try {
-        await axios.post('/readers/', Object(newReader.value))
-        fetchReaders()
-      } catch (error) {
-        console.error('Error submitting reader:', error)
-      }
-    }
+async function submitReader(): Promise<void> {
+  try {
+    await axios.post('/readers', Object(newReader.value))
+    fetchReaders()
+  } catch (error) {
+    console.error('Error submitting reader:', error)
+  }
+}
 
-    const deleteReader = async (readerId: string): Promise<void> => {
-      try {
-        await axios.delete(`/readers/${readerId}`)
-        fetchReaders()
-      } catch (error) {
-        console.error('Error deleting reader:', error)
-      }
-    }
+async function deleteReader(readerId: string): Promise<void> {
+  try {
+    await axios.delete(`/readers/${readerId}`)
+    fetchReaders()
+  } catch (error) {
+    console.error('Error deleting reader:', error)
+  }
+}
 
-    onMounted(() => {
-      fetchReaders()
-    })
-
-    return {
-      readers,
-      newReader,
-      selectReader,
-      submitReader,
-      deleteReader,
-      clientStoreInstance,
-    }
-  },
+onMounted(() => {
+  fetchReaders()
 })
 </script>
 

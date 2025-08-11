@@ -24,10 +24,23 @@ export const clientStore = defineStore('client', {
     setClientId(client_id: string) {
       this.client_id = client_id
     },
-    setReaderId(reader_id: string) {
-      this.reader_id = reader_id
-      console.log('connecting serverstream with reader_id %s', this.reader_id)
-      serverStream().connect(this.reader_id, 'reader_id')
+    async setReaderId(reader_id: string) {
+      if (this.reader_id.length && this.reader_id !== reader_id) {
+        await serverStream().unsubscribe(this.client_id, this.reader_id)
+          .then(() => { this.reader_id = 'loading' }).catch(() => { })
+      }
+      console.log('connecting serverstream with reader_id %s', reader_id)
+      await serverStream().subscribe(this.client_id, reader_id)
+        .then(() => { this.reader_id = reader_id }).catch(() => { this.reader_id = '' })
+    },
+    async unsetReaderId() {
+      await serverStream().unsubscribe(this.client_id, this.reader_id)
+        .then(() => { this.reader_id = '' }).catch((error) => {
+          console.error('Error unsubscribing from reader_id:', error)
+          if (error.status === 404) {
+            this.reader_id = ''
+          }
+        }).catch(() => { })
     },
     setExpectedEventAction(expected_event_action: EventAction) {
       this.expected_event_action = expected_event_action

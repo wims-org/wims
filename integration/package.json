@@ -1,0 +1,21 @@
+{
+  "name": "integration",
+  "version": "1.0.0",
+  "description": "wims integration tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test --ui"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "mqtt": "^5.12.0",
+    "playwright": "^1.54.2",
+    "uuid": "^9.0.1",
+    "@playwright/test": "^1.54.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1"
+  }
+}

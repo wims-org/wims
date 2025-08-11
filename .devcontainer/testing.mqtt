@@ -1,4 +1,4 @@
-host=172.20.128.5
+host=localhost
 TopicLevel1=rfid
 TOPIC_FOO={{TopicLevel1}}/foo
 message=Hello, world!
@@ -43,10 +43,18 @@ topic: {{TopicLevel1}}/scan
     "tag_id": "123e4567-e89b-12d3-a456-426614174004"
 }
 
-# ## Publish '{{message}}'
+### Publish '{{message}}'
 topic: {{TopicLevel1}}/scan
 
 {
     "reader_id": "04-04-46-42-CD-66-81",
     "tag_id": "123e4567-e89b-12d3-a456-426614174006"
+}
+
+### Publish '{{message}}'
+topic: {{TopicLevel1}}/scan
+
+{
+    "reader_id": "04-04-46-42-CD-66-81",
+    "tag_id": "123e4567-e89b-12d3-a456-426614174010"
 }

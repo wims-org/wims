@@ -1,44 +1,87 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python: FastAPI",
-            "type": "debugpy",
-            "python": "${workspaceFolder}/backend/.venv/bin/python",
-            "request": "launch",
-            "module": "uvicorn",
-            "cwd": "${workspaceFolder}/backend/src/",
-            "args": [
-                "main:app",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "5005",
-                "--reload",
-                "--timeout-graceful-shutdown",
-                "0"
-            ],
-            "jinja": true,
-            "consoleTitle": "Python: FastAPI",
-            "env": {
-            //    "LLM_ENVIRONMENT": "development"
-             "LLM_ENVIRONMENT": "production"
-            }
-        },
-        {
-            "name": "Vue: npm run dev",
-            "type": "node",
-            "cwd": "${workspaceFolder}/vue_frontend",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run",
-                "dev"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "backend",
+      "type": "debugpy",
+      "python": "${workspaceFolder}/backend/.venv/bin/python",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/backend/src/",
+      "args": [
+        "main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "5005",
+        "--reload",
+        "--timeout-graceful-shutdown",
+        "0"
+      ],
+      "jinja": true,
+      "consoleTitle": "Python: FastAPI",
+      "env": {
+           "LLM_ENVIRONMENT": "development",
+        //"LLM_ENVIRONMENT": "production",
+        "CONFIG_FILE": "${workspaceFolder}/backend/src/config.yml"
+      }
+    },
+    {
+      "name": "frontend",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/vue_frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "openapi generate types",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/vue_frontend",
+      "runtimeExecutable": "npx",
+      "args": [
+        "openapi-typescript",
+        "http://127.0.0.1:5005/openapi.json",
+        "--output",
+        "src/interfaces/api-types.ts"
+      ],
+    },
+    {
+      "name": "integration-tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/integration",
+      "runtimeExecutable": "npx",
+      "env": {
+        "CI": "false",
+      },
+      "args": [ "playwright", "test", "--ui" ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "integration-tests-docker",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "Docker Compose Up with Tests",
+      "cwd": "${workspaceFolder}/integration",
+      "runtimeExecutable": "npx",
+      "args": [ "playwright", "test", "--ui" ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "build-services",
+      "type": "docker",
+      "request": "launch",
+      "preLaunchTask": "Docker Compose Up",
+      "platform": "node",
+    }
+  ]
 }

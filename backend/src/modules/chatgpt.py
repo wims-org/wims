@@ -1,4 +1,5 @@
 from openai import OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
 from pydantic import BaseModel
 
 
@@ -20,8 +21,11 @@ class ChatGPT(LLMCompletion):
         self.client = OpenAI(api_key=api_key)
         self.response_schema = response_schema
 
-    def identify_object(self, query: str = None, imageUrls: list[str] = None):
+    def identify_object(self, query: str = None, imageUrls: list[str] = None) -> ChatCompletion:
         image_url = imageUrls[0] if imageUrls else None
+        message = {"role": "user", "content": [{"type": "text", "text": query}]}
+        if image_url:
+            message["content"].append({"type": "image_url", "image_url": {"url": image_url}})
         return self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -30,22 +34,14 @@ class ChatGPT(LLMCompletion):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines Makerspacers, u.a. "
-                            "Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und Stichworten. Nutze die gegebenen Informa"
-                            "tionen, um alle angeforderten Daten so präzise und vollständig wie möglich zusammenzutragen.",
+                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines "
+                            "Makerspacers, u.a. Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und St"
+                            "ichworten. Nutze die gegebenen Informationen, um alle angeforderten Daten "
+                            "so präzise und vollständig wie möglich zusammenzutragen.",
                         }
                     ],
                 },
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": query},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": image_url},
-                        },
-                    ],
-                },
+                message,
             ],
             response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
@@ -64,9 +60,10 @@ class ChatGPT(LLMCompletion):
                     "content": [
                         {
                             "type": "text",
-                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines Makerspacers, u.a. "
-                            "Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und Stichworten. Nutze die gegebenen Informa"
-                            "tionen, um alle angeforderten Daten so präzise und vollständig wie möglich zusammenzutragen.",
+                            "text": "Du bist ein Experte im Identifizieren von Dingen im Kontext eines "
+                            "Makerspacers, u.a. Elektronik, Fahrrad, Werkzeuge, anhand von Fotos und St"
+                            "ichworten. Nutze die gegebenen Informationen, um alle angeforderten Daten "
+                            "so präzise und vollständig wie möglich zusammenzutragen.",
                         }
                     ],
                 },
@@ -78,8 +75,7 @@ class ChatGPT(LLMCompletion):
                     },
                 },
             ],
-            response_format={"type": "json_schema",
-                             "json_schema": self.response_schema},
+            response_format={"type": "json_schema", "json_schema": self.response_schema},
             temperature=0,
             max_completion_tokens=2048,
             top_p=1,

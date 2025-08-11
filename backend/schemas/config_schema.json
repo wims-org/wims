@@ -4,18 +4,6 @@
     "type": "object",
     "$version": 1.0,
     "properties": {
-        "server": {
-            "type": "object",
-            "properties": {
-                "host": {
-                    "type": "string"
-                },
-                "port": {
-                    "type": "integer"
-                }
-            },
-            "required": ["host", "port"]
-        },
         "database": {
             "type": "object",
             "properties": {
@@ -74,5 +62,5 @@
             "required": ["broker", "topics"]
         }
     },
-    "required": ["schema_version",  "server", "database", "mqtt"]
+    "required": ["schema_version", "database", "mqtt"]
 }

@@ -1,0 +1,27 @@
+services:
+  playwright:
+    build: ./integration/
+    volumes:
+      - ./integration/playwright-results:/workspaces/integration/playwright-results
+    environment:
+      - CI=true
+      - MQTT_BROKER_URL=mqtt://mqtt:1883
+    depends_on:
+      - proxy
+      - frontend
+      - backend
+
+  backend:
+    volumes:
+      - ./integration/config.backend.test.yml:/app/src/config.yml:ro
+
+  db:
+    volumes:
+      # Reset the volume each restart
+      - type: tmpfs
+        target: /data/db
+        tmpfs:
+          mode: 0777      
+      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/f_init-mongo-db-with-items.js:ro
+    ports:
+      - 27017:27017

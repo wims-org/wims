@@ -10,7 +10,8 @@
   "service": "devcontainer",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=inventory-commandhistory,target=/commandhistory,type=volume"
     //"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
     //"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
   ],
@@ -43,12 +44,15 @@
         "yzhang.markdown-all-in-one",
         "be5invis.toml",
         "bierner.markdown-mermaid",
-        "zeshuaro.vscode-python-poetry"
+        "zeshuaro.vscode-python-poetry",
+        "ms-playwright.playwright",
+        "github.vscode-github-actions",
+        "bierner.github-markdown-preview"
       ]
     }
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [5000, 8000, 1883, 5002, 5005],
+  "forwardPorts": [5000, 8000, 1883, 5002],
   // Use 'portsAttributes' to set default properties for specific forwarded ports.
   // More info: https://containers.dev/implementors/json_reference/#port-attributes
   "portsAttributes": {
@@ -58,7 +62,11 @@
     }
   },
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "",
+  "postCreateCommand": {
+    "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
+    "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock",
+    "Install playwright browsers": "cd /workspaces/inventory/integration && npm install && npx playwright install --with-deps && npx playwright install-deps",
+  }
   // "remoteUser": "root"
   // uncomment if any errors occur in one of the services
   // "runServices": ["devcontainer"]

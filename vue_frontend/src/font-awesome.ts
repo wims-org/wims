@@ -15,6 +15,17 @@ import {
   faClipboard,
   faCamera,
   faImage,
+  faChevronUp,
+  faChevronDown,
+  faChevronLeft,
+  faChevronRight,
+  faFileCsv,
+  faExternalLinkAlt,
+  faTrash,
+  faPlus,
+  faPenToSquare,
+  faList,
+  faGripLines
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -31,6 +42,17 @@ library.add(
   faClipboard,
   faCamera,
   faImage,
+  faChevronUp,
+  faChevronDown,
+  faChevronLeft,
+  faChevronRight,
+  faFileCsv,
+  faExternalLinkAlt,
+  faTrash,
+  faPlus,
+  faPenToSquare,
+  faList,
+  faGripLines
 )
 
 export { FontAwesomeIcon }

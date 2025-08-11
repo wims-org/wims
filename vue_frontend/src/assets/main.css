@@ -5,6 +5,13 @@
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+input[type='checkbox'] {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-right: 0.5rem;
 }
 
 a,
@@ -29,8 +36,19 @@ a,
 
   #app {
     display: grid;
+    min-width: 60rem;
     /* grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  body {
+    display: block;
+  }
+
+  #app {
+    padding: 0 1rem;
   }
 }
 
@@ -73,4 +91,8 @@ a,
     cursor: pointer;
     padding: 1rem;
   }
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
