@@ -75,6 +75,7 @@ class BackendService:
         except (KeyError, TypeError, openai.OpenAIError) as e:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
             self.llm_completion = None
+
         try:
             self.camera = Camera(find(key := "camera.url", config))
         except (KeyError, TypeError, openai.OpenAIError) as e:
@@ -226,3 +227,6 @@ class BackendService:
                 msg = message.model_dump(mode="json")
                 msg["data"]["stream_id"] = str(stream_id)
                 self.__message_queues[stream_id].message_queue.append(msg)
+
+    def is_ready(self) -> bool:
+        return self.db.is_connected() and self.mqtt_client_manager.is_connected()

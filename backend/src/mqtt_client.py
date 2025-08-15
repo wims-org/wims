@@ -85,3 +85,6 @@ class MQTTClientManager:
     def stop(self):
         self.mqtt_client.loop_stop()
         self.mqtt_client.disconnect()
+
+    def is_connected(self):
+        return self.mqtt_client.is_connected()

@@ -24,8 +24,13 @@ services:
     volumes:
       - ./docker/config.default.yml:/app/src/config.yml:ro
     environment:
+      - mqtt.broker.host=mqtt
+      - mqtt.broker.port=1883
       - mqtt.broker.username=admin
       - mqtt.broker.password=1234
+      - mqtt.topics.scan=rfid/scan/#
+      - mqtt.topics.result=rfid/itemdata
+      - database.host=db
       - database.user=root
       - database.password=example
       - camera.url=http://192.168.178.184:8080/stream
