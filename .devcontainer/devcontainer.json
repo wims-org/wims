@@ -47,7 +47,8 @@
         "zeshuaro.vscode-python-poetry",
         "ms-playwright.playwright",
         "github.vscode-github-actions",
-        "bierner.github-markdown-preview"
+        "bierner.github-markdown-preview",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
       ]
     }
   },
