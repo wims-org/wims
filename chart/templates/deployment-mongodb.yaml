@@ -1,0 +1,68 @@
+{{ with .Values.mongodb }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wims-mongodb
+  labels:
+    helm.sh/chart: wims
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  replicas: {{ .replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wims
+      app.kubernetes.io/instance: wims-mongodb
+  template:
+    metadata:
+      {{- with .podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: wims
+        app.kubernetes.io/instance: wims-mongodb
+        {{- with .podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+        - name: mongodb
+          image: "{{ .image.repository }}:{{ .image.tag | default $.Chart.AppVersion }}"
+          {{- with .ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+          - name: init-volume
+            mountPath: /docker-entrypoint-initdb.d/
+          {{- with .volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+         - name: init-volume
+           configMap:
+             name: mongodb-init
+             items:
+             - key: setup_db
+               path: setup_db.js
+      {{- with .volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
