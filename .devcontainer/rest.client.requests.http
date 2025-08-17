@@ -124,8 +124,15 @@ Content-Type: application/json
 DELETE http://localhost:5005/queries/68875655b6ff3abd55480912
 
 
+###
+POST http://localhost:5005/scan  HTTP/1.1
+content-type: application/json
 
-
+{
+    "reader_id": "04-04-46-42-CD-66-81",
+    "tag_id": "123e4567-e89b-12d3-a456-426614174000a"
+}
+###
 
 
 

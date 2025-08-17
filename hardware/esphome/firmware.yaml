@@ -2,6 +2,7 @@ substitutions:
   reader_id: !secret reader_id
   name: rfid-reader-${reader_id}
   friendly_name: RFID Reader ${reader_id}
+  wims_url: !secret wims_url
 
 esphome:
   name: ${name}
@@ -17,7 +18,6 @@ esp32:
   variant: esp32c3
   framework:
     type: esp-idf
-
 
 # Enable logging
 logger:
@@ -36,7 +36,7 @@ api:
 
 # Allow Over-The-Air updates
 ota:
-- platform: esphome
+  - platform: esphome
 
 wifi:
   ssid: !secret wifi_ssid
@@ -50,31 +50,33 @@ wifi:
 # to provision wifi credentials to the device via WiFi AP.
 captive_portal:
 
+# HTTP module
+http_request:
 
-mqtt:
-  broker: !secret mqtt_host
-  username: !secret mqtt_user
-  password: !secret mqtt_password
-  on_connect:
-    - rtttl.play: 'connected:d=4,o=5,b=180:16c,e,g,c6'
-    - lambda: |
-        // Setzt die Displaynachricht nach MQTT-Verbindung
-        id(rfid_message) = "MQTT connected...";
-    - display.page.show: page_qrcode
-  on_json_message:
-    - topic: rfid/itemdata/${name} 
-      then:
-        - lambda: |
-            // JSON-Daten aus der Nachricht extrahieren und in Variablen speichern
-            if (x.containsKey("tag_id")) {
-              id(rfid_tag) = x["tag_id"].as<std::string>();
-            }
-            if (x.containsKey("item_name")) {
-              id(scanned_item_name) = x["item_name"].as<std::string>();
-            }
-            if (x.containsKey("item_storage_location")) {
-              id(scanned_item_location) = x["item_storage_location"].as<std::string>();
-            }
+# mqtt:
+#   broker: !secret mqtt_host
+#   username: !secret mqtt_user
+#   password: !secret mqtt_password
+#   on_connect:
+#     - rtttl.play: 'connected:d=4,o=5,b=180:16c,e,g,c6'
+#     - lambda: |
+#         // Setzt die Displaynachricht nach MQTT-Verbindung
+#         id(rfid_message) = "MQTT connected...";
+#     - display.page.show: page_qrcode
+#   on_json_message:
+#     - topic: rfid/itemdata/${name}
+#       then:
+#         - lambda: |
+#             // JSON-Daten aus der Nachricht extrahieren und in Variablen speichern
+#             if (x.containsKey("tag_id")) {
+#               id(rfid_tag) = x["tag_id"].as<std::string>();
+#             }
+#             if (x.containsKey("item_name")) {
+#               id(scanned_item_name) = x["item_name"].as<std::string>();
+#             }
+#             if (x.containsKey("item_storage_location")) {
+#               id(scanned_item_location) = x["item_storage_location"].as<std::string>();
+#             }
 
 # I2C für RFID (PN532) und OLED-Display
 i2c:
@@ -94,11 +96,6 @@ globals:
     restore_value: no
     initial_value: '"RFID Reader init..."'
 
-  - id: rfid_tag
-    type: std::string
-    restore_value: no
-    initial_value: '""'
-
   - id: scanned_item_name
     type: std::string
     restore_value: no
@@ -111,7 +108,7 @@ globals:
 
 qr_code:
   - id: inventory_manager_url_qr
-    value: "http://192.168.23.20:5000?reader=${name}"
+    value: "${wims_url}?reader=${name}"
 
 # RFID-Modul PN532
 pn532_i2c:
@@ -120,16 +117,40 @@ pn532_i2c:
     then:
       - display.page.show: page_tag
       - component.update: oled_display
-      - lambda: |
-          // Speichert die gescannte RFID-Tag ID
-          id(rfid_tag) = x.c_str();
-      - rtttl.play: 'scanner_beep:d=4,o=5,b=180:16a5,16a6'
-      - mqtt.publish:
-          topic: rfid/scannedtag
-          payload: !lambda |-
-            char json[100];
-            snprintf(json, sizeof(json), "{\"reader_id\": \"%s\", \"tag_id\": \"%s\"}", id(device_name).c_str(), x.c_str());
-            return std::string(json);
+      - rtttl.play: "scanner_beep:d=4,o=5,b=180:16a5,16a6"
+      # - mqtt.publish:
+      #     topic: rfid/scannedtag
+      #     payload: !lambda |-
+      #       char json[100];
+      #       snprintf(json, sizeof(json), "{\"reader_id\": \"%s\", \"tag_id\": \"%s\"}", id(device_name).c_str(), x.c_str());
+      #       return std::string(json);
+      - http_request.post:
+          url: ${wims_url}/scan
+          headers:
+            Content-Type: application/json
+          json:
+            reader_id: id(device_name)
+            tag_id: x.c_str()
+          on_response:
+            - if:
+                condition:
+                  lambda: return response->status_code == 200;
+                then:
+                  - lambda: |-
+                      json::parse_json(body, [](JsonObject root) -> bool {
+                          if (root["item_name"]) {
+                            id(scanned_item_name) = root["item_name"].as<std::string>();
+                          }
+                          if (root["item_storage_location"]) {
+                            id(scanned_item_location) = root["item_storage_location"].as<std::string>();
+                          }
+                      });
+                else:
+                  - lambda: |-
+                      id(scanned_item_location) = "Backend is angry now";
+                  - logger.log:
+                      format: "Error: Response status: %d, message %s"
+                      args: ["response->status_code", "body.c_str()"]
 
 display:
   - platform: ssd1306_i2c
