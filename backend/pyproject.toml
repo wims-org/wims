@@ -19,7 +19,6 @@ packages = [{include = "frontend"}]
 python = "^3.12"
 fastapi = "^0.116.1"
 openai = "^1.99.3"
-paho-mqtt = "^2.1.0"
 pydantic = "^2.11.7"
 pymongo = "^4.14.0"
 python-multipart = "^0.0.20"

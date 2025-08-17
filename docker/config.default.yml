@@ -9,16 +9,6 @@ database:
     user: "root"
     password: "example"
 
-mqtt:
-    broker: 
-        host: "0.0.0.0"
-        port: 1883
-        username: "admin"
-        password: "1234"
-    topics:
-        scan: "rfid/scan/#"
-        result: "rfid/itemdata"
-
 logging:
     level: "INFO"
 
