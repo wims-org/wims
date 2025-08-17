@@ -1,8 +1,7 @@
-.envrc
-shell.nix
 .direnv/
 __pycache__/
 backend/src/config.yml
 config.yml
 volar.config.js
 Inventory\ -\ Items.csv
+/.pre-commit-config.yaml
