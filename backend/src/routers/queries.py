@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from database_connector import MongoDBConnector
 from db.db_queries import create_query, delete_query, get_all_queries, get_query_by_name, update_query
 
-router = APIRouter()
+router = APIRouter(prefix="/queries", tags=["queries"])
 
 
 def get_db(request: Request) -> MongoDBConnector:
@@ -20,7 +20,7 @@ class Query(BaseModel):
     updated_at: str | None = None
 
 
-@router.post("/queries", response_model=None)
+@router.post("", response_model=None)
 async def create_query_endpoint(request: Request, query: Query) -> Response | dict:
     db = get_db(request).db
     existing_query = get_query_by_name(query.name, db)
@@ -30,7 +30,7 @@ async def create_query_endpoint(request: Request, query: Query) -> Response | di
     return created_query
 
 
-@router.get("/queries/{name}", response_model=None)
+@router.get("/{name}", response_model=None)
 async def get_query_endpoint(request: Request, name: str) -> Response | dict:
     db = get_db(request).db
     query = get_query_by_name(name, db)
@@ -39,14 +39,14 @@ async def get_query_endpoint(request: Request, name: str) -> Response | dict:
     return query
 
 
-@router.get("/queries", response_model=None)
+@router.get("", response_model=None)
 async def get_all_queries_endpoint(request: Request) -> Response | list[Query]:
     db = get_db(request).db
     queries = get_all_queries(db)
     return queries
 
 
-@router.put("/queries/{id}", response_model=None)
+@router.put("/{id}", response_model=None)
 async def update_query_endpoint(request: Request, id: str, query: Query) -> Response | dict:
     db = get_db(request).db
     updated_query = update_query(id, query, db)
@@ -55,7 +55,7 @@ async def update_query_endpoint(request: Request, id: str, query: Query) -> Resp
     return updated_query
 
 
-@router.delete("/queries/{name}")
+@router.delete("/{name}")
 async def delete_query_endpoint(request: Request, name: str):
     db = get_db(request).db
     deleted = delete_query(name, db)

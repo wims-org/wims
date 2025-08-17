@@ -10,7 +10,7 @@ from dependencies.backend_service import BackendService
 from dependencies.config import read_config
 
 # Use absolute import
-from routers import camera, completion, healthz, items, queries, readers, scan, stream
+from routers import camera, completion, healthz, items, queries, readers, scan, stream, users
 from utils import find
 
 # Read config
@@ -61,6 +61,7 @@ app.include_router(stream.router)
 app.include_router(healthz.router)
 app.include_router(camera.router)
 app.include_router(queries.router)
+app.include_router(users.router)
 app.include_router(scan.router)
 
 if find("features.openai", config):

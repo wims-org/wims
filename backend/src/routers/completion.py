@@ -21,6 +21,10 @@ class EmptyResponseException(Exception):
     pass
 
 
+class MockResponseException(Exception):
+    pass
+
+
 class IdentificationRequest(pydantic.BaseModel):
     data: pydantic.Json | None = None
     images: list[UploadFile] = None
@@ -45,6 +49,7 @@ async def identification(
 
     async def start_identification(start_time: float, imageUrls: list[str]):
         # Call ChatGPT to identify the object
+        chatgpt_response = None
         try:
             if os.environ.get("LLM_ENVIRONMENT") == "development":
                 # Mock response for development
@@ -92,7 +97,7 @@ async def identification(
                     model="gpt-4o-mini",
                     object="chat.completion",
                 )
-                raise Exception("Development mode: Mock response used for testing")
+                raise MockResponseException("Development mode: Mock response used for testing")
 
             chatgpt_response = get_bs(request).llm_completion.identify_object(query, imageUrls)
             if (
@@ -102,7 +107,7 @@ async def identification(
                 or not chatgpt_response.choices[0].message.content
             ):
                 raise EmptyResponseException()
-        except (openai.APIConnectionError, EmptyResponseException) as e:
+        except (openai.APIConnectionError, EmptyResponseException, Exception) as e:
             sse_message = SseMessage(
                 data=SseMessage.SseMessageData(
                     data={"message": str(e)}, reader_id=client_id, rfid="", duration=time.time() - start_time
@@ -111,7 +116,7 @@ async def identification(
             )
             await get_bs(request).append_message_to_queue(client_id, sse_message)
             return
-        except Exception as e:
+        except MockResponseException as e:
             print(e)
             pass
 
