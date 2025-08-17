@@ -31,6 +31,7 @@
                   enable = true;
                   entry = "${lib.getExe pkgs.esphome} config hardware/esphome/firmware.yaml";
                   pass_filenames = false;
+                  files = "^hardware/esphome/.*";
                 };
 
                 # Nix environment
@@ -44,6 +45,11 @@
             };
           };
           devShells.default = pkgs.mkShell {
+            LD_LIBRARY_PATH = lib.makeLibraryPath [
+              pkgs.stdenv.cc.cc
+              pkgs.libglvnd
+              pkgs.glib
+            ];
             inherit (self.checks.${system}.pre-commit) shellHook;
             buildInputs = with pkgs; [
               # precommit hooks
