@@ -1,0 +1,15 @@
+# common.yaml (Package)
+<<: !include common.yaml
+substitutions:
+  name: "Base Name"
+esphome:
+  name: "$name"
+  platform: ESP32
+  board: esp32dev
+  <<: *wifi_config  # Include wifi config from a separate file
+
+# device_a.yaml (Main Device Config)
+<<: !include common.yaml
+substitutions:
+  name: "Device A"
+  <<: *device_a_settings # Specific settings for device A

@@ -22,6 +22,11 @@ esp32:
 # Enable logging
 logger:
 
+http_request:
+  id: http_request_component
+  useragent: esphome/device
+  timeout: 10s
+  
 # Enable Home Assistant API
 api:
   services:
@@ -36,19 +41,25 @@ api:
 
 # Allow Over-The-Air updates
 ota:
-  - platform: esphome
+- platform: esphome
+
+# Allow provisioning Wi-Fi via serial
+improv_serial:
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  # Fallback access point
-  ap:
-    ssid: "${name}"
-    password: !secret fallback_psk
 
 # In combination with the `ap` this allows the user
 # to provision wifi credentials to the device via WiFi AP.
 captive_portal:
+
+dashboard_import:
+  package_import_url: github://esphome/example-configs/esphome-web/esp32.yaml@main
+  import_full_config: true
+
+# To have a "next url" for improv serial
+web_server:
 
 # HTTP module
 http_request:
@@ -80,8 +91,8 @@ http_request:
 
 # I2C für RFID (PN532) und OLED-Display
 i2c:
-  sda: 4
-  scl: 5
+  sda: 6
+  scl: 7
   scan: true
   id: bus_a
 
@@ -106,6 +117,21 @@ globals:
     restore_value: no
     initial_value: '""'
 
+  - id: current_item_url
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
+  - id: item_short_name
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
+  - id: container_short_name
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
 qr_code:
   - id: inventory_manager_url_qr
     value: "${wims_url}?reader=${name}"
@@ -115,7 +141,12 @@ pn532_i2c:
   update_interval: 1s
   on_tag:
     then:
-      - display.page.show: page_tag
+      - lambda: |-
+          // Speichert die gescannte RFID-Tag ID
+          id(rfid_tag) = x.c_str();
+          // Baue die URL
+          id(current_item_url) = "http://wims.s24/api/items/" + id(rfid_tag);
+          ESP_LOGD("HTTP", "Fetching URL: %s", id(current_item_url).c_str());      - display.page.show: page_tag
       - component.update: oled_display
       - rtttl.play: "scanner_beep:d=4,o=5,b=180:16a5,16a6"
       # - mqtt.publish:
@@ -154,8 +185,8 @@ pn532_i2c:
 
 display:
   - platform: ssd1306_i2c
-    model: "SSD1306 128x64"
-    rotation: 180
+    model: "SH1106 128x64"
+    rotation: 0
     id: oled_display
     update_interval: 1s
     pages:
@@ -176,7 +207,7 @@ display:
           it.qr_code(x, y, id(inventory_manager_url_qr), Color(255,255,255), 2);
 
 font:
-  - file: "arial.ttf"
+  - file: "fonts/arial.ttf"
     id: rfid_font
     size: 16
 
