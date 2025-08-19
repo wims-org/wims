@@ -145,7 +145,7 @@ watch(searchQuery, (newQuery: string) => {
       if (!selectedSavedQuery.value) {
         fetchSearchTerm(newQuery)
       }
-    }, 300) // Adjust the debounce delay as needed
+    }, 300)
   } else {
     items.value = []
   }

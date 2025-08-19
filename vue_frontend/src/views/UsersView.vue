@@ -60,8 +60,8 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
-
 type User = components['schemas']['User'] & { [key: string]: unknown }
+
 const users = ref<User[]>([])
 const blockSubmission = ref(false)
 const newUser = ref<components['schemas']['UserRequest']>({

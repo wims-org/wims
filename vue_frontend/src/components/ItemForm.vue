@@ -26,6 +26,7 @@
         :disabled="field.disabled ?? undefined"
         :required="field.required"
         :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
+        :searchType="field.search_type"
         @update:value="updateFieldModel($event, String(key), field.type)"
         v-show="!field.hidden && (!field.details || showDetails)"
       />
@@ -44,19 +45,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { formFields } from '@/interfaces/FormField.interface';
-import { fieldTypeToComponent } from '@/utils/form.helper';
-import axios from 'axios';
-import type { components } from '@/interfaces/api-types';
+import { ref, watch } from 'vue'
+import { formFields } from '@/interfaces/FormField.interface'
+import { fieldTypeToComponent } from '@/utils/form.helper'
+import axios from 'axios'
+import type { components } from '@/interfaces/api-types'
 
-type Item = components['schemas']['Item'] & { [key: string]: unknown };
+type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 // Props
 const props = defineProps({
   item: {
     type: Object as () => Item,
-    default: () => ({} as Item),
+    default: () => ({}) as Item,
     required: true,
   },
   isNewItem: {
@@ -67,75 +68,77 @@ const props = defineProps({
     type: Array as () => string[],
     default: () => [],
   },
-});
+})
 
 // Emits
-const emit = defineEmits(['submit']);
+const emit = defineEmits(['submit'])
 
 // Reactive State
-const formData = ref<Record<string, unknown>>({});
-const unsavedChanges = ref(false);
-const showDetails = ref(false);
+const formData = ref<Record<string, unknown>>({})
+const unsavedChanges = ref(false)
+const showDetails = ref(false)
 
 // Watchers
 watch(
   () => props.item,
   (newItem) => {
-    formData.value = { ...newItem };
-    unsavedChanges.value = false; // Reset unsaved changes when item prop changes
+    formData.value = { ...newItem }
+    unsavedChanges.value = false // Reset unsaved changes when item prop changes
   },
-  { immediate: true, deep: true }
-);
+  { immediate: true, deep: true },
+)
 
 // Methods
 const toggleDetails = () => {
-  showDetails.value = !showDetails.value;
-};
+  showDetails.value = !showDetails.value
+}
 
 const handleSubmit = async () => {
-  emit('submit', formData.value);
-  unsavedChanges.value = false;
-};
+  emit('submit', formData.value)
+  unsavedChanges.value = false
+}
 
 const preventEnterKey = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
-    event.preventDefault();
+    event.preventDefault()
   }
-};
+}
 
 const getFieldComponent = (type: string) => {
-  return fieldTypeToComponent(type);
-};
+  return fieldTypeToComponent(type)
+}
 
 const updateFieldModel = (value: unknown, key: string, type: string) => {
-  if (value === formData.value[key]) return; // No change, do nothing
-  console.log(`Updating field ${key} with value:`, value);
+  if (value === formData.value[key]) return // No change, do nothing
+  console.log(`Updating field ${key} with value:`, value)
   if (type === 'checkbox') {
-    formData.value[key] = Boolean(value);
+    formData.value[key] = Boolean(value)
   } else if (type === 'epoch') {
-    formData.value[key] = new Date(value as string).getTime() / 1000;
+    formData.value[key] = new Date(value as string).getTime() / 1000
   } else if (type === 'number') {
-    formData.value[key] = Number(value);
+    formData.value[key] = Number(value)
   } else if (type === 'array') {
-    formData.value[key] = value;
+    formData.value[key] = value
   } else if (key === 'container_tag_uuid') {
     if (typeof value === 'string' && value.trim() !== '') {
       axios
         .get<Item>(`/items/${value}`)
         .then((response) => (formData.value['container'] = response.data))
         .catch(() => {
-          console.warn(`Container with UUID ${value} not found, creating new container entry`);
-          formData.value['container'] = { tag_uuid: value } as Item;
-        });
+          console.warn(`Container with UUID ${value} not found, creating new container entry`)
+          formData.value['container'] = { tag_uuid: value } as Item
+        })
     } else {
-      formData.value['container'] = undefined; // Clear the field if no value
+      formData.value['container'] = undefined // Clear the field if no value
     }
-    formData.value[key] = value as string;
+    formData.value[key] = value as string
+  } else if (type === 'user') {
+    formData.value[key] = value
   } else {
-    formData.value[key] = value;
+    formData.value[key] = value
   }
-  unsavedChanges.value = true; // Mark changes as unsaved
-};
+  unsavedChanges.value = true // Mark changes as unsaved
+}
 </script>
 
 <style scoped>

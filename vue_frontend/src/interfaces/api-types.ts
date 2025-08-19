@@ -524,8 +524,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
             /** Borrowed */
             readonly borrowed: boolean;
             /** Container Name */
@@ -594,8 +594,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
         };
         /** ItemChangedResponse */
         ItemChangedResponse: {
@@ -690,8 +690,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
         };
         /** ItemSearchRequest */
         ItemSearchRequest: {
@@ -1778,7 +1778,9 @@ export interface operations {
     };
     get_all_users_users_get: {
         parameters: {
-            query?: never;
+            query?: {
+                term?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1800,6 +1802,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

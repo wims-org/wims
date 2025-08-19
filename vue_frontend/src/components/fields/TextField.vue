@@ -37,7 +37,7 @@ defineProps({
     default: 'text',
   },
   value: {
-    type: [String, Number, Boolean],
+    type: [String, Number, Boolean ],
     default: '',
   },
   disabled: {

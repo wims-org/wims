@@ -43,6 +43,16 @@ def get_all_users(db: Database) -> list[User]:
     return [User(**user) for user in users]
 
 
+def search_users(db: Database, query: dict | None = None) -> list[User]:
+    collection = db[COLLECTION_NAME]
+    if not query:
+        return []
+    users = collection.find(query).to_list(length=None)
+    for user in users:
+        user["_id"] = str(user["_id"])
+    return [User(**user) for user in users]
+
+
 def update_user(id: str, user_data: User, db: Database) -> User | None:
     collection = db[COLLECTION_NAME]
     user_data_dict = user_data.dict()

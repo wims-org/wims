@@ -85,7 +85,8 @@ class Item(BaseModel):
     borrowed_by: str | None = None  # UUID of the user borrowing the item
     borrowed_at: int | None = None  # Unix timestamp
     borrowed_until: int | None = None  # Unix timestamp
-    owner: str | None = None  # UUID of the user owning the item
+    owner_id: str | None = None  # UUID of the user owning the item
+    # owner: User | None | str = None  # User information of the owner
 
     @computed_field
     def borrowed(self) -> bool:
