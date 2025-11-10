@@ -127,3 +127,12 @@ class MongoDBConnector:
 
     def close(self) -> None:
         self.client.close()
+
+    def is_connected(self) -> bool:
+        if self.client is None:
+            return False
+        try:
+            self.client.server_info()
+            return True
+        except ServerSelectionTimeoutError:
+            return False
