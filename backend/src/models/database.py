@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
@@ -26,7 +26,7 @@ class Change(BaseModel):
     # Size Information in mm
     user: str
     timestamp: int  # Unix timestamp
-    diff_from_prev_version: dict[str, any]
+    diff_from_prev_version: dict[str, Any]
 
 
 class Relation(BaseModel):

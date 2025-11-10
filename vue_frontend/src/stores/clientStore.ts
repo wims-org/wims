@@ -14,12 +14,7 @@ export const clientStore = defineStore('client', {
     reader_id: '',
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
-    backend_config: {} as {
-      database_connected: boolean
-      mqtt_connected: boolean
-      llm_enabled: boolean
-      camera_enabled: boolean
-    }
+    backend_config: {} as components['schemas']['ConfigResponseModel'],
   }),
   getters: {
     getClientId(): string {

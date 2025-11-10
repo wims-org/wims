@@ -400,6 +400,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/config/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Config */
+        get: operations["config_config__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/completion/identification": {
         parameters: {
             query?: never;
@@ -431,6 +448,15 @@ export interface components {
             diff_from_prev_version: {
                 [key: string]: unknown;
             };
+        };
+        /** ConfigResponseModel */
+        ConfigResponseModel: {
+            /** Database Connected */
+            database_connected: boolean;
+            /** Llm Enabled */
+            llm_enabled: boolean;
+            /** Camera Enabled */
+            camera_enabled: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2008,6 +2034,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    config_config__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfigResponseModel"];
                 };
             };
         };

@@ -8,7 +8,7 @@
           v-model="stringInput"
           placeholder="Add Item by Description or Name..."
         />
-        <div class="p-2" v-if="clientStore.backend_config?.camera_enabled">
+        <div class="p-2" v-if="clientStore().backend_config?.camera_enabled">
           <div @click="() => (useCam = !useCam)">
             <font-awesome-icon
               :icon="!useCam ? 'chevron-up' : 'chevron-down'"

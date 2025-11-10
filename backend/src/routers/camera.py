@@ -1,12 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
 
-from dependencies.backend_service import BackendService
+from routers.utils import get_bs
 
 router = APIRouter(prefix="/camera", tags=["complecameration"], responses={404: {"description": "Not found"}})
-
-
-def get_bs(request: Request) -> BackendService:
-    return request.app.state.backend_service
 
 
 @router.get("")

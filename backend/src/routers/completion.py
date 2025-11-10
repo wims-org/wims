@@ -8,13 +8,10 @@ import pydantic
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
-from dependencies.backend_service import BackendService, Event, SseMessage
+from dependencies.backend_service import Event, SseMessage
+from routers.utils import get_bs
 
 router = APIRouter(prefix="/completion", tags=["completion"], responses={404: {"description": "Not found"}})
-
-
-def get_bs(request: Request) -> BackendService:
-    return request.app.state.backend_service
 
 
 class EmptyResponseException(Exception):

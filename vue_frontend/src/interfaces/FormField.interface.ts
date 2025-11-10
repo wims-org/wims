@@ -6,7 +6,7 @@ export default interface SearchConfig {
   method?: 'GET' | 'POST'
 }
 
-export default interface FormField {
+export interface FormField {
   name?: string
   label: string
   type: string
@@ -30,7 +30,6 @@ export const SearchTypeEndpoint: Record<SearchType, string> = {
   [SearchType.USER]: '/users',
   [SearchType.QUERY]: '/search'
 }
-
 export const formFields: Record<string, FormField> = {
   tag_uuid: { label: 'Item UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
