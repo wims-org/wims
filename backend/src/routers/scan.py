@@ -1,7 +1,6 @@
-import pydantic
 from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from dependencies.backend_service import Event, SseMessage
 from models.database import Item
@@ -40,11 +39,9 @@ async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
             if item.container:
                 location = item.container.short_name
             return ScanResponse(msg="Found", item_name=item.short_name, item_storage_location=location)
-        except pydantic.ValidationError as e:
+        except ValidationError as e:
             logger.error(f"Error validating item: {e}")
-            # self.mqtt_client_manager.publish(self.item_data_topic + f"/{request.reader_id}", "ValidationError")
             raise HTTPException(status_code=400, detail="Validation error") from None
     else:
         # Item not found
-        # self.mqtt_client_manager.publish(self.item_data_topic + f"/{request.reader_id}", "null")
         raise HTTPException(status_code=404, detail="Item not found")
