@@ -56,7 +56,7 @@
               self.checks.${system}.pre-commit.enabledPackages
 
               # frontend
-              nodejs_23
+              nodejs_24
 
               # backend
               poetry
