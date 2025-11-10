@@ -7,32 +7,32 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2024.6.0
+  min_version: 2025.4.0
   name_add_mac_suffix: false
   project:
     name: esphome.web
     version: dev
+  on_boot:
+  # Beep during boot
+    - priority: -100.0
+      then:
+        - rtttl.play: "scanner_beep:d=16,o=5,b=100:4e,4e,4e,8c,p,g,4e" # Star Wars Theme
+        - display.page.show: page_qrcode
+  
 
 esp32:
   board: esp32-c3-devkitm-1
   variant: esp32c3
   framework:
-    type: esp-idf
+    #type: esp-idf
+    type: arduino
 
 # Enable logging
 logger:
+  #level: INFO
 
 # Enable Home Assistant API
-api:
-  services:
-    - service: update_display
-      variables:
-        tag_id: string
-        item_name: string
-      then:
-        - lambda: |
-            // Aktualisiert die Nachricht auf dem Display
-            id(rfid_message) = tag_id + "\n" + item_name;
+# api:
 
 # Allow Over-The-Air updates
 ota:
@@ -41,6 +41,10 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  #power_save_mode: none
+  fast_connect: true
+  output_power: 8.5
+
   # Fallback access point
   ap:
     ssid: "${name}"
@@ -52,31 +56,7 @@ captive_portal:
 
 # HTTP module
 http_request:
-
-# mqtt:
-#   broker: !secret mqtt_host
-#   username: !secret mqtt_user
-#   password: !secret mqtt_password
-#   on_connect:
-#     - rtttl.play: 'connected:d=4,o=5,b=180:16c,e,g,c6'
-#     - lambda: |
-#         // Setzt die Displaynachricht nach MQTT-Verbindung
-#         id(rfid_message) = "MQTT connected...";
-#     - display.page.show: page_qrcode
-#   on_json_message:
-#     - topic: rfid/itemdata/${name}
-#       then:
-#         - lambda: |
-#             // JSON-Daten aus der Nachricht extrahieren und in Variablen speichern
-#             if (x.containsKey("tag_id")) {
-#               id(rfid_tag) = x["tag_id"].as<std::string>();
-#             }
-#             if (x.containsKey("item_name")) {
-#               id(scanned_item_name) = x["item_name"].as<std::string>();
-#             }
-#             if (x.containsKey("item_storage_location")) {
-#               id(scanned_item_location) = x["item_storage_location"].as<std::string>();
-#             }
+  verify_ssl: false
 
 # I2C für RFID (PN532) und OLED-Display
 i2c:
@@ -94,7 +74,7 @@ globals:
   - id: rfid_message
     type: std::string
     restore_value: no
-    initial_value: '"RFID Reader init..."'
+    initial_value: '"Reader init..."'
 
   - id: scanned_item_name
     type: std::string
@@ -108,34 +88,32 @@ globals:
 
 qr_code:
   - id: inventory_manager_url_qr
-    value: "${wims_url}?reader=${name}"
+    value: "${wims_url}?reader_id=${reader_id}"
 
 # RFID-Modul PN532
 pn532_i2c:
   update_interval: 1s
   on_tag:
     then:
-      - display.page.show: page_tag
-      - component.update: oled_display
+      - display.page.show: page_info
+      - lambda: |-
+          id(rfid_message) = "Loading...";
       - rtttl.play: "scanner_beep:d=4,o=5,b=180:16a5,16a6"
-      # - mqtt.publish:
-      #     topic: rfid/scannedtag
-      #     payload: !lambda |-
-      #       char json[100];
-      #       snprintf(json, sizeof(json), "{\"reader_id\": \"%s\", \"tag_id\": \"%s\"}", id(device_name).c_str(), x.c_str());
-      #       return std::string(json);
       - http_request.post:
-          url: ${wims_url}/scan
-          headers:
+          url: ${wims_url}/api/scan
+          capture_response: true
+          # max_response_buffer_size: 200B
+          request_headers:
             Content-Type: application/json
           json:
-            reader_id: id(device_name)
-            tag_id: x.c_str()
+            reader_id: ${reader_id}
+            tag_id: !lambda 'return x;'
           on_response:
             - if:
                 condition:
                   lambda: return response->status_code == 200;
                 then:
+                  - display.page.show: page_tag
                   - lambda: |-
                       json::parse_json(body, [](JsonObject root) -> bool {
                           if (root["item_name"]) {
@@ -144,10 +122,20 @@ pn532_i2c:
                           if (root["item_storage_location"]) {
                             id(scanned_item_location) = root["item_storage_location"].as<std::string>();
                           }
+                          return true;
                       });
-                else:
+            - if:
+                condition:
+                  lambda: return response->status_code == 404;
+                then:
+                  - display.page.show: page_new
+            - if:
+                condition:
+                  lambda: return response->status_code != 200 && response->status_code != 404;
+                then:
+                  - display.page.show: page_info
                   - lambda: |-
-                      id(scanned_item_location) = "Backend is angry now";
+                      id(rfid_message) = "Backend error";
                   - logger.log:
                       format: "Error: Response status: %d, message %s"
                       args: ["response->status_code", "body.c_str()"]
@@ -155,7 +143,8 @@ pn532_i2c:
 display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x64"
-    rotation: 180
+    # rotation: 180
+    flip_x: true
     id: oled_display
     update_interval: 1s
     pages:
@@ -168,6 +157,11 @@ display:
           it.printf(64, 20, id(rfid_font), TextAlign::TOP_CENTER, "Lagerort:");
           it.printf(64, 40, id(rfid_font), TextAlign::TOP_CENTER, "%s", id(scanned_item_location).c_str());
           ESP_LOGD("RFID", "Scanned Item Value: %s", id(scanned_item_name).c_str());
+      - id: page_new
+        lambda: |-
+          it.printf(64, 0, id(rfid_font), TextAlign::TOP_CENTER, "New Item!");
+          it.printf(64, 40, id(rfid_font), TextAlign::TOP_CENTER, "Check Browser");
+          ESP_LOGD("RFID", "Scanned new item Value: %s", id(scanned_item_name).c_str());
       - id: page_qrcode
         lambda: |-
           auto size = id(inventory_manager_url_qr).get_size() * 2;
