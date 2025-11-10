@@ -33,7 +33,7 @@ frontend:
   image:
     repository: ghcr.io/wims-org/wims-frontend
     pullpolicy: ifnotpresent
-    tag: "pr-39"
+    tag: "dev"
 
   podAnnotations: {}
   podLabels: {}
@@ -68,7 +68,7 @@ backend:
   image:
     repository: ghcr.io/wims-org/wims-backend
     pullpolicy: ifnotpresent
-    tag: "pr-39"
+    tag: "dev"
 
   podAnnotations: {}
   podLabels: {}
