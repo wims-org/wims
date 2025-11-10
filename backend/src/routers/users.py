@@ -7,8 +7,7 @@ from database_connector import MongoDBConnector
 from db import db_users
 from models.database import User
 
-router = APIRouter(
-    prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 
 class UserRequest(BaseModel):
@@ -27,8 +26,7 @@ async def create_user(request: Request, user: UserRequest) -> Response | dict:
     db = get_db(request).db
     existing_user = db_users.get_user_by_name(user.username, db)
     if existing_user:
-        raise HTTPException(
-            status_code=400, detail="User with this name already exists.")
+        raise HTTPException(status_code=400, detail="User with this name already exists.")
     created_user = db_users.create_user(user, db)
     return created_user
 
@@ -48,8 +46,7 @@ async def get_all_users(request: Request, term: str | None = None) -> Response |
     if not term:
         users = db_users.get_all_users(db)
         return users
-    query = {"$or": [{"username": {"$regex": term, "$options": "i"}},
-                     {"email": {"$regex": term, "$options": "i"}}]}
+    query = {"$or": [{"username": {"$regex": term, "$options": "i"}}, {"email": {"$regex": term, "$options": "i"}}]}
     users = db_users.search_users(db, query)
     return users
 

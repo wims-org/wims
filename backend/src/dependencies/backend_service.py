@@ -42,6 +42,13 @@ class SseMessage(pydantic.BaseModel):
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
 
+class ConfigResponseModel(pydantic.BaseModel):
+    database_connected: bool
+    mqtt_connected: bool
+    llm_enabled: bool
+    camera_enabled: bool
+
+
 class BackendService:
     def __init__(self, db_config, config):
         self.config = config
@@ -159,3 +166,11 @@ class BackendService:
 
     def is_ready(self) -> bool:
         return self.db.is_connected()
+
+    def get_config(self) -> ConfigResponseModel:
+        return ConfigResponseModel(
+            database_connected=self.db.is_connected(),
+            mqtt_connected=self.mqtt_client_manager.is_connected(),
+            llm_enabled=self.llm_completion is not None,
+            camera_enabled=self.camera is not None,
+        )

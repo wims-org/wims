@@ -24,7 +24,9 @@ import { useRouter, useRoute } from 'vue-router';
 import TitleComponent from './components/TitleComponent.vue';
 import eventBus, { type Events } from './stores/eventBus';
 import { EventAction } from './interfaces/EventAction';
-import { setReaderId , setUserFromSessionStorage } from './utils';
+import { setReaderId , setUserFromSessionStorage } from './utils'
+import { clientStore } from '@/stores/clientStore';
+
 
 // Router and Route
 const router = useRouter();
@@ -40,6 +42,8 @@ onMounted(async () => {
   eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
     router.push('/items/' + data.rfid);
   });
+
+  clientStore().fetchBackendConfig();
 });
 
 // Watchers

@@ -10,12 +10,12 @@ from dependencies.backend_service import BackendService
 from dependencies.config import read_config
 
 # Use absolute import
-from routers import camera, completion, healthz, items, queries, readers, scan, stream, users
+from routers import camera, completion, config, healthz, items, queries, readers, scan, stream, users
 from utils import find
 
 # Read config
 
-config = read_config()
+configuration = read_config()
 
 logger.info("Starting backend service")
 
@@ -23,7 +23,7 @@ logger.info("Starting backend service")
 
 
 def setup_middleware(app):
-    frontend_config = config.get("frontend", {})
+    frontend_config = configuration.get("frontend", {})
     origins = [
         "*",
     ]
@@ -39,11 +39,17 @@ def setup_middleware(app):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.config = config
+    app.state.config = configuration
     app.state.backend_service = BackendService(
-        db_config=config.get("database", {}),
-        config=config,
+        db_config=configuration.get("database", {}),
+        config=configuration,
     )
+    app.state.backend_service.start_mqtt()
+    try:
+        scan_topic = find(key := "mqtt.topics.scan", configuration)
+    except (KeyError, TypeError) as e:
+        logger.error(f"Error updating config key {key}, check config file and environment variables: {e}")
+    app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan/#")
     yield
     app.state.backend_service.close()
 
@@ -62,9 +68,10 @@ app.include_router(healthz.router)
 app.include_router(camera.router)
 app.include_router(queries.router)
 app.include_router(users.router)
+app.include_router(config.router)
 app.include_router(scan.router)
 
-if find("features.openai", config):
+if find("features.openai", configuration):
     app.include_router(completion.router)
     logger.info("LLM features enabled")
 else:
@@ -77,4 +84,6 @@ async def custom_openapi():
     """
     Serve the OpenAPI spec for frontend code generation.
     """
-    return JSONResponse(app.openapi())
+    handler = app.openapi()
+    handler.generate_schema()
+    return JSONResponse(handler)

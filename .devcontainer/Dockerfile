@@ -15,7 +15,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 # Install playwright dependencies for wayland
 RUN apt-get -y install --no-install-recommends libx11-6 libxcomposite1 libxrandr2 libxdamage1 libxext6 libxfixes3 \
-    libxcb1 libxkbcommon0 libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1-mesa libgbm1 libgtk-3-0 
+    libxcb1 libxkbcommon0 libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1-mesa libgbm1 libgtk-3-0 python3-opencv
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 

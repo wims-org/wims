@@ -42,13 +42,23 @@ class MongoDBConnector:
             logger.error("No database connection available for find_by_rfid operation.")
             return None
         collection: Collection = self.db[collection_name]
-        # todo
         pipeline = [
             {"$match": {"tag_uuid": rfid}},
             {
                 "$addFields": {
                     "container_tag_exists": {"$ne": ["$container_tag_uuid", None]},
                     "container_tag_uuid_copy": "$container_tag_uuid",
+                    #            "owner": {
+                    #                "$cond": [
+                    #                    {"$and": [
+                    #                        {"$ne": ["$owner_id", None]},
+                    #                        {"$not": [
+                    #                            {"$eq": [{"$type": "$owner_id"}, "objectId"]}]}
+                    #                    ]},
+                    #                    {"$toObjectId": "$owner_id"},
+                    #                    "$owner_id"
+                    #                ]
+                    #            }
                 }
             },
             {
@@ -60,7 +70,24 @@ class MongoDBConnector:
                 }
             },
             {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
-            {"$project": {"_id": 0, "container._id": 0}},
+            #    {"$lookup": {
+            #        "from": "users",
+            #        "localField": "owner",
+            #        "foreignField": "_id",
+            #        "as": "owner",
+            #    }},
+            #    {"$unwind": {"path": "$owner", "preserveNullAndEmptyArrays": True}},
+            #    {
+            #        "$addFields": {
+            #            "owner._id": {
+            #                "$cond": [
+            #                    {"$ifNull": ["$owner._id", False]},
+            #                    {"$toString": "$owner._id"},
+            #                    None
+            #                ]
+            #            }
+            #        }
+            #    },
         ]
         return next(collection.aggregate(pipeline), None)
 

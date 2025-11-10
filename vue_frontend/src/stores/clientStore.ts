@@ -14,6 +14,12 @@ export const clientStore = defineStore('client', {
     reader_id: '',
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
+    backend_config: {} as {
+      database_connected: boolean
+      mqtt_connected: boolean
+      llm_enabled: boolean
+      camera_enabled: boolean
+    }
   }),
   getters: {
     getClientId(): string {
@@ -90,6 +96,16 @@ export const clientStore = defineStore('client', {
     setExpectedEventAction(expected_event_action: EventAction) {
       this.expected_event_action = expected_event_action
     },
+    async fetchBackendConfig() {
+      axios
+        .get('/config/')
+        .then((response) => {
+          this.backend_config = response.data
+        })
+        .catch((error) => {
+          console.error('Error fetching backend config:', error)
+        })
+    }
   },
 })
 if (import.meta.hot) {

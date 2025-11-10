@@ -313,7 +313,7 @@ watch(
   () => {
     if (isComparing.value) {
       activeTab.value = 'itemData'
-    } else if (newItem.value) {
+    } else if (newItem.value && clientStore.backend_config.llm_enabled) {
       activeTab.value = 'objectIdentification'
     } else if (items.value.length > 0) {
       activeTab.value = 'containerTree'

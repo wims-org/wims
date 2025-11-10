@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "backend",
-      "type": "debugpy",
+      "type": "python",
       "python": "${workspaceFolder}/backend/.venv/bin/python",
       "request": "launch",
       "module": "uvicorn",
