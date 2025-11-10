@@ -49,8 +49,10 @@ async def lifespan(app: FastAPI):
 
 
 if os.environ.get("RUN_MODE", "") == "production":
+    logger.info("Started in production mode")
     app = FastAPI(lifespan=lifespan, redirect_slashes=False, root_path="/api")
 else:
+    logger.info("Started in development mode")
     app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
 app.include_router(readers.router)
