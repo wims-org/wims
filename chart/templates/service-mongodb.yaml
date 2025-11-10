@@ -1,0 +1,20 @@
+{{- with .Values.mongodb.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: wims-mongodb
+  labels:
+    helm.sh/chart: wims
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  type: {{ .type }}
+  ports:
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: TCP
+      name: {{ .name }}
+  selector:
+      app.kubernetes.io/name: wims
+      app.kubernetes.io/instance: wims-mongodb
+{{- end -}}

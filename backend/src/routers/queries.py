@@ -2,13 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from database_connector import MongoDBConnector
-from db.db_queries import (
-    create_query,
-    delete_query,
-    get_all_queries,
-    get_query_by_name,
-    update_query,
-)
+from db.db_queries import create_query, delete_query, get_all_queries, get_query_by_name, update_query
 
 router = APIRouter()
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, logger
+from fastapi import APIRouter, HTTPException, Request
 
 from dependencies.backend_service import BackendService
 

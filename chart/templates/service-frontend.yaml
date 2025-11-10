@@ -1,0 +1,20 @@
+{{- with .Values.frontend.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: wims-frontend
+  labels:
+    helm.sh/chart: wims
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  type: {{ .type }}
+  ports:
+    - port: {{ .port }}
+      targetPort: http
+      protocol: TCP
+      name: {{ .name }}
+  selector:
+      app.kubernetes.io/name: wims
+      app.kubernetes.io/instance: wims-frontend
+{{- end -}}

@@ -10,7 +10,7 @@ from dependencies.backend_service import BackendService
 from dependencies.config import read_config
 
 # Use absolute import
-from routers import camera, completion, healthz, items, queries, readers, stream
+from routers import camera, completion, healthz, items, queries, readers, scan, stream
 from utils import find
 
 # Read config
@@ -42,22 +42,17 @@ async def lifespan(app: FastAPI):
     app.state.config = config
     app.state.backend_service = BackendService(
         db_config=config.get("database", {}),
-        mqtt_config=config.get("mqtt", {}),
         config=config,
     )
-    app.state.backend_service.start_mqtt()
-    try:
-        scan_topic = find(key := "mqtt.topics.scan", config)
-    except (KeyError, TypeError) as e:
-        logger.error(f"Error updating config key {key}, check config file and environment variables: {e}")
-    app.state.backend_service.add_mqtt_topic(scan_topic or "rfid/scan/#")
     yield
     app.state.backend_service.close()
 
 
 if os.environ.get("RUN_MODE", "") == "production":
+    logger.info("Started in production mode")
     app = FastAPI(lifespan=lifespan, redirect_slashes=False, root_path="/api")
 else:
+    logger.info("Started in development mode")
     app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
 app.include_router(readers.router)
@@ -66,6 +61,7 @@ app.include_router(stream.router)
 app.include_router(healthz.router)
 app.include_router(camera.router)
 app.include_router(queries.router)
+app.include_router(scan.router)
 
 if find("features.openai", config):
     app.include_router(completion.router)

@@ -1,0 +1,136 @@
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations: 
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    spec.ingressClassName: traefik
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+  hosts:
+    - host: wims.projects.fleaz.me
+      paths:
+        - service:
+            name: wims-frontend
+            port:
+              number: 7080
+          path: /
+          pathType: Prefix
+        - service:
+            name: wims-backend
+            port:
+              number: 7090
+          path: /api
+          pathType: Prefix
+  tls: 
+    - hosts:
+      - wims.projects.fleaz.me
+      secretName: wims-tls
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/wims-org/wims-frontend
+    pullpolicy: ifnotpresent
+    tag: "dev"
+
+  podAnnotations: {}
+  podLabels: {}
+
+  ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+
+  service:
+    type: ClusterIP
+    port: 7080
+    name: http
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+
+  resources: {}
+  volumes: []
+  volumeMounts: []
+  env: {}
+
+
+backend:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/wims-org/wims-backend
+    pullpolicy: ifnotpresent
+    tag: "dev"
+
+  podAnnotations: {}
+  podLabels: {}
+
+  ports:
+    - name: http
+      containerPort: 8000
+      protocol: TCP
+
+  service:
+    type: ClusterIP
+    port: 7090
+    name: http
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+
+  resources: {}
+  volumes: []
+  volumeMounts: []
+  env:
+    - name: database.host
+      value: wims-mongodb.wims.svc
+    - name: database.user
+      value: root
+    - name: database.password
+      value: example
+    - name: database.port
+      value: "7050"
+    - name: RUN_MODE
+      value: production
+
+mongodb:
+  replicaCount: 1
+
+  image:
+    repository: mongodb/mongodb-community-server
+    pullpolicy: ifnotpresent
+    tag: "latest"
+
+  podAnnotations: {}
+  podLabels: {}
+
+  ports:
+    - name: mongodb
+      containerPort: 27017
+      protocol: TCP
+
+  service:
+    type: ClusterIP
+    port: 7050
+    name: mongodb
+    targetPort: mongodb
+
+  resources: {}
+  volumes: []
+  volumeMounts: []
+  env:
+    - name: MONGO_INITDB_ROOT_USERNAME
+      value: "root"
+    - name: MONGO_INITDB_ROOT_PASSWORD
+      value: "example"

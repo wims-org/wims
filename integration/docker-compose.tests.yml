@@ -5,7 +5,6 @@ services:
       - ./integration/playwright-results:/workspaces/integration/playwright-results
     environment:
       - CI=true
-      - MQTT_BROKER_URL=mqtt://mqtt:1883
     depends_on:
       - proxy
       - frontend
