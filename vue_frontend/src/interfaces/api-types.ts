@@ -346,6 +346,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All Users */
+        get: operations["get_all_users_users_get"];
+        put?: never;
+        /** Create User */
+        post: operations["create_user_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get User */
+        get: operations["get_user_users__id__get"];
+        /** Update User */
+        put: operations["update_user_users__id__put"];
+        post?: never;
+        /** Delete User */
+        delete: operations["delete_user_users__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/scan": {
         parameters: {
             query?: never;
@@ -363,34 +400,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/backup/create": {
+    "/config/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Create Backup */
-        get: operations["create_backup_backup_create_get"];
+        /** Config */
+        get: operations["config_config__get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/backup/load": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Backup */
-        post: operations["import_backup_backup_load_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -418,14 +438,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_import_backup_backup_load_post */
-        Body_import_backup_backup_load_post: {
-            /**
-             * File
-             * Format: binary
-             */
-            file: string;
-        };
         /** Change */
         Change: {
             /** User */
@@ -436,6 +448,15 @@ export interface components {
             diff_from_prev_version: {
                 [key: string]: unknown;
             };
+        };
+        /** ConfigResponseModel */
+        ConfigResponseModel: {
+            /** Database Connected */
+            database_connected: boolean;
+            /** Llm Enabled */
+            llm_enabled: boolean;
+            /** Camera Enabled */
+            camera_enabled: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -529,8 +550,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
             /** Borrowed */
             readonly borrowed: boolean;
             /** Container Name */
@@ -599,8 +620,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
         };
         /** ItemChangedResponse */
         ItemChangedResponse: {
@@ -695,8 +716,8 @@ export interface components {
             borrowed_at?: number | null;
             /** Borrowed Until */
             borrowed_until?: number | null;
-            /** Owner */
-            owner?: string | null;
+            /** Owner Id */
+            owner_id?: string | null;
         };
         /** ItemSearchRequest */
         ItemSearchRequest: {
@@ -784,6 +805,30 @@ export interface components {
             stream_id: string;
             /** Reader Id */
             reader_id?: string | null;
+        };
+        /** User */
+        User: {
+            /** Id */
+            _id: string;
+            /** Username */
+            username: string;
+            /** Tag Uuids */
+            tag_uuids?: string[];
+            /** Email */
+            email?: string | null;
+            /** Date Created */
+            date_created?: string;
+        };
+        /** UserRequest */
+        UserRequest: {
+            /** Username */
+            username: string;
+            /** Tag Uuids */
+            tag_uuids?: string[];
+            /** Email */
+            email?: string | null;
+            /** Date Created */
+            date_created?: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1757,6 +1802,202 @@ export interface operations {
             };
         };
     };
+    get_all_users_users_get: {
+        parameters: {
+            query?: {
+                term?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_user_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_users__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_users__id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["User"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_user_users__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     scan_event_scan_post: {
         parameters: {
             query?: never;
@@ -1797,7 +2038,7 @@ export interface operations {
             };
         };
     };
-    create_backup_backup_create_get: {
+    config_config__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1812,54 +2053,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    import_backup_backup_load_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_import_backup_backup_load_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": components["schemas"]["ConfigResponseModel"];
                 };
             };
         };

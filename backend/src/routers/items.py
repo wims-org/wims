@@ -3,15 +3,12 @@ import pymongo
 from fastapi import APIRouter, HTTPException, Query, Request
 from loguru import logger
 
-from database_connector import MongoDBConnector, RecursiveContainerObject
+from database_connector import RecursiveContainerObject
 from models.database import Item
 from models.requests import ItemBacklogRequest, ItemRequest
+from routers.utils import get_bs
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
-
-
-def get_db(request: Request) -> MongoDBConnector:
-    return request.app.state.backend_service.db
 
 
 class ItemChangedResponse(pydantic.BaseModel):
@@ -33,7 +30,7 @@ async def put_item(
         item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True
     )
 
-    old_item: dict = get_db(request).find_by_rfid(collection_name="items", rfid=rfid)
+    old_item: dict = get_bs(request).db.find_by_rfid(collection_name="items", rfid=rfid)
     if not old_item:
         raise HTTPException(status_code=404, detail="Item not found for update")
     old_item.update(item_data.model_dump(exclude_unset=True, exclude_none=True))
@@ -42,7 +39,7 @@ async def put_item(
     except pydantic.ValidationError as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
 
-    updated_rows = get_db(request).update(
+    updated_rows = get_bs(request).db.update(
         collection_name="items",
         query={"$or": [{"tag_uuid": rfid}]},
         update_values=old_item_data.model_dump(mode="json", by_alias=True),
@@ -65,7 +62,7 @@ async def post_item(
     logger.debug(f"Creating item: {str(item_dict)[:100]}")
     try:
         item = Item.model_validate(item_dict, from_attributes=True)
-        updated_rows = get_db(request).create(
+        updated_rows = get_bs(request).db.create(
             collection_name="items",
             document=item.model_dump(mode="json", by_alias=True),
         )
@@ -97,7 +94,7 @@ async def post_backlog_item(
     except pydantic.ValidationError as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
     try:
-        updated_rows = get_db(request).create(
+        updated_rows = get_bs(request).db.create(
             collection_name="items",
             document=item.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True),
         )
@@ -114,7 +111,7 @@ async def delete_item(
     request: Request,
     rfid: str,
 ) -> ItemChangedResponse:
-    updated_rows = get_db(request).delete(
+    updated_rows = get_bs(request).db.delete(
         collection_name="items",
         query={"tag_uuid": rfid},
     )
@@ -129,7 +126,7 @@ async def get_item(
     request: Request,
     rfid: str,
 ) -> Item:
-    item = get_db(request).find_by_rfid(collection_name="items", rfid=rfid)
+    item = get_bs(request).db.find_by_rfid(collection_name="items", rfid=rfid)
     if item:
         try:
             return Item.model_validate(item, strict=False, from_attributes=True)
@@ -151,7 +148,7 @@ async def get_item_with_containers(
     request: Request,
     rfid: str,
 ) -> RecursiveContainerObject:
-    recursive_containers = get_db(request).get_recursive_container_tags(collection_name="items", rfid=rfid)
+    recursive_containers = get_bs(request).db.get_recursive_container_tags(collection_name="items", rfid=rfid)
     if not recursive_containers:
         raise HTTPException(status_code=404, detail="Item not found")
     return recursive_containers
@@ -162,7 +159,7 @@ async def get_item_content(
     request: Request,
     rfid: str,
 ) -> list[Item]:
-    content = get_db(request).read(collection_name="items", query={"container_tag_uuid": rfid})
+    content = get_bs(request).db.read(collection_name="items", query={"container_tag_uuid": rfid})
     if not content:
         raise HTTPException(status_code=404, detail="Item content not found")
     return content
@@ -174,7 +171,7 @@ async def get_items(
     query: str | None = Query(None),
 ) -> list[Item]:
     if query:
-        items = get_db(request).read(
+        items = get_bs(request).db.read(
             collection_name="items",
             query={
                 "$or": [
@@ -188,7 +185,7 @@ async def get_items(
         )
         logger.debug(f"Found {len(items)} items matching query: {query}")
     else:
-        items = get_db(request).read(collection_name="items")
+        items = get_bs(request).db.read(collection_name="items")
     if items:
         return items
     else:
@@ -222,8 +219,8 @@ async def get_item_search(request: Request, item_search_req: ItemSearchRequest) 
         )
 
     items = (
-        get_db(request)
-        .db["items"]
+        get_bs(request)
+        .db.db["items"]
         .aggregate(
             [
                 {"$match": item_search_req.query},
@@ -242,11 +239,11 @@ async def get_item_search(request: Request, item_search_req: ItemSearchRequest) 
 async def patch_items(
     request: Request,
 ) -> list[Item]:
-    items = get_db(request).read(collection_name="items")
+    items = get_bs(request).db.read(collection_name="items")
     for item_data in items:
         item = Item.model_validate(item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
-        _ = get_db(request).update(
+        _ = get_bs(request).db.update(
             collection_name="items",
             query={"container_tag_uuid": item_data["container_tag_uuid"]},
             update_values=item_data,
@@ -266,7 +263,7 @@ async def bulk_import_items(
     Bulk import items. Accepts a list of item dicts.
     If an item with the same tag_uuid exists, it is updated; otherwise, it is created.
     """
-    db = get_db(request)
+    db = get_bs(request).db
     imported = 0
     updated = 0
     errors = []

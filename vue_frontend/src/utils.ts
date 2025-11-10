@@ -73,4 +73,18 @@ const setReaderId = async (router: Router) => {
   }
 }
 
-export { formatDate, getFieldModel, updateFieldModel, setReaderId }
+const setUserFromSessionStorage = () => {
+  const client_store = clientStore()
+
+  const stored_user_id_ttl = 1 * (60 * 60 * 1000) // 1 hour
+  const stored_user_id = sessionStorage.getItem('user_id')
+  const stored_user_id_time = sessionStorage.getItem('user_id_time')
+  if (stored_user_id && stored_user_id_time && Date.now() - parseInt(stored_user_id_time) < stored_user_id_ttl) {
+    client_store.setUser(stored_user_id)
+  } else {
+    sessionStorage.removeItem('user_id')
+    sessionStorage.removeItem('user_id_time')
+  }
+}
+
+export { formatDate, getFieldModel, updateFieldModel, setReaderId, setUserFromSessionStorage  }

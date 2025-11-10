@@ -91,6 +91,7 @@ import ContainerListComponent from '@/components/shared/ContainerListComponent.v
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type User = components['schemas']['User'] & { [key: string]: unknown }
 
 // Reactive State
 const route = useRoute()
@@ -195,11 +196,12 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
   saveError.value = ''
   try {
     isComparing.value = false
+    const requestData = buildItemRequest(formData)
     if (newItem.value) {
-      await axios.post('/items', formData)
+      await axios.post('/items', requestData)
       alert('Item created successfully')
     } else {
-      await axios.put(`/items/${itemId.value}`, formData)
+      await axios.put(`/items/${itemId.value}`, requestData)
       alert('Item updated successfully')
     }
     fetchItem()
@@ -208,6 +210,14 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     console.error('Error submitting form:', error)
   }
   tabCheck.value++
+}
+
+const buildItemRequest = (formData: Record<string, unknown>): Record<string, unknown> => {
+  // Transform the formData into the format expected by the API
+  return {
+    ...formData,
+    owner: null
+  }
 }
 
 const handleCompletion = (result: { data: { response: object } }) => {
@@ -303,7 +313,7 @@ watch(
   () => {
     if (isComparing.value) {
       activeTab.value = 'itemData'
-    } else if (newItem.value) {
+    } else if (newItem.value && clientStore.backend_config.llm_enabled) {
       activeTab.value = 'objectIdentification'
     } else if (items.value.length > 0) {
       activeTab.value = 'containerTree'

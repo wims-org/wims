@@ -7,6 +7,7 @@
       <li class="list-group-item" @click="$router.push('/items')">Items</li>
       <li class="list-group-item" @click="$router.push('/readers')">Readers</li>
       <li class="list-group-item" @click="$router.push('/import')">Import</li>
+      <li class="list-group-item" @click="$router.push('/users')">Users</li>
     </ul>
   </main>
 </template>

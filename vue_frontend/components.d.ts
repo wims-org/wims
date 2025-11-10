@@ -46,6 +46,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchComponent: typeof import('./src/components/shared/SearchComponent.vue')['default']
+    SearchInput: typeof import('./src/components/fields/SearchInput.vue')['default']
     SearchModal: typeof import('./src/components/shared/SearchModal.vue')['default']
     TextAreaField: typeof import('./src/components/fields/TextAreaField.vue')['default']
     TextField: typeof import('./src/components/fields/TextField.vue')['default']

@@ -41,7 +41,7 @@ class ItemRequest(BaseModel):
     borrowed_by: str | None = None
     borrowed_at: int | None = None
     borrowed_until: int | None = None
-    owner: str | None = None
+    owner_id: str | None = None
 
 
 class ItemBacklogRequest(ItemRequest):

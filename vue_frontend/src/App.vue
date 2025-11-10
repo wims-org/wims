@@ -8,6 +8,7 @@
           <RouterLink to="/">Home</RouterLink>
           <RouterLink to="/items">Items</RouterLink>
           <RouterLink to="/readers">Readers</RouterLink>
+          <RouterLink to="/users">Users</RouterLink>
           <RouterLink to="/about">About</RouterLink>
         </nav>
       </div>
@@ -23,7 +24,9 @@ import { useRouter, useRoute } from 'vue-router';
 import TitleComponent from './components/TitleComponent.vue';
 import eventBus, { type Events } from './stores/eventBus';
 import { EventAction } from './interfaces/EventAction';
-import { setReaderId } from './utils';
+import { setReaderId , setUserFromSessionStorage } from './utils'
+import { clientStore } from '@/stores/clientStore';
+
 
 // Router and Route
 const router = useRouter();
@@ -33,11 +36,14 @@ const route = useRoute();
 onMounted(async () => {
   await router.isReady();
   setReaderId(router);
+  setUserFromSessionStorage();
 
   // Handle scan event from event bus
   eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
     router.push('/items/' + data.rfid);
   });
+
+  clientStore().fetchBackendConfig();
 });
 
 // Watchers

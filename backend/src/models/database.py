@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 
 class User(BaseModel):
+    id: str = Field(alias="_id")  # MongoDB ObjectId
     username: str
-    tag_uuid: list[str]
+    tag_uuids: list[str] = Field(default_factory=list)
     email: str | None = None
+    date_created: str | datetime = Field(default_factory=datetime.now)
 
 
 class Size(BaseModel):
@@ -24,7 +26,7 @@ class Change(BaseModel):
     # Size Information in mm
     user: str
     timestamp: int  # Unix timestamp
-    diff_from_prev_version: dict[str, any]
+    diff_from_prev_version: dict[str, Any]
 
 
 class Relation(BaseModel):
@@ -54,7 +56,8 @@ class Item(BaseModel):
     # Item Details
     description: str | None = None
     min_amount: int | None = None  # Minimum amount of items, for alerts
-    tags: set[str] = Field(default_factory=set)  # custom tags for categorization
+    # custom tags for categorization
+    tags: set[str] = Field(default_factory=set)
     # Bindata image document id, <16MB, collection "images"
     images: list[str] = []
     cost_new: float | None = None  # per item in Euros when new
@@ -82,7 +85,8 @@ class Item(BaseModel):
     borrowed_by: str | None = None  # UUID of the user borrowing the item
     borrowed_at: int | None = None  # Unix timestamp
     borrowed_until: int | None = None  # Unix timestamp
-    owner: str | None = None  # UUID of the user owning the item
+    owner_id: str | None = None  # UUID of the user owning the item
+    # owner: User | None | str = None  # User information of the owner
 
     @computed_field
     def borrowed(self) -> bool:
