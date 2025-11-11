@@ -25,7 +25,6 @@ defineProps({
   value: {
     type: String,
     default: '',
-    required: true,
   },
   disabled: {
     type: Boolean,
@@ -46,7 +45,7 @@ defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string): void
+  (e: 'update:value', value: string | null): void
 }>()
 
 function updateField(event: Event) {

@@ -40,7 +40,6 @@
 
                 # backend
                 ruff.enable = true;
-                isort.enable = true;
               };
             };
           };

@@ -32,7 +32,7 @@ const props = defineProps({
     default: '',
   },
   value: {
-    type: [String, Number],
+    type: [String, Number, null],
     default: '',
   },
   disabled: {
@@ -54,7 +54,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'update:value', value: number): void
+  (e: 'update:value', value: number | null): void
 }>()
 
 function updateField(event: Event) {

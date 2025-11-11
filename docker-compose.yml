@@ -41,5 +41,3 @@ services:
 
 volumes:
   mongodb-data:
-  mosquitto-data:
-  mosquitto-log:

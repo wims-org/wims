@@ -3,16 +3,36 @@
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
-    <div class="d-flex justify-content-between mb-3">
+    <div class="d-flex mb-3">
       <button
         @click="toggleDetails"
         type="button"
-        class="btn btn-secondary mt-3 mr-auto"
+        class="btn btn-secondary p-2"
         data-testid="toggle-details-button"
       >
         {{ showDetails ? 'Hide Details' : 'Show Details' }}
       </button>
-      <button @click="handleSubmit" type="button" class="btn btn-primary mt-3">Submit</button>
+      <button
+        v-if="borrow_able()"
+        type="button"
+        class="btn btn-warning p-2 ms-2"
+        data-testid="borrow-item-button"
+        @click="borrow()"
+      >
+        Borrow Item
+      </button>
+      <button
+        v-if="props.item?.borrowed_by && props.item?.borrowed_by === clientStore().user?._id"
+        type="button"
+        class="btn btn-danger p-2 ms-2"
+        data-testid="return-item-button"
+        @click="returnItem()"
+      >
+        Return Item
+      </button>
+      <button @click="handleSubmit" type="button" class="btn btn-primary p-2 ms-auto">
+        Submit
+      </button>
     </div>
     <h1 class="mb-4">{{ item?.short_name }}</h1>
     <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
@@ -50,6 +70,7 @@ import { formFields } from '@/interfaces/FormField.interface'
 import { fieldTypeToComponent } from '@/utils/form.helper'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
+import { clientStore } from '@/stores/clientStore'
 
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
@@ -74,7 +95,7 @@ const props = defineProps({
 const emit = defineEmits(['submit'])
 
 // Reactive State
-const formData = ref<Record<string, unknown>>({})
+const formData = ref<Record<string, unknown | null>>({})
 const unsavedChanges = ref(false)
 const showDetails = ref(false)
 
@@ -110,11 +131,10 @@ const getFieldComponent = (type: string) => {
 
 const updateFieldModel = (value: unknown, key: string, type: string) => {
   if (value === formData.value[key]) return // No change, do nothing
-  console.log(`Updating field ${key} with value:`, value)
   if (type === 'checkbox') {
     formData.value[key] = Boolean(value)
   } else if (type === 'epoch') {
-    formData.value[key] = new Date(value as string).getTime() / 1000
+    formData.value[key] = Math.floor(new Date(value as number).getTime() / 1000)
   } else if (type === 'number') {
     formData.value[key] = Number(value)
   } else if (type === 'array') {
@@ -129,7 +149,7 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
           formData.value['container'] = { tag_uuid: value } as Item
         })
     } else {
-      formData.value['container'] = undefined // Clear the field if no value
+      formData.value['container'] = null // Clear the field if no value
     }
     formData.value[key] = value as string
   } else if (type === 'user') {
@@ -138,6 +158,24 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
     formData.value[key] = value
   }
   unsavedChanges.value = true // Mark changes as unsaved
+}
+
+const borrow_able = () => {
+  return !props.item?.borrowed_by && !props.item?.borrowed_until && clientStore().user?._id
+}
+
+const borrow = () => {
+  if (clientStore().user) {
+    updateFieldModel(clientStore().user?._id, 'borrowed_by', 'user')
+    updateFieldModel(Date.now() + 604800000, 'borrowed_until', 'epoch') // 7 days from now
+    handleSubmit()
+  }
+}
+
+const returnItem = () => {
+  updateFieldModel(null, 'borrowed_by', 'user')
+  updateFieldModel(null, 'borrowed_until', 'epoch')
+  handleSubmit()
 }
 </script>
 
