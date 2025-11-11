@@ -10,7 +10,7 @@ esphome:
     - priority: 200.0
       then:
       - http_request.post:
-          url: ${wims_url}/reader
+          url: ${wims_url}/readers
           capture_response: true
           # max_response_buffer_size: 200B
           request_headers:
