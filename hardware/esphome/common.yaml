@@ -1,35 +1,27 @@
-substitutions:
-  reader_id: !secret reader_id
-  name: rfid-reader-${reader_id}
-  friendly_name: RFID Reader ${reader_id}
-  wims_url: !secret wims_url
-
 esphome:
-  name: ${name}
-  friendly_name: ${friendly_name}
+  name: ${reader_name}
   min_version: 2025.4.0
   name_add_mac_suffix: false
   project:
     name: esphome.web
     version: dev
   on_boot:
-  # Beep during boot
-    - priority: -100.0
+    # include optional bootup sound
+    - priority: 200.0
       then:
-        - rtttl.play: "scanner_beep:d=16,o=5,b=100:4e,4e,4e,8c,p,g,4e" # Star Wars Theme
-        - display.page.show: page_qrcode
-  
-
-esp32:
-  board: esp32-c3-devkitm-1
-  variant: esp32c3
-  framework:
-    #type: esp-idf
-    type: arduino
+      - http_request.post:
+          url: ${wims_url}/reader
+          capture_response: true
+          # max_response_buffer_size: 200B
+          request_headers:
+            Content-Type: application/json
+          json:
+            reader_id: ${reader_id}
+            reader_name: ${reader_name}
 
 # Enable logging
 logger:
-  #level: INFO
+  level: INFO
 
 # Enable Home Assistant API
 # api:
@@ -41,18 +33,15 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  #power_save_mode: none
-  fast_connect: true
-  output_power: 8.5
 
   # Fallback access point
   ap:
-    ssid: "${name}"
+    ssid: "${reader_name}"
     password: !secret fallback_psk
 
 # In combination with the `ap` this allows the user
 # to provision wifi credentials to the device via WiFi AP.
-captive_portal:
+# captive_portal:
 
 # HTTP module
 http_request:
@@ -60,8 +49,8 @@ http_request:
 
 # I2C für RFID (PN532) und OLED-Display
 i2c:
-  sda: 4
-  scl: 5
+  sda: ${sda_pin}
+  scl: ${scl_pin}
   scan: true
   id: bus_a
 
@@ -69,7 +58,7 @@ globals:
   - id: device_name
     type: std::string
     restore_value: no
-    initial_value: '"${name}"'
+    initial_value: '"${reader_name}"'
 
   - id: rfid_message
     type: std::string
@@ -100,14 +89,14 @@ pn532_i2c:
           id(rfid_message) = "Loading...";
       - rtttl.play: "scanner_beep:d=4,o=5,b=180:16a5,16a6"
       - http_request.post:
-          url: ${wims_url}/api/scan
+          url: ${wims_url}/scan
           capture_response: true
           # max_response_buffer_size: 200B
           request_headers:
             Content-Type: application/json
           json:
             reader_id: ${reader_id}
-            tag_id: !lambda 'return x;'
+            tag_id: !lambda "return x;"
           on_response:
             - if:
                 condition:
@@ -141,10 +130,10 @@ pn532_i2c:
                       args: ["response->status_code", "body.c_str()"]
 
 display:
-  - platform: ssd1306_i2c
-    model: "SSD1306 128x64"
-    # rotation: 180
-    flip_x: true
+  - platform: ${display_platform}
+    model: ${display_model}
+    rotation: ${display_rotate}
+    flip_x: ${display_flip_x}
     id: oled_display
     update_interval: 1s
     pages:
@@ -176,7 +165,7 @@ font:
 
 output:
   - platform: ledc
-    pin: GPIO10
+    pin: ${rtttl_pin}
     id: rtttl_out
 
 rtttl:
