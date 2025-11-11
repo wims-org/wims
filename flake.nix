@@ -29,9 +29,9 @@
                 # Firmware
                 "esphome config" = {
                   enable = true;
-                  entry = "${lib.getExe pkgs.esphome} config hardware/esphome/firmware.yaml";
+                  entry = "${lib.getExe pkgs.esphome} config hardware/esphome/example_reader.yaml";
                   pass_filenames = false;
-                  files = "^hardware/esphome/.*";
+                  files = "^hardware/esphome/.*.yaml";
                 };
 
                 # Nix environment

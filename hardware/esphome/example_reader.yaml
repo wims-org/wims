@@ -3,7 +3,7 @@ packages:
     file: common.yaml
     vars:
       reader_id: "1337-42-4711"
-      reader_name: "thisIsMyReader"
+      reader_name: "thisismyreader"
       wims_url: http://10.10.37.213:5005
       display_platform: ssd1306_i2c
       display_model: "SSD1306 128x64"
