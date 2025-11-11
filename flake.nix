@@ -61,6 +61,9 @@
               # backend
               poetry
 
+              # cli
+              uv
+
               # hardware
               python3Packages.pyserial
               esptool
