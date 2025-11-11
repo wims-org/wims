@@ -36,6 +36,12 @@
                 class="thumbnail"
                 alt="Image Thumbnail"
               />
+              <img
+                v-else
+                src="@/assets/placeholder.png"
+                class="thumbnail"
+                alt="Image Thumbnail"
+              />
             </BCol>
             <BCol col-11>
               <h5 class="mb-1">{{ item.short_name }}</h5>
@@ -43,9 +49,20 @@
             </BCol>
           </BRow>
         </template>
-        <template v-if="activeViewMode === 'image' && item.images?.length">
-          <div class="thumbnail-container" v-if="activeViewMode === 'image' && item.images?.length">
-            <img :src="item.images[0]" class="thumbnail" alt="Image Thumbnail" />
+        <template v-if="activeViewMode === 'image'">
+          <div class="thumbnail-container" v-if="activeViewMode === 'image'">
+              <img
+                v-if="item.images?.length"
+                :src="item.images[0]"
+                class="thumbnail"
+                alt="Image Thumbnail"
+              />
+              <img
+                v-else
+                src="@/assets/placeholder.png"
+                class="thumbnail"
+                alt="Image Thumbnail"
+              />
           </div>
         </template>
       </div>
