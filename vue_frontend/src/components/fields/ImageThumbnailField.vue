@@ -14,7 +14,7 @@
             <font-awesome-icon icon="check" />
           </div>
         </div>
-        <div v-if="value.length === 0" class="text-center m-2">
+        <div v-if="value?.length === 0" class="text-center m-2">
           <font-awesome-icon icon="camera" size="xl" />
           <p>No images</p>
         </div>
@@ -45,9 +45,8 @@ const props = defineProps({
     required: false,
   },
   value: {
-    type: Array as () => string[],
+    type: Array as () => (string[] | null),
     default: () => [],
-    required: true,
   },
   disabled: {
     type: Boolean,
@@ -88,7 +87,7 @@ function addImage(event: Event) {
     const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target?.result) {
-        const updatedValue = [...props.value, e.target.result as string] as string[]
+        const updatedValue = [...(props.value || []), e.target.result as string] as string[]
         emit('update:value', updatedValue)
       }
     }
@@ -97,6 +96,7 @@ function addImage(event: Event) {
 }
 
 function removeImage(index: number) {
+  if (!props.value) return
   const updatedValue = props.value.filter((_, i) => i !== index) as string[]
   emit('update:value', updatedValue)
 }

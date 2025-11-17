@@ -32,7 +32,7 @@ defineProps({
   },
   value: {
     type: Boolean,
-    default: undefined,
+    default: null,
   },
   disabled: {
     type: Boolean,

@@ -27,8 +27,7 @@ def setup_middleware(app):
     origins = [
         "*",
     ]
-    origins.append(
-        f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
+    origins.append(f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,

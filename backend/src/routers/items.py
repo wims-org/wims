@@ -18,36 +18,24 @@ class ItemChangedResponse(pydantic.BaseModel):
 
 
 @router.put("/{rfid}", response_model=ItemChangedResponse)
-async def put_item(
-    request: Request,
-    rfid: str,
-    item: ItemRequest | None = None,
-) -> ItemChangedResponse:
-    # update item
-    if item is None:
-        item = await request.json()
-    item_data = Item.model_validate(
-        item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True
-    )
-
-    old_item: dict = get_bs(request).db.find_by_rfid(collection_name="items", rfid=rfid)
-    if not old_item:
-        raise HTTPException(status_code=404, detail="Item not found for update")
-    old_item.update(item_data.model_dump(exclude_unset=True, exclude_none=True))
+async def put_item(request: Request, rfid: str, item: ItemRequest) -> ItemChangedResponse:
+    """
+    Update an item. If the item does not exist or is invalid, an error is raised.
+    """
     try:
-        old_item_data = Item.model_validate(old_item, strict=False, from_attributes=True)
+        item_data = Item.model_validate(
+            item.model_dump(exclude_unset=True, exclude_none=True), strict=False, from_attributes=True
+        )
     except pydantic.ValidationError as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {e}") from None
 
-    updated_rows = get_bs(request).db.update(
+    if not get_bs(request).db.update(
         collection_name="items",
         query={"$or": [{"tag_uuid": rfid}]},
-        update_values=old_item_data.model_dump(mode="json", by_alias=True),
-    )
-    if updated_rows:
-        return ItemChangedResponse(message="Item updated successfully")
-    else:
+        update_values=item_data.model_dump(mode="json", by_alias=True),
+    ):
         raise HTTPException(status_code=404, detail="Failed to update item, item not found or no changes made")
+    return ItemChangedResponse(message="Item updated successfully")
 
 
 @router.post("", response_model=ItemChangedResponse)

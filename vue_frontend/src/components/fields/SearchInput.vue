@@ -15,11 +15,17 @@
           :required="required"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
           @focus="expanded = true"
-          @blur="closeDropdown()"
+          @blur="handleBlur()"
+          @keydown.enter="handleEnter()"
+          @keydown.esc="clearSearch()"
         />
         <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu show">
           <li v-for="option in dropdownOptions" :key="option.id">
-            <a class="dropdown-item" href="#" @click="selectOption(option)">
+            <a 
+              class="dropdown-item" 
+              href="#" 
+              @mousedown.prevent="selectOption(option)"
+            >
               {{ option.display_string }}
             </a>
           </li>
@@ -28,6 +34,7 @@
     </div>
   </BContainer>
 </template>
+
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import axios from 'axios'
@@ -76,6 +83,7 @@ const props = defineProps({
     default: false,
   },
 })
+
 const searchTerm = ref('')
 const dropdownOptions = ref<searchResult[]>([])
 const expanded = ref(false)
@@ -83,7 +91,7 @@ const emit = defineEmits<{
   (e: 'update:value', value: User | Item | Query | string): void
 }>()
 const debounceTimeout = ref<NodeJS.Timeout | null>(null)
-const minLength = 3 // Minimum length for search term
+const minLength = 3
 const selection = ref(false)
 
 const fetchSearchResults = async (term: string) => {
@@ -97,6 +105,7 @@ const fetchSearchResults = async (term: string) => {
     dropdownOptions.value = []
   }
 }
+
 watch(
   () => props.value,
   (newValue) => {
@@ -140,17 +149,28 @@ const selectOption = (option: searchResult) => {
   }, 300)
 }
 
+const handleBlur = () => {
+  expanded.value = false
+}
+
+const handleEnter = () => {
+  if (dropdownOptions.value.length > 0) {
+    selectOption(dropdownOptions.value[0])
+  }
+  clearSearch()
+}
+
+const clearSearch = () => {
+  searchTerm.value = ''
+  dropdownOptions.value = []
+  expanded.value = false
+  emit('update:value', '')
+}
+
 interface searchResult {
   id: string
   display_string: string
   select: User | Item | Query | string
-}
-
-const closeDropdown = () => {
-  // defer @blur to register the click before the dropdown closes... this is fucked up, i know
-  setTimeout(() => {
-    expanded.value = false
-  }, 300)
 }
 
 const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searchResult[] => {
@@ -183,17 +203,14 @@ const getSearchTermFromValue = (value: string) => {
         return axios.get(`/users/${value}`).then((response) => {
           resolve(response.data.username)
         })
-        break
       case SearchType.ITEM:
         return axios.get(`/items/${value}`).then((response) => {
           resolve(response.data.name)
         })
-        break
       case SearchType.QUERY:
         return axios.get(`/queries/${value}`).then((response) => {
           resolve(response.data.name)
         })
-        break
       default:
         resolve('')
     }

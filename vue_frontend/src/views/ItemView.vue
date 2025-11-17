@@ -56,7 +56,7 @@
             @submit="handleFormSubmit"
           />
         </BTab>
-        <BTab title="Object Identification" id="objectIdentification" data-testid="object-identification">
+        <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification" data-testid="object-identification">
           <LLMCompletion :images="item?.images" />
         </BTab>
       </BTabs>
@@ -144,20 +144,20 @@ const fetchItem = async () => {
 }
 
 const fetchContainerContent = async () => {
-  try {
-    const response = await axios.get(`/items/${itemId.value}/content`)
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      items.value = response.data as Item[]
+  axios.get(`/items/${itemId.value}/content`).then((res) => {
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      items.value = res.data as Item[]
       noContent.value = false
     } else {
       items.value = []
       noContent.value = true
     }
-  } catch {
-    noContent.value = true
+  }).catch(() => {
     items.value = []
-  }
-  tabCheck.value++
+    noContent.value = true
+  }).finally(() => {
+    tabCheck.value++
+  })
 }
 
 const fetchPrevNextItems = async () => {
@@ -187,8 +187,8 @@ const fetchPrevNextItems = async () => {
     if (nextItem.data.length > 0) {
       nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
     }
-  } catch (error) {
-    console.error('Error fetching next items:', error)
+  } catch {
+    nextItemId.value = ''
   }
 }
 

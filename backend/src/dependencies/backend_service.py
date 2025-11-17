@@ -165,3 +165,10 @@ class BackendService:
 
     def is_ready(self) -> bool:
         return self.db.is_connected()
+
+    def get_config(self) -> ConfigResponseModel:
+        return ConfigResponseModel(
+            database_connected=self.db.is_connected(),
+            llm_enabled=self.llm_completion is not None,
+            camera_enabled=self.camera is not None,
+        )
