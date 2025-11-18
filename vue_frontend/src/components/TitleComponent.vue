@@ -1,33 +1,77 @@
 <template>
-  <div class="greetings">
-    <router-link to="/" style="text-decoration: none; color: inherit">
-      <h1>{{ msg }}</h1>
-    </router-link>
-    <div data-testid="sse-connection-state" class="row">
-      <span v-if="connection_state === 0" class="icon-connected">
-        🟢 Connected to Reader with id {{ client_store.reader_id }}
-      </span>
-      <span v-else-if="connection_state === 1" class="icon-connecting">
-        <div class="spinner-border spinner-border-sm" role="status"></div>
-        Connecting to backend...
-      </span>
-      <span v-else-if="connection_state === 2" class="icon-disconnected">
-        🔴 Not Connected to a reader, choose one at
-        <router-link to="/readers">readers</router-link>
-      </span>
-      <span v-else class="icon-disconnected">
-        🔴 Not Connected to a reader, choose one at
-        <router-link to="/readers">readers</router-link>
-      </span>
-      <span v-if="user" class="user-info">
-        Logged in as: <strong>{{ user.username }}</strong>
-      </span>
-      <span v-else class="user-info">
-        Not logged in, please log in at <router-link to="/users">users</router-link>
-      </span>
-    </div>
-  </div>
+  <BNavbar class="header" variant="primary" sticky="top">
+    <BNavbar class="nav-container" fluid>
+      <BNavbarBrand href="/">
+        <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block" height="50" />
+        {{ msg }}</BNavbarBrand
+      >
+      <BCollapse id="nav-collapse" is-nav>
+        <BNavbarNav >
+          <BNavItemDropdown text="Functions" right hover>
+            <BDropdownItem href="/items">Items</BDropdownItem>
+            <BDropdownItem href="/readers">Readers</BDropdownItem>
+            <BDropdownItem href="/users">Users</BDropdownItem>
+            <BDropdownItem href="/about">About</BDropdownItem>
+          </BNavItemDropdown>
+          <BNavItemDropdown right>
+            <!-- Using 'button-content' slot -->
+            <template #button-content>
+              <text v-if="user">{{ user?.username }}</text>
+              <em v-else>User</em>
+            </template>
+            <BDropdownItem>Profile</BDropdownItem>
+            <BDropdownItem>Sign Out</BDropdownItem>
+          </BNavItemDropdown>
+        </BNavbarNav>
+      </BCollapse>
+
+      <BNavbar v-b-color-mode="'dark'" variant="primary" class="ms-auto">
+        <BNav>
+          <BNavItem href="/readers">{{ connection_msg }}</BNavItem>
+        </BNav>
+        <BNavForm>
+          <BFormInput class="me-sm-2" placeholder="Search" />
+          <BButton variant="outline-success" class="my-2 my-sm-0" type="submit">Search</BButton>
+        </BNavForm>
+      </BNavbar>
+    </BNavbar>
+  </BNavbar>
 </template>
+
+<style scoped>
+.header {
+  align-items: center;
+  background-color: var(--primary-bg-color);
+  border-bottom: 1px solid var(--border-color);
+  display: block;
+  width: 100vw;
+}
+
+.header ::after {
+  display: none;
+}
+.header .navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  width: var(--content-max-width);
+}
+
+@media (max-width: var(--content-max-width)) {
+  .nav-container {
+    max-width: var(--content-max-width-small) !important;
+    margin: 0 0 !important;
+  }
+}
+</style>
 
 <script setup lang="ts">
 import { computed } from 'vue'
@@ -40,6 +84,17 @@ const server_stream = serverStream()
 const msg = 'WIMS?!'
 
 // Computed Properties
+
+const connection_msg = computed(() => {
+  if (connection_state.value === 0) {
+    return `🟢 ${client_store.reader_id}`
+  } else if (connection_state.value === 1) {
+    return 'Connecting...'
+  } else {
+    return '🔴 Connect'
+  }
+})
+
 const connection_state = computed(() => {
   if (
     server_stream.alive &&
@@ -58,17 +113,3 @@ const user = computed(() => {
   return client_store.user
 })
 </script>
-
-<style scoped>
-.icon-connected {
-  color: green;
-}
-
-.icon-connecting {
-  color: gray;
-}
-
-.icon-disconnected {
-  color: red;
-}
-</style>
