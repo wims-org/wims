@@ -106,7 +106,7 @@ const removeItem = (index: number) => {
 .pill {
   display: flex;
   align-items: center;
-  background-color: #e0e0e0;
+  background-color: var(--hover-bg);
   border-radius: 15px;
   padding: 0px .75rem;
 }

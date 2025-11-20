@@ -1,39 +1,98 @@
 <template>
-  <BNavbar class="header" variant="primary" sticky="top">
+  <BNavbar class="header" sticky="top">
     <BNavbar class="nav-container" fluid>
-      <BNavbarBrand href="/">
-        <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block" height="50" />
-        {{ msg }}</BNavbarBrand
-      >
-      <BCollapse id="nav-collapse" is-nav>
-        <BNavbarNav >
-          <BNavItemDropdown text="Functions" right hover>
-            <BDropdownItem href="/items">Items</BDropdownItem>
-            <BDropdownItem href="/readers">Readers</BDropdownItem>
-            <BDropdownItem href="/users">Users</BDropdownItem>
-            <BDropdownItem href="/about">About</BDropdownItem>
-          </BNavItemDropdown>
-          <BNavItemDropdown right>
-            <!-- Using 'button-content' slot -->
-            <template #button-content>
-              <text v-if="user">{{ user?.username }}</text>
-              <em v-else>User</em>
-            </template>
-            <BDropdownItem>Profile</BDropdownItem>
-            <BDropdownItem>Sign Out</BDropdownItem>
-          </BNavItemDropdown>
-        </BNavbarNav>
-      </BCollapse>
+      <BNavbarBrand to="/">
+        <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block me-2" height="50" />
+        <span class="d-none d-sm-inline">{{ msg }}</span>
+      </BNavbarBrand>
 
-      <BNavbar v-b-color-mode="'dark'" variant="primary" class="ms-auto">
-        <BNav>
-          <BNavItem href="/readers">{{ connection_msg }}</BNavItem>
+      <!-- Offcanvas side menu for mobile screens -->
+      <BOffcanvas id="offcanvasMenu" title="Menu" placement="start" is-nav>
+        <BNav vertical>
+          <BNavItem to="/items">Items</BNavItem>
+          <BNavItem to="/readers">Readers</BNavItem>
+          <BNavItem to="/users">Users</BNavItem>
+          <BNavItem to="/about">About</BNavItem>
+          <hr />
+
+          <BNavItem v-if="user" to="/users/{{ user?.id }}">{{ user?.username }}</BNavItem>
+          <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
+          <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
-        <BNavForm>
-          <BFormInput class="me-sm-2" placeholder="Search" />
-          <BButton variant="outline-success" class="my-2 my-sm-0" type="submit">Search</BButton>
+
+        <div class="mt-2">
+          <BFormGroup class="d-flex">
+            <BFormInput placeholder="Search" />
+            <BButton variant="outline-light" class="me-2" @click="search">
+              <IMaterialSymbolsChevronRight />
+            </BButton>
+          </BFormGroup>
+        </div>
+
+        <div class="mt-3 ms-3 d-flex align-items-center">
+          <IMaterialSymbolsSunny />
+          <BFormCheckbox
+            switch
+            :checked="isDark"
+            @change="toggleTheme"
+            class="mx-2"
+            aria-label="Toggle dark theme"
+          >
+            <IMaterialSymbolsMoonStarsOutline />
+          </BFormCheckbox>
+        </div>
+      </BOffcanvas>
+
+      <!-- Desktop Navigation -->
+
+      <BNav class="d-flex d-lg-none ms-auto">
+        <BNavItem to="/readers" class="text-nowrap">{{ connection_msg }}</BNavItem>
+      </BNav>
+      <BNavbar class="d-none d-lg-flex align-items-center">
+        <BNav>
+          <BNavItem to="/readers" class="text-nowrap">{{ connection_msg }}</BNavItem>
+          <BNavItem v-if="user" to="/users/{{ user?.id }}">{{ user?.username }}</BNavItem>
+          <BNavItem v-else to="/users">Sign In</BNavItem>
+        </BNav>
+
+        <BCollapse id="nav-collapse" class="d-lg-flex d-none">
+          <BNavbarNav>
+            <BNavItemDropdown right hover>
+              <template #button-content>
+                <IMaterialSymbolsChevronRight
+                  @click="menuOpen = !menuOpen"
+                  :style="{
+                    transform: menuOpen ? 'rotate(90deg)' : 'rotate(-90deg)',
+                    transition: 'transform 0.3s ease',
+                  }"
+                />
+              </template>
+              <BNavItem to="/items">Items</BNavItem>
+              <BNavItem to="/readers">Readers</BNavItem>
+              <BNavItem to="/users">Users</BNavItem>
+              <BNavItem to="/about">About</BNavItem>
+            </BNavItemDropdown>
+          </BNavbarNav>
+        </BCollapse>
+        <BNavForm @onSubmit.prevent="search" class="mx-2">
+          <BFormInput placeholder="Search" />
         </BNavForm>
+        <IMaterialSymbolsSunny />
+        <BFormCheckbox
+          switch
+          :checked="isDark"
+          @change="toggleTheme"
+          size="lg"
+          class="mx-2"
+          aria-label="Toggle dark theme"
+        >
+          <IMaterialSymbolsMoonStarsOutline />
+        </BFormCheckbox>
       </BNavbar>
+
+      <BNavbarToggle target="offcanvasMenu" class="d-flex d-lg-none" aria-label="Open menu">
+        <IMaterialSymbolsMenu />
+      </BNavbarToggle>
     </BNavbar>
   </BNavbar>
 </template>
@@ -41,10 +100,14 @@
 <style scoped>
 .header {
   align-items: center;
-  background-color: var(--primary-bg-color);
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--color-navbar);
   display: block;
   width: 100vw;
+  background: linear-gradient(45deg, var(--color-navbar), var(--color-primary));
+
+  box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -webkit-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -moz-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .header ::after {
@@ -52,8 +115,11 @@
 }
 .header .navbar-brand {
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--color-primary-contrast) !important;
 }
+
 .nav-container {
   display: flex;
   justify-content: space-between;
@@ -77,11 +143,14 @@
 import { computed } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
+import { useThemeStore } from '@/stores/themeStore'
+import { ref } from 'vue'
 
 // State and Stores
 const client_store = clientStore()
 const server_stream = serverStream()
 const msg = 'WIMS?!'
+const menuOpen = ref(false)
 
 // Computed Properties
 
@@ -112,4 +181,22 @@ const connection_state = computed(() => {
 const user = computed(() => {
   return client_store.user
 })
+
+function signOut() {
+  // clear user in client store
+  client_store.unsetUser()
+}
+
+// Theme
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.theme === 'dark')
+
+function toggleTheme() {
+  themeStore.toggle()
+}
+
+function search() {
+  // Implement search functionality here
+  console.log('Search triggered')
+}
 </script>

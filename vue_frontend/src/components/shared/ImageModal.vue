@@ -38,7 +38,7 @@ function close() {
 .modal-content {
   max-width: 90%;
   max-height: 90%;
-  background: white;
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 8px;
   text-align: center;

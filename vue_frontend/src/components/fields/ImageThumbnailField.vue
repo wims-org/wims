@@ -133,7 +133,7 @@ function selectImage(image: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
 }
 
@@ -144,14 +144,14 @@ function selectImage(image: string) {
   background: none;
   border: none;
   cursor: pointer;
-  color: #ff0000;
+  color: var(--color-danger);
   border-radius: 50%;
 }
 
-.remove-btn:hover {
-  color: #ff0000;
+remove-btn:hover {
+  color: var(--color-danger);
   transform: scale(1.2);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(var(--color-muted), 0.2);
 }
 
 .add-image-container {
@@ -181,7 +181,7 @@ function selectImage(image: string) {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 128, 0, 0.5);
+  background-color: rgba(var(--color-success), 0.5);
   display: flex;
   justify-content: center;
   align-items: center;

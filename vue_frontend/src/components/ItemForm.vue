@@ -45,7 +45,7 @@
         :value="formData[key]"
         :disabled="field.disabled ?? undefined"
         :required="field.required"
-        :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
+        :class="fieldIndex % 2 === 0 ? 'striped-bg' : ''"
         :searchType="field.search_type"
         @update:value="updateFieldModel($event, String(key), field.type)"
         v-show="!field.hidden && (!field.details || showDetails)"
@@ -189,13 +189,17 @@ const returnItem = () => {
   margin-left: 20px;
 }
 
+.striped-bg {
+  background-color: var(--color-bg-light);
+}
+
 .sticky-note {
   position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: red;
-  color: white;
+  background-color: var(--color-danger);
+  color: var(--color-primary-contrast);
   padding: 0 20px;
   border-radius: 8px;
   font-weight: bold;

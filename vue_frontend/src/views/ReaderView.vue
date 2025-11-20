@@ -13,7 +13,7 @@
         <div>
           {{ reader.reader_name }}
           <br />
-          <span class="text-muted">{{ reader.reader_id }}</span>
+            <span class="text-secondary">{{ reader.reader_id }}</span>
         </div>
         <button @click.stop="deleteReader(reader.reader_id)" class="btn btn-danger btn-sm">
           Delete

@@ -197,7 +197,7 @@ const updateImage = (updatedValue: Array<string>) => {
 .wrap {
   display: block;
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   width: 450px;
   height: 250px;
 }

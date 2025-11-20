@@ -21,7 +21,7 @@
           <BButton v-if="selectedSavedQuery" @click="selectedSavedQuery = null" title="Add items">
             <font-awesome-icon icon="fa-solid fa-xmark" />
           </BButton>
-          <BDropdown class="mt-2" end @show="fetchQueries()">
+          <BDropdown class="mt-2" end @show="fetchQueries()" v-b-color-mode="'dark'">
             <BDropdownItem v-for="query in queries" :key="query._id" @click="selectQuery(query)"
               >{{ query.name }}
             </BDropdownItem>

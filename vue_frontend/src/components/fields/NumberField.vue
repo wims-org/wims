@@ -95,9 +95,9 @@ function decrement() {
 }
 
 .arrow-btn {
-  background: #f5f5f5;
-  border: 1px solid #ccc;
-  color: #333;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--primary-text-color);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -115,13 +115,13 @@ function decrement() {
 }
 
 .arrow-btn:active {
-  background: #e0e0e0;
+  background: var(--hover-bg);
 }
 
 .arrow-btn:disabled {
-  background: #f5f5f5;
-  color: #bbb;
-  border-color: #eee;
+  background: var(--card-bg);
+  color: var(--color-muted);
+  border-color: var(--border-color);
   cursor: not-allowed;
 }
 
