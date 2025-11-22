@@ -10,11 +10,12 @@
         class="list-group-item d-flex justify-content-between align-items-center"
         :class="{ active: user?._id === (clientStoreInstance?.user?._id ?? '') }"
       >
-        <div>
+        <div class="flex-grow-1">
           {{ user.username }}
           <br />
           <span class="text-muted">{{ user.email }}</span>
         </div>
+        <button @click.stop="router.push('/users/' + user._id)" class="btn btn-primary btn-sm me-2">View Profile</button>
         <button @click.stop="deleteUser(user._id)" class="btn btn-danger btn-sm">Delete</button>
       </li>
       <div v-if="users.length === 0" class="list-group-item">
@@ -61,7 +62,9 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
 type User = components['schemas']['User'] & { [key: string]: unknown }
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const users = ref<User[]>([])
 const blockSubmission = ref(false)
 const newUser = ref<components['schemas']['UserRequest']>({

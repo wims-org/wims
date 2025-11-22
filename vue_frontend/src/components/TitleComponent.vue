@@ -15,7 +15,7 @@
           <BNavItem to="/about">About</BNavItem>
           <hr />
 
-          <BNavItem v-if="user" to="/users/{{ user?.id }}">{{ user?.username }}</BNavItem>
+          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
@@ -51,7 +51,7 @@
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
           <BNavItem to="/readers" class="text-nowrap">{{ connection_msg }}</BNavItem>
-          <BNavItem v-if="user" to="/users/{{ user?.id }}">{{ user?.username }}</BNavItem>
+          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
 

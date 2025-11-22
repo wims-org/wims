@@ -1,4 +1,3 @@
-import { init } from '@sentry/vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 

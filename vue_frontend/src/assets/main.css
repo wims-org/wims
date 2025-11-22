@@ -1,7 +1,7 @@
 @import './base.css';
 
 :root {
-  --color-primary: #00b5e2; /* #09634b; */
+  --color-primary: #00d3e2; /* #09634b; */
   --color-primary-dark: #00a3cc;  /*#084c3a;*/
   --color-primary-contrast: #ffffff;
   --color-navbar: #0b76ff; 
@@ -104,8 +104,7 @@ input[type='checkbox'] {
 body {
   background-color: var(--bg-page) !important;
   color: var(--primary-text-color) !important;
-
-  transition: color 0.5s, background-color 0.5s;
+  transition: color 0.3s, background-color 0.3s;
 }
 
 
@@ -136,7 +135,7 @@ body {
   }
 
   .text-muted {
-    color: var(--color-muted);
+    color: var(--color-muted) !important;
   }
 
   ul {
@@ -162,6 +161,7 @@ textarea.form-control {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;
   border: 1px solid var(--border-color) !important;
+  transition: color 0.3s, background-color 0.3s !important;
 }
 
 /* Navbar / Offcanvas / Cards / Modals */
@@ -176,6 +176,7 @@ textarea.form-control {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;
   border-color: var(--border-color) !important;
+  transition: color 0.5s, background-color 0.5s !important;
 }
 
 /* Buttons: default to using card-bg and primary-text where no variant is given */
@@ -216,6 +217,12 @@ textarea.form-control {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;
   border-color: var(--border-color) !important;
+  transition: color 0.5s, background-color 0.5s !important;
+}
+
+.list-group-item.active {
+  background-color: var(--color-primary) !important;
+  border-color: var(--border-primary) !important;
 }
 
 /* small tweaks for outline buttons used in dark mode */
@@ -230,13 +237,6 @@ textarea.form-control {
   background-color: transparent !important;
 }
 
-.nav-tabs .nav-link {
-  background-color: transparent !important;
-  color: var(--primary-text-color) !important;
-  border: 1px solid transparent !important;
-  margin-right: 0.25rem;
-}
-
 .nav-tabs .nav-link:hover,
 .nav-tabs .nav-link:focus {
   background-color: rgba(0,0,0,0.03) !important;
@@ -247,19 +247,11 @@ textarea.form-control {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;
   border-color: var(--border-color) !important;
-  border-bottom-color: var(--card-bg) !important; /* visually blend with tab pane */
+  border-bottom: none; 
+  transition: color 0.3s, background-color 0.3s;
 }
 
-.tab-content,
-.tab-pane {
-  background-color: var(--card-bg) !important;
-  color: var(--primary-text-color) !important;
-  border: 1px solid var(--border-color) !important;
-  padding: 0.75rem;
-  border-top: none !important;
-}
-
-/* Map Bootstrap utility .bg-light to card background so alternating rows and fields stay themed */
+/* alternating rows */
 .bg-light {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;

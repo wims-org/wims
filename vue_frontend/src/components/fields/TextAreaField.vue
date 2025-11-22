@@ -1,17 +1,23 @@
 <template>
   <BContainer>
-    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-      data-testid="text-area-field">
+    <BFormGroup class="d-flex p-2 justify-content-between" data-testid="text-area-field">
       <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
-      <textarea :name="name" :disabled="disabled ?? undefined" :value="value" @input="updateField" class="form-control"
-        :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]" :required="required"
-        :placeholder="hideLabel ? '' : label"></textarea>
-    </div>
+      <BFormTextarea
+        :id="name"
+        :name="name"
+        :disabled="disabled ?? undefined"
+        :modelValue="(value as any)"
+        @update:modelValue="onModelUpdate"
+        :required="required"
+        :placeholder="hideLabel ? '' : label"
+      />
+    </BFormGroup>
   </BContainer>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
+import { BFormTextarea, BFormGroup } from 'bootstrap-vue-next'
 
 defineProps({
   name: {
@@ -44,13 +50,10 @@ defineProps({
   },
 })
 
-const emit = defineEmits<{
-  (e: 'update:value', value: string | null): void
-}>()
+const emit = defineEmits<{ (e: 'update:value', value: string | null): void }>()
 
-function updateField(event: Event) {
-  const target = event.target as HTMLTextAreaElement
-  emit('update:value', target.value)
+function onModelUpdate(v: string | number | null) {
+  emit('update:value', v === null ? null : String(v))
 }
 </script>
 

@@ -37,7 +37,7 @@
       "name": "openapi generate types",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolderBasename}/vue_frontend",
+      "cwd": "${workspaceFolder}/vue_frontend",
       "runtimeExecutable": "npx",
       "args": [
         "openapi-typescript",
@@ -50,7 +50,7 @@
       "name": "integration-tests",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolderBasename}/integration",
+      "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",
       "env": {
         "CI": "false"
@@ -64,7 +64,7 @@
       "type": "node",
       "request": "launch",
       "preLaunchTask": "Docker Compose Up with Tests",
-      "cwd": "${workspaceFolderBasename}/integration",
+      "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",
       "args": ["playwright", "test", "--ui"],
       "console": "integratedTerminal",
