@@ -33,7 +33,7 @@ async def put_item(request: Request, rfid: str, item: ItemRequest) -> ItemChange
 
     if not get_bs(request).dbc.update(
         collection_name="items",
-        query={"$or": [{"tag_uuid": rfid}]},
+        query={"tag_uuid": rfid},
         update_values=item_data.model_dump(mode="json", by_alias=True),
     ):
         raise HTTPException(status_code=404, detail="Failed to update item, item not found or no changes made")
