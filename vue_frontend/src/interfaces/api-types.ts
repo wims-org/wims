@@ -40,6 +40,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/items/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Items Query */
+        get: operations["get_items_query_items__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/items/{rfid}": {
         parameters: {
             query?: never;
@@ -49,7 +66,10 @@ export interface paths {
         };
         /** Get Item */
         get: operations["get_item_items__rfid__get"];
-        /** Put Item */
+        /**
+         * Put Item
+         * @description Update an item. If the item does not exist or is invalid, an error is raised.
+         */
         put: operations["put_item_items__rfid__put"];
         post?: never;
         /** Delete Item */
@@ -66,8 +86,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Items */
-        get: operations["get_items_items_get"];
+        get?: never;
         put?: never;
         /**
          * Post Item
@@ -411,23 +430,6 @@ export interface paths {
         get: operations["config_config__get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/completion/identification": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Identification */
-        post: operations["identification_completion_identification_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -993,6 +995,45 @@ export interface operations {
             };
         };
     };
+    get_items_query_items__get: {
+        parameters: {
+            query: {
+                query: string;
+                offset: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Item"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_item_items__rfid__get: {
         parameters: {
             query?: never;
@@ -1040,9 +1081,9 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemRequest"] | null;
+                "application/json": components["schemas"]["ItemRequest"];
             };
         };
         responses: {
@@ -1091,44 +1132,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ItemChangedResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_items_items_get: {
-        parameters: {
-            query?: {
-                query?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Item"][];
                 };
             };
             /** @description Not found */
@@ -2055,33 +2058,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ConfigResponseModel"];
                 };
-            };
-        };
-    };
-    identification_completion_identification_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

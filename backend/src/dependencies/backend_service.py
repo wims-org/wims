@@ -51,7 +51,7 @@ class ConfigResponseModel(pydantic.BaseModel):
 class BackendService:
     def __init__(self, db_config, config):
         self.config = config
-        self.db = MongoDBConnector(
+        self.dbc = MongoDBConnector(
             uri=f"mongodb://{db_config.get('host', 'localhost')}:{db_config.get('port', '27017')}",
             database=db_config.get("database", "inventory"),
         )
@@ -164,11 +164,11 @@ class BackendService:
                 self.__message_queues[stream_id].message_queue.append(msg)
 
     def is_ready(self) -> bool:
-        return self.db.is_connected()
+        return self.dbc.is_connected()
 
     def get_config(self) -> ConfigResponseModel:
         return ConfigResponseModel(
-            database_connected=self.db.is_connected(),
+            database_connected=self.dbc.is_connected(),
             llm_enabled=self.llm_completion is not None,
             camera_enabled=self.camera is not None,
         )

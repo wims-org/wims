@@ -31,10 +31,10 @@ onMounted(() => {
 
 const fetchRecentItems = async () => {
   try {
-    const response = await axios.get('/api/items/recent')
+    const response = await axios.get('/items/?option=latest')
     items.value = response.data
   } catch (error) {
-    console.error('Error fetching recent items:', error)
+    console.error('Error fetching latest items:', error)
   }
 }
 

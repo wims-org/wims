@@ -19,7 +19,11 @@ class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
         try:
             self.client = MongoClient(
-                uri, username="root", password="example", authSource="admin", authMechanism="SCRAM-SHA-256"
+                uri,
+                username="root",
+                password="example",
+                authSource="admin",
+                authMechanism="SCRAM-SHA-256",
             )
             # Attempt to trigger server selection to catch connection errors early
             self.client.server_info()
