@@ -7,11 +7,15 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt && rm -rf /tmp/pip-tmp
 
-# Install additional OS packages
+# Install additional OS packages, remove apt lists to reduce image size
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     curl \
-    npm
+    ca-certificates \
+    gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install playwright dependencies for wayland
 RUN apt-get -y install --no-install-recommends libx11-6 libxcomposite1 libxrandr2 libxdamage1 libxext6 libxfixes3 \

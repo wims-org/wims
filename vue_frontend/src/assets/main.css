@@ -101,6 +101,14 @@ input[type='checkbox'] {
 
 }
 
+body {
+  background-color: var(--bg-page) !important;
+  color: var(--primary-text-color) !important;
+
+  transition: color 0.5s, background-color 0.5s;
+}
+
+
 .block-item-list {
   ul {
     list-style-type: none;
@@ -144,12 +152,6 @@ input[type='checkbox'] {
 
 .cursor-pointer {
   cursor: pointer;
-}
-
-
-body {
-  background-color: var(--bg-page) !important;
-  color: var(--primary-text-color) !important;
 }
 
 /* Todo: really necessary? */

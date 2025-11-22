@@ -203,7 +203,7 @@ const returnItem = () => {
   padding: 0 20px;
   border-radius: 8px;
   font-weight: bold;
-  z-index: 1000;
+  z-index: 1200;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
 </style>

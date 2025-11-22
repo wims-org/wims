@@ -28,7 +28,6 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   })
 }
 
-
 app.use(pinia)
 useThemeStore().applyTheme()
 app.use(router)

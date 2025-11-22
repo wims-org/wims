@@ -1,3 +1,4 @@
+import { init } from '@sentry/vue'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -20,10 +21,12 @@ export const useThemeStore = defineStore('theme', () => {
 
   function applyTheme() {
     const root = document.documentElement
-    if (theme.value === 'dark') {
+    if (theme.value === 'dark' && root.getAttribute('data-theme') !== 'dark') {
       root.setAttribute('data-theme', 'dark')
-    } else {
+    } else if (theme.value === 'light' && root.getAttribute('data-theme') === 'dark') {
       root.removeAttribute('data-theme')
+    } else {
+      return
     }
   }
 
