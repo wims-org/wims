@@ -256,7 +256,7 @@ textarea.form-control {
 }
 
 /* alternating rows */
-.bg-light {
+.bg-light, .dropdown-item {
   background-color: var(--card-bg) !important;
   color: var(--primary-text-color) !important;
 }
