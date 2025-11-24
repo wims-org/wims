@@ -58,6 +58,10 @@
   --bg-page: var(--primary-bg-color);
   --card-bg: #071014;
   --hover-bg: rgba(255,255,255,0.04);
+
+  .text-secondary {
+    color: var(--color-muted) !important;
+  }
 }
 
 #app {

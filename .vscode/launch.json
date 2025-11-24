@@ -47,15 +47,12 @@
       ]
     },
     {
-      "name": "integration-tests",
+      "name": "integration-tests-ui",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/integration",
-      "runtimeExecutable": "npx",
-      "env": {
-        "CI": "false"
-      },
-      "args": ["playwright", "test", "--ui"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test:ui"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },

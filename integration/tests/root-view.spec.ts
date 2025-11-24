@@ -24,20 +24,20 @@ test.describe("Root View", () => {
   });
 
   test("should display navigation list", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
     await expect(page).toHaveTitle(/WIMS/);
-    await expect(
-      page.getByRole("listitem").filter({ hasText: "Items" })
-    ).toBeVisible();
-    await expect(
-      page.getByRole("listitem").filter({ hasText: "Readers" })
-    ).toBeVisible();
+    const navList = page.getByTestId('home-nav-list');
+    await navList.waitFor({ timeout: 5000 });
+    await expect(navList).toBeVisible();
+    await expect(navList.getByText('Items', { exact: true })).toBeVisible();
+    await expect(navList.getByText('Readers', { exact: true })).toBeVisible();
   });
 
   test("should subscribe to reader stream", async ({ page }) => {
     await connectToReader(page, "04-04-46-42-CD-66-81");
   });
-  
+
   test("should be able to add and delete readers", async ({ page }) => {
     await page.goto("/readers");
     await page.getByTestId("reader-list").waitFor();
@@ -58,7 +58,7 @@ test.describe("Root View", () => {
     // Verify the list length has increased by 1
     var updatedListLength = await page.getByTestId("reader-item").count();
     expect(updatedListLength).toBe(initialListLength + 1);
- 
+
     // Verify the list length has decreased by 1
     await newReader.getByRole("button", { name: "Delete" }).click()
     await page.waitForTimeout(100); // Wait for the reader to be deleted

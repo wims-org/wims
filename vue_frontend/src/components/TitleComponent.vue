@@ -9,8 +9,8 @@
       <!-- Offcanvas side menu for mobile screens -->
       <BOffcanvas id="offcanvasMenu" title="Menu" placement="start" is-nav>
         <BNav vertical>
-          <BNavItem to="/items">Items</BNavItem>
-          <BNavItem to="/readers">Readers</BNavItem>
+          <BNavItem to="/items" data-testid="offcanvas-nav-items">Items</BNavItem>
+          <BNavItem to="/readers" data-testid="offcanvas-nav-readers">Readers</BNavItem>
           <BNavItem to="/users">Users</BNavItem>
           <BNavItem to="/about">About</BNavItem>
           <hr />
@@ -46,11 +46,11 @@
       <!-- Desktop Navigation -->
 
       <BNav class="d-flex d-lg-none ms-auto">
-        <BNavItem to="/readers" class="text-nowrap">{{ connection_msg }}</BNavItem>
+        <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{ connection_msg }}</BNavItem>
       </BNav>
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
-          <BNavItem to="/readers" class="text-nowrap">{{ connection_msg }}</BNavItem>
+          <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{ connection_msg }}</BNavItem>
           <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
@@ -67,8 +67,8 @@
                   }"
                 />
               </template>
-              <BNavItem to="/items">Items</BNavItem>
-              <BNavItem to="/readers">Readers</BNavItem>
+              <BNavItem to="/items" data-testid="desktop-nav-items">Items</BNavItem>
+              <BNavItem to="/readers" data-testid="desktop-nav-readers">Readers</BNavItem>
               <BNavItem to="/users">Users</BNavItem>
               <BNavItem to="/about">About</BNavItem>
             </BNavItemDropdown>
