@@ -5,7 +5,8 @@ on:
   # pull_request: # not working yet :(
   #   branches: [ main, dev ]
   # pull_request_target:
-  #   branches: [ main, dev ]
+  #  branches: [ main, dev ]
+  workflow_dispatch:
 
 
 jobs:

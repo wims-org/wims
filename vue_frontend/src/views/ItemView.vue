@@ -91,7 +91,6 @@ import ContainerListComponent from '@/components/shared/ContainerListComponent.v
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
-type User = components['schemas']['User'] & { [key: string]: unknown }
 
 // Reactive State
 const route = useRoute()
@@ -330,8 +329,8 @@ watch(
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: red;
-  color: white;
+  background-color: var(--color-danger);
+  color: var(--color-primary-contrast);
   padding: 0 20px;
   border-radius: 8px;
   font-weight: bold;

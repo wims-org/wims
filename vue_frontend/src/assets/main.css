@@ -1,9 +1,75 @@
 @import './base.css';
 
+:root {
+  --color-primary: #00d3e2; /* #09634b; */
+  --color-primary-dark: #00a3cc;  /*#084c3a;*/
+  --color-primary-contrast: #ffffff;
+  --color-navbar: #0b76ff; 
+  --color-secondary: #ff9f1c; 
+  --color-secondary-contrast: #111111;
+  --color-accent: #6f42c1; 
+  --color-success: #2a9d8f;
+  --color-info: #3a86ff;
+  --color-warning: #ffbe0b;
+  --color-danger: #e63946;
+  --color-light: #f6f8f9;
+  --color-bg-light: #f8f9fa;
+  --color-dark: #0b1216;
+  --color-muted: #6b7280;
+  --border-color: #d9e6ea;
+
+  /* overrides, remove */
+  --primary-bg-color: var(--color-light);
+  --secondary-bg-color: var(--color-secondary);
+  --primary-text-color: var(--color-dark);
+  --primary-link-color: var(--color-primary);
+  --primary-accent-color: var(--color-primary);
+  --content-max-width-small: 100%;
+  --content-max-width: 1000px;
+
+  --bg-page: var(--primary-bg-color);
+  --card-bg: #ffffff;
+  --hover-bg: rgba(10,91,69,0.08);
+}
+
+/* Dark theme overrides (runtime via [data-theme="dark"]) */
+:root[data-theme="dark"] {
+  --color-primary: #4b298b;
+  --color-primary-dark: #30b990bb;
+  --color-primary-contrast: #061014;
+  --color-secondary: #ffb86b;
+  --color-secondary-contrast: #071014;
+  --color-accent: #9f7aea;
+  --color-success: #27ae80;
+  --color-info: #5aa0ff;
+  --color-warning: #ffcf66;
+  --color-danger: #ff6b6b;
+  --color-light: #061018;
+  --color-bg-light: #1d2227;
+  --color-dark: #e9f3f6;
+  --color-muted: #9aa8b2;
+  --border-color: rgba(255,255,255,0.2);
+
+  --primary-bg-color: var(--color-light);
+  --primary-text-color: var(--color-dark);
+  --primary-link-color: var(--color-primary);
+  --primary-accent-color: var(--color-primary);
+
+  --bg-page: var(--primary-bg-color);
+  --card-bg: #071014;
+  --hover-bg: rgba(255,255,255,0.04);
+
+  .text-secondary {
+    color: var(--color-muted) !important;
+  }
+}
+
 #app {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100vw;
+  margin: 0 0;
+  padding: 0 0 !important;
+
   font-weight: normal;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -14,17 +80,9 @@ input[type='checkbox'] {
   margin-right: 0.5rem;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+    background-color: var(--hover-bg);
   }
 }
 
@@ -37,8 +95,6 @@ a,
   #app {
     display: grid;
     min-width: 60rem;
-    /* grid-template-columns: 1fr 1fr; */
-    padding: 0 2rem;
   }
 }
 
@@ -47,10 +103,14 @@ a,
     display: block;
   }
 
-  #app {
-    padding: 0 1rem;
-  }
 }
+
+body {
+  background-color: var(--bg-page) !important;
+  color: var(--primary-text-color) !important;
+  transition: color 0.3s, background-color 0.3s;
+}
+
 
 .block-item-list {
   ul {
@@ -61,25 +121,25 @@ a,
   li {
     cursor: pointer;
     padding: 1rem;
-    background-color: #ffffff;
-    color: #000000;
+    background-color: var(--card-bg);
+    color: var(--primary-text-color);
   }
 
   li:hover {
-    background-color: #e0e0e0;
+    background-color: var(--hover-bg);
   }
 
   li.active {
-    background-color: #007bff;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
   }
 
   li.active:hover {
-    background-color: #0056b3;
+    background-color: var(--color-primary-dark);
   }
 
   .text-muted {
-    color: #6c757d;
+    color: var(--color-muted) !important;
   }
 
   ul {
@@ -95,4 +155,108 @@ a,
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+/* Todo: really necessary? */
+.form-control,
+.form-select,
+input[type="search"],
+textarea.form-control {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: color 0.3s, background-color 0.3s !important;
+}
+
+/* Navbar / Offcanvas / Cards / Modals */
+.offcanvas,
+.offcanvas.show,
+.offcanvas .offcanvas-body,
+.offcanvas .offcanvas-header,
+.card,
+.card .card-body,
+.modal-content,
+.b-card {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
+  border-color: var(--border-color) !important;
+  transition: color 0.5s, background-color 0.5s !important;
+}
+
+/* Buttons: default to using card-bg and primary-text where no variant is given */
+.btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info):not(.btn-secondary) {
+  background-color: transparent !important;
+  color: var(--primary-text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Form controls (search inputs, nav forms, etc) */
+.form-control::placeholder {
+  color: var(--color-muted) !important;
+}
+
+/* Dropdowns, nav menus */
+.dropdown-menu,
+.navbar-nav .dropdown-menu,
+.b-dropdown .dropdown-menu {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Ensure nav links use token colors */
+.nav-link,
+.navbar .nav-link {
+  color: var(--primary-text-color) !important;
+}
+
+/* Offcanvas close button visibility */
+.offcanvas .btn-close {
+  filter: none !important;
+  opacity: 0.9;
+}
+
+/* Utility for cards and lists */
+.card, .list-group-item {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
+  border-color: var(--border-color) !important;
+  transition: color 0.5s, background-color 0.5s !important;
+}
+
+.list-group-item.active {
+  background-color: var(--color-primary) !important;
+  border-color: var(--border-primary) !important;
+}
+
+/* small tweaks for outline buttons used in dark mode */
+.btn-outline-light {
+  color: var(--color-primary-contrast) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Tabs (BTabs / BTab) - ensure active tabs and tab panes follow theme tokens */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-color) !important;
+  background-color: transparent !important;
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+  background-color: rgba(0,0,0,0.03) !important;
+  color: var(--primary-text-color) !important;
+}
+
+.nav-tabs .nav-link.active {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
+  border-color: var(--border-color) !important;
+  border-bottom: none; 
+  transition: color 0.3s, background-color 0.3s;
+}
+
+/* alternating rows */
+.bg-light, .dropdown-item {
+  background-color: var(--card-bg) !important;
+  color: var(--primary-text-color) !important;
 }

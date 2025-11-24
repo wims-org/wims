@@ -137,7 +137,11 @@ const setViewMode = (mode: 'text' | 'image-list' | 'image') => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
+}
+
+.list-group-item {
+  cursor: pointer;
 }
 </style>

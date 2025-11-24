@@ -115,8 +115,8 @@ watch(() => props.itemId, fetchContainerChain)
 <style scoped>
 .pill {
   display: inline-block;
-  background: #e0e0e0;
-  color: #333;
+  background: var(--hover-bg);
+  color: var(--primary-text-color);
   border-radius: 14px;
   padding: 0.4em 1em;
   text-decoration: none;
@@ -124,14 +124,14 @@ watch(() => props.itemId, fetchContainerChain)
   transition: background 0.2s;
 }
 .pill:hover {
-  background: #bdbdbd;
+  background: var(--color-muted);
   cursor: pointer;
 }
 .pill-placeholder {
-  background: #ffd8dc;
-  color: #7a7a7a;
+  background: var(--color-secondary);
+  color: var(--color-secondary-contrast);
 }
 .error {
-  color: red;
+  color: var(--color-danger);
 }
 </style>

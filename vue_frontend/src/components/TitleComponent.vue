@@ -1,45 +1,169 @@
 <template>
-  <div class="greetings">
-    <router-link to="/" style="text-decoration: none; color: inherit">
-      <h1>{{ msg }}</h1>
-    </router-link>
-    <div data-testid="sse-connection-state" class="row">
-      <span v-if="connection_state === 0" class="icon-connected">
-        🟢 Connected to Reader with id {{ client_store.reader_id }}
-      </span>
-      <span v-else-if="connection_state === 1" class="icon-connecting">
-        <div class="spinner-border spinner-border-sm" role="status"></div>
-        Connecting to backend...
-      </span>
-      <span v-else-if="connection_state === 2" class="icon-disconnected">
-        🔴 Not Connected to a reader, choose one at
-        <router-link to="/readers">readers</router-link>
-      </span>
-      <span v-else class="icon-disconnected">
-        🔴 Not Connected to a reader, choose one at
-        <router-link to="/readers">readers</router-link>
-      </span>
-      <span v-if="user" class="user-info">
-        Logged in as: <strong>{{ user.username }}</strong>
-      </span>
-      <span v-else class="user-info">
-        Not logged in, please log in at <router-link to="/users">users</router-link>
-      </span>
-    </div>
-  </div>
+  <BNavbar class="header" sticky="top">
+    <BNavbar class="nav-container" fluid>
+      <BNavbarBrand to="/">
+        <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block me-2" height="50" />
+        <span class="d-none d-sm-inline">{{ msg }}</span>
+      </BNavbarBrand>
+
+      <!-- Offcanvas side menu for mobile screens -->
+      <BOffcanvas id="offcanvasMenu" title="Menu" placement="start" is-nav>
+        <BNav vertical>
+          <BNavItem to="/items" data-testid="offcanvas-nav-items">Items</BNavItem>
+          <BNavItem to="/readers" data-testid="offcanvas-nav-readers">Readers</BNavItem>
+          <BNavItem to="/users">Users</BNavItem>
+          <BNavItem to="/about">About</BNavItem>
+          <hr />
+
+          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
+          <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
+          <BNavItem v-else to="/users">Sign In</BNavItem>
+        </BNav>
+
+        <div class="mt-2">
+          <BFormGroup class="d-flex">
+            <BFormInput placeholder="Search" />
+            <BButton variant="outline-light" class="me-2" @click="search">
+              <IMaterialSymbolsChevronRight />
+            </BButton>
+          </BFormGroup>
+        </div>
+
+        <div class="mt-3 ms-3 d-flex align-items-center">
+          <IMaterialSymbolsSunny />
+          <BFormCheckbox
+            switch
+            :checked="isDark"
+            @change="toggleTheme"
+            class="mx-2"
+            aria-label="Toggle dark theme"
+          >
+            <IMaterialSymbolsMoonStarsOutline />
+          </BFormCheckbox>
+        </div>
+      </BOffcanvas>
+
+      <!-- Desktop Navigation -->
+
+      <BNav class="d-flex d-lg-none ms-auto">
+        <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{ connection_msg }}</BNavItem>
+      </BNav>
+      <BNavbar class="d-none d-lg-flex align-items-center">
+        <BNav>
+          <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{ connection_msg }}</BNavItem>
+          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
+          <BNavItem v-else to="/users">Sign In</BNavItem>
+        </BNav>
+
+        <BCollapse id="nav-collapse" class="d-lg-flex d-none">
+          <BNavbarNav>
+            <BNavItemDropdown right hover>
+              <template #button-content>
+                <IMaterialSymbolsChevronRight
+                  @click="menuOpen = !menuOpen"
+                  :style="{
+                    transform: menuOpen ? 'rotate(90deg)' : 'rotate(-90deg)',
+                    transition: 'transform 0.3s ease',
+                  }"
+                />
+              </template>
+              <BNavItem to="/items" data-testid="desktop-nav-items">Items</BNavItem>
+              <BNavItem to="/readers" data-testid="desktop-nav-readers">Readers</BNavItem>
+              <BNavItem to="/users">Users</BNavItem>
+              <BNavItem to="/about">About</BNavItem>
+            </BNavItemDropdown>
+          </BNavbarNav>
+        </BCollapse>
+        <BNavForm @onSubmit.prevent="search" class="mx-2">
+          <BFormInput placeholder="Search" />
+        </BNavForm>
+        <IMaterialSymbolsSunny />
+        <BFormCheckbox
+          switch
+          :checked="isDark"
+          @change="toggleTheme"
+          size="lg"
+          class="mx-2"
+          aria-label="Toggle dark theme"
+        >
+          <IMaterialSymbolsMoonStarsOutline />
+        </BFormCheckbox>
+      </BNavbar>
+
+      <BNavbarToggle target="offcanvasMenu" class="d-flex d-lg-none" aria-label="Open menu">
+        <IMaterialSymbolsMenu />
+      </BNavbarToggle>
+    </BNavbar>
+  </BNavbar>
 </template>
+
+<style scoped>
+.header {
+  align-items: center;
+  background-color: var(--color-navbar);
+  display: block;
+  width: 100vw;
+  background: linear-gradient(45deg, var(--color-navbar), var(--color-primary));
+
+  box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -webkit-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -moz-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.header ::after {
+  display: none;
+}
+.header .navbar-brand {
+  font-weight: bold;
+  font-size: 2rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--color-primary-contrast) !important;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  width: var(--content-max-width);
+}
+
+@media (max-width: var(--content-max-width)) {
+  .nav-container {
+    max-width: var(--content-max-width-small) !important;
+    margin: 0 0 !important;
+  }
+}
+</style>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
+import { useThemeStore } from '@/stores/themeStore'
+import { ref } from 'vue'
 
 // State and Stores
 const client_store = clientStore()
 const server_stream = serverStream()
 const msg = 'WIMS?!'
+const menuOpen = ref(false)
 
 // Computed Properties
+
+const connection_msg = computed(() => {
+  if (connection_state.value === 0) {
+    return `🟢 ${client_store.reader_id}`
+  } else if (connection_state.value === 1) {
+    return 'Connecting...'
+  } else {
+    return '🔴 Connect'
+  }
+})
+
 const connection_state = computed(() => {
   if (
     server_stream.alive &&
@@ -57,18 +181,22 @@ const connection_state = computed(() => {
 const user = computed(() => {
   return client_store.user
 })
+
+function signOut() {
+  // clear user in client store
+  client_store.unsetUser()
+}
+
+// Theme
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.theme === 'dark')
+
+function toggleTheme() {
+  themeStore.toggle()
+}
+
+function search() {
+  // Implement search functionality here
+  console.log('Search triggered')
+}
 </script>
-
-<style scoped>
-.icon-connected {
-  color: green;
-}
-
-.icon-connecting {
-  color: gray;
-}
-
-.icon-disconnected {
-  color: red;
-}
-</style>

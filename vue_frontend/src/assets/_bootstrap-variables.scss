@@ -1,0 +1,30 @@
+// Map Bootstrap SCSS variables to our design tokens / CSS variables
+$body-bg: var(--bg-page);
+$body-color: var(--color-dark);
+$primary: var(--color-primary);
+$secondary: var(--color-secondary);
+$success: var(--color-success);
+$info: var(--color-info);
+$warning: var(--color-warning);
+$danger: var(--color-danger);
+$light: var(--color-light);
+$dark: var(--color-dark);
+
+// Button outline color adjustments
+$btn-outline-focus-box-shadow: 0 0 0 0.2rem rgba(11,110,79,0.25);
+
+// Border color
+$border-color: var(--border-color);
+
+// Keep other default maps but override where needed
+// If you want to overwrite the entire $theme-colors map, you could do:
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "success": $success,
+  "info": $info,
+  "warning": $warning,
+  "danger": $danger,
+  "light": $light,
+  "dark": $dark
+);

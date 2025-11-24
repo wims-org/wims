@@ -1,26 +1,29 @@
 <template>
   <BContainer>
-    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="number-field">
-      <span v-if="!hideLabel || !label" :for="name" class="me-2">{{ label }}</span>
-      <div class="number-input-wrapper d-flex align-items-center">
-        <input type="number" :name="name" :disabled="disabled ?? undefined" :value="value" :required="required"
-          @input="updateField" class="form-control text-center"
-          :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]" style="width: 70px" />
-        <button type="button" class="arrow-btn" :disabled="disabled" @click="decrement" tabindex="-1"
-          aria-label="Decrease">
-          <span>&#8722;</span>
-        </button>
-        <button type="button" class="arrow-btn" :disabled="disabled" @click="increment" tabindex="-1"
-          aria-label="Increase">
-          <span>&#43;</span>
-        </button>
+    <BFormGroup class="d-flex align-items-center p-2 justify-content-between" data-testid="number-field">
+      <label v-if="!hideLabel || !label" :for="name" class="me-2">{{ label }}</label>
+      <div class="d-flex align-items-center">
+        <BFormInput
+          :id="name"
+          type="number"
+          :name="name"
+          :disabled="disabled ?? undefined"
+          :modelValue="(value as any)"
+          @update:modelValue="onModelUpdate"
+          :required="required"
+          class="text-center"
+          style="width: 80px"
+        />
+        <BButton size="sm" class="arrow-btn" :disabled="disabled" @click="decrement" aria-label="Decrease">-</BButton>
+        <BButton size="sm" class="arrow-btn" :disabled="disabled" @click="increment" aria-label="Increase">+</BButton>
       </div>
-    </div>
+    </BFormGroup>
   </BContainer>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
+import { BFormInput, BFormGroup, BButton } from 'bootstrap-vue-next'
 
 const props = defineProps({
   name: {
@@ -53,13 +56,10 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits<{
-  (e: 'update:value', value: number | null): void
-}>()
+const emit = defineEmits<{ (e: 'update:value', value: number | null): void }>()
 
-function updateField(event: Event) {
-  const target = event.target as HTMLInputElement
-  emit('update:value', Number(target.value))
+function onModelUpdate(v: string | number | null) {
+  emit('update:value', v === null ? null : Number(v))
 }
 
 function increment() {
@@ -95,9 +95,9 @@ function decrement() {
 }
 
 .arrow-btn {
-  background: #f5f5f5;
-  border: 1px solid #ccc;
-  color: #333;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--primary-text-color);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -115,13 +115,13 @@ function decrement() {
 }
 
 .arrow-btn:active {
-  background: #e0e0e0;
+  background: var(--hover-bg);
 }
 
 .arrow-btn:disabled {
-  background: #f5f5f5;
-  color: #bbb;
-  border-color: #eee;
+  background: var(--card-bg);
+  color: var(--color-muted);
+  border-color: var(--border-color);
   cursor: not-allowed;
 }
 

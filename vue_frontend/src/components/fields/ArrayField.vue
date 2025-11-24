@@ -1,5 +1,5 @@
 <template>
-  <BContainer>
+  <BContainer class="p-2" >
     <BRow align-v="center">
       <BCol>
         <span v-if="!hideLabel || !label" :for="name" class="mr-auto">{{ label }}</span>
@@ -13,19 +13,16 @@
         </div>
       </BCol>
       <BCol>
-        <BInputGroup v-if="!disabled" class="borderless-input flex-nowrap">
-          <BInput
-            v-model="newItem"
-            :disabled="disabled"
-            @keydown.enter.prevent="addItem"
-            placeholder="Add items separated by ,"
-            :class="{ 'borderless-input': borderless }"
-          />
-          <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items">
-            <font-awesome-icon icon="fa-solid fa-plus" />
-          </BButton>
-        </BInputGroup>
-      </BCol>
+          <BInputGroup v-if="!disabled" class="flex-nowrap">
+            <BFormInput
+              v-model="newItem"
+              :disabled="disabled"
+              @keydown.enter.prevent="addItem"
+              placeholder="Add items separated by ,"
+            />
+            <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items">+</BButton>
+          </BInputGroup>
+        </BCol>
     </BRow>
   </BContainer>
 </template>
@@ -33,6 +30,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { PropType } from 'vue';
+import { BFormInput, BInputGroup, BButton } from 'bootstrap-vue-next'
 
 const props = defineProps({
   name: {
@@ -106,7 +104,7 @@ const removeItem = (index: number) => {
 .pill {
   display: flex;
   align-items: center;
-  background-color: #e0e0e0;
+  background-color: var(--hover-bg);
   border-radius: 15px;
   padding: 0px .75rem;
 }
@@ -125,5 +123,10 @@ const removeItem = (index: number) => {
   box-shadow: none !important;
   padding: 0.1rem 0.2rem !important;
   min-width: 0;
+}
+
+.row {
+  margin-left: 0;
+  margin-right: 0;
 }
 </style>

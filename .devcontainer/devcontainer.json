@@ -66,7 +66,7 @@
   "postCreateCommand": {
     "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
     "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock",
-    "Install playwright browsers": "cd /workspaces/inventory/integration && npm install && npx playwright install --with-deps && npx playwright install-deps",
+    "Install playwright browsers": "cd /workspaces/wims/integration && npm install && npx playwright install --with-deps && npx playwright install-deps",
   }
   // "remoteUser": "root"
   // uncomment if any errors occur in one of the services

@@ -1,12 +1,8 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
   "configurations": [
     {
       "name": "backend",
-      "type": "python",
+      "type": "debugpy",
       "python": "${workspaceFolder}/backend/.venv/bin/python",
       "request": "launch",
       "module": "uvicorn",
@@ -22,10 +18,8 @@
         "0"
       ],
       "jinja": true,
-      "consoleTitle": "Python: FastAPI",
       "env": {
-           "LLM_ENVIRONMENT": "development",
-        //"LLM_ENVIRONMENT": "production",
+        "LLM_ENVIRONMENT": "development",
         "CONFIG_FILE": "${workspaceFolder}/backend/src/config.yml"
       }
     },
@@ -50,18 +44,15 @@
         "http://127.0.0.1:5005/openapi.json",
         "--output",
         "src/interfaces/api-types.ts"
-      ],
+      ]
     },
     {
-      "name": "integration-tests",
+      "name": "integration-tests-ui",
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/integration",
-      "runtimeExecutable": "npx",
-      "env": {
-        "CI": "false",
-      },
-      "args": [ "playwright", "test", "--ui" ],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "test:ui"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -72,7 +63,7 @@
       "preLaunchTask": "Docker Compose Up with Tests",
       "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",
-      "args": [ "playwright", "test", "--ui" ],
+      "args": ["playwright", "test", "--ui"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -81,7 +72,7 @@
       "type": "docker",
       "request": "launch",
       "preLaunchTask": "Docker Compose Up",
-      "platform": "node",
+      "platform": "node"
     }
   ]
 }

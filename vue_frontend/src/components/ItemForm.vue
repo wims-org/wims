@@ -1,5 +1,5 @@
 <template>
-  <div class="container pb-5" ref="itemForm">
+  <BContainer class="pb-5" ref="itemForm">
     <!-- Sticky Note -->
     <div v-if="unsavedChanges" class="sticky-note">Unsaved Changes</div>
 
@@ -35,9 +35,9 @@
       </button>
     </div>
     <h1 class="mb-4">{{ item?.short_name }}</h1>
-    <form v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
+    <BForm v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
       <component
-        v-for="(field, key, fieldIndex) in formFields"
+        v-for="(field, key, fieldIndex) in visibleFields"
         :is="getFieldComponent(field.type)"
         :key="key"
         :name="String(key)"
@@ -45,13 +45,14 @@
         :value="formData[key]"
         :disabled="field.disabled ?? undefined"
         :required="field.required"
-        :class="fieldIndex % 2 === 0 ? 'bg-light' : ''"
+        class="rounded"
+        :class="fieldIndex % 2 === 0 ? 'striped-bg' : ''"
         :searchType="field.search_type"
         @update:value="updateFieldModel($event, String(key), field.type)"
-        v-show="!field.hidden && (!field.details || showDetails)"
-      />
-      <button type="button" class="btn btn-primary mt-3" @click="handleSubmit">Submit</button>
-    </form>
+        v-show="!field.hidden && (!field.details || showDetails)">{{fieldIndex}}
+      </component>
+      <BButton type="submit" variant="primary" class="mt-3">Submit</BButton>
+    </BForm>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
     </div>
@@ -61,11 +62,12 @@
         <li v-for="(error, index) in errors" :key="index">{{ error }}</li>
       </ul>
     </div>
-  </div>
+  </BContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { BForm, BButton } from 'bootstrap-vue-next'
 import { formFields } from '@/interfaces/FormField.interface'
 import { fieldTypeToComponent } from '@/utils/form.helper'
 import axios from 'axios'
@@ -89,6 +91,15 @@ const props = defineProps({
     type: Array as () => string[],
     default: () => [],
   },
+})
+
+// Computed Properties
+const visibleFields = computed(() => {
+  return Object.fromEntries(
+    Object.entries(formFields).filter(
+      ([, field]) => !field.disabled && !field.hidden || (field.details && showDetails.value),
+    ),
+  )
 })
 
 // Emits
@@ -189,17 +200,22 @@ const returnItem = () => {
   margin-left: 20px;
 }
 
+.striped-bg {
+  background-color: var(--color-bg-light);
+  transition: color 0.3s, background-color 0.3s;
+}
+
 .sticky-note {
   position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: red;
-  color: white;
+  background-color: var(--color-danger);
+  color: var(--color-primary-contrast);
   padding: 0 20px;
   border-radius: 8px;
   font-weight: bold;
-  z-index: 1000;
+  z-index: 1200;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
 </style>

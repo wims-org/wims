@@ -572,13 +572,13 @@ td .form-group > input.form-control {
 
 /* Validation & Error Styles */
 td.invalid-cell {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--color-danger);
+  color: var(--color-primary-contrast);
 }
 
 .item-error {
-  background-color: #fdde9a;
-  color: #e99f00;
+  background-color: var(--color-warning);
+  color: var(--color-secondary-contrast);
 }
 
 .draggable-th {
@@ -606,13 +606,13 @@ td.invalid-cell {
   transition: background 0.2s;
 }
 
-.resize-handle:hover {
-  background-color: #ddd;
-}
+  resize-handle:hover {
+    background-color: var(--border-color);
+  }
 
-.resize-handle:active {
-  background-color: #bbb;
-}
+  resize-handle:active {
+    background-color: var(--border-color);
+  }
 
 .dropdown-menu {
   position: absolute;
