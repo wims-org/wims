@@ -70,6 +70,7 @@ import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 
 const searchQuery = ref('')
 const searchedQuery = ref<Record<string, unknown>>({})
@@ -97,37 +98,21 @@ onMounted(() => {
 })
 
 const fetchSearchTerm = async (term: string) => {
-  fetchItems('post', '/items/search', { term })
+  await axios.post('/items/search', { term }).then((response) => {
+    items.value = response.data
+    noResults.value = items.value.length === 0
+  })
   searchedQuery.value = { term }
 }
 
-const fetchSearchQuery = async (query: Record<string, unknown>) => {
-  fetchItems('post', '/items/search', { query })
+const fetchSearchQuery = async (query: SearchQuery) => {
+  await axios.post('/items/search', { query }).then((response) => {
+    items.value = response.data
+    noResults.value = items.value.length === 0
+  })
   searchedQuery.value = query
 }
 
-const fetchItems = async (
-  method: 'get' | 'post',
-  endpoint: string,
-  body: Record<string, unknown>,
-) => {
-  try {
-    const response = await axios[method](endpoint, body)
-    // Check if response is array
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      items.value = response.data as never
-      noResults.value = false
-    } else {
-      // nothing found
-      items.value = []
-      noResults.value = true
-    }
-  } catch (error) {
-    console.error('Error fetching items:', error)
-    noResults.value = true
-    items.value = []
-  }
-}
 
 const fetchQueries = async () => {
   try {
@@ -155,7 +140,7 @@ const emit = defineEmits(['select'])
 
 const selectQuery = (query: Query) => {
   selectedSavedQuery.value = query
-  fetchSearchQuery(query.query)
+  fetchSearchQuery(query.query as SearchQuery)
 }
 
 const handleSelect = (item: Item) => {

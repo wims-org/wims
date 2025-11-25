@@ -10,7 +10,8 @@
       </router-link>
     </BCol>
     <BCol>
-      <div v-if="saveError" class="sticky-note">Error saving changes</div>
+      <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
+      <div v-if="saveSuccess" class="sticky-note sticky-note-success">{{ saveSuccess }}</div>
       <h1 class="m-4">{{ item?.short_name }}</h1>
       <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
         <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
@@ -49,14 +50,14 @@
             :newItem="newItem"
             @submit="handleFormSubmit"
           />
-          <ItemForm
-            v-else
-            :item="item"
-            :isNewItem="newItem"
-            @submit="handleFormSubmit"
-          />
+          <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
         </BTab>
-        <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification" data-testid="object-identification">
+        <BTab
+          v-if="clientStore.backend_config?.llm_enabled"
+          title="Object Identification"
+          id="objectIdentification"
+          data-testid="object-identification"
+        >
           <LLMCompletion :images="item?.images" />
         </BTab>
       </BTabs>
@@ -90,6 +91,7 @@ import ItemList from '@/components/ItemList.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
+type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 // Reactive State
@@ -106,6 +108,7 @@ const newItem = ref(false)
 const isComparing = ref(false)
 const completion = ref<Item>()
 const saveError = ref('')
+const saveSuccess = ref('')
 const items = ref<Item[]>([])
 const noContent = ref(false)
 const showModal = ref(false)
@@ -143,30 +146,35 @@ const fetchItem = async () => {
 }
 
 const fetchContainerContent = async () => {
-  axios.get(`/items/${itemId.value}/content`).then((res) => {
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      items.value = res.data as Item[]
-      noContent.value = false
-    } else {
+  axios
+    .get(`/items/${itemId.value}/content`)
+    .then((res) => {
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        items.value = res.data as Item[]
+        noContent.value = false
+      } else {
+        items.value = []
+        noContent.value = true
+      }
+    })
+    .catch(() => {
       items.value = []
       noContent.value = true
-    }
-  }).catch(() => {
-    items.value = []
-    noContent.value = true
-  }).finally(() => {
-    tabCheck.value++
-  })
+    })
+    .finally(() => {
+      tabCheck.value++
+    })
 }
 
 const fetchPrevNextItems = async () => {
   previousItemId.value = ''
   nextItemId.value = ''
-  const parsedQuery = JSON.parse(query.value.trim().toLowerCase())
+  const parsedQuery: SearchQuery = JSON.parse(query.value.trim().toLowerCase())
+  console.log('Fetching prev/next items with query:', parsedQuery, 'and offset:', offset.value)
   try {
     if (offset.value > 0) {
       const prevItem = await axios.post('/items/search', {
-        query: parsedQuery,
+        ...parsedQuery,
         offset: offset.value - 1,
         limit: 1,
       })
@@ -179,7 +187,7 @@ const fetchPrevNextItems = async () => {
   }
   try {
     const nextItem = await axios.post('/items/search', {
-      query: parsedQuery,
+      ...parsedQuery,
       offset: offset.value + 1,
       limit: 1,
     })
@@ -198,10 +206,16 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     const requestData = buildItemRequest(formData)
     if (newItem.value) {
       await axios.post('/items', requestData)
-      alert('Item created successfully')
+      saveSuccess.value = 'Item created successfully'
+      setTimeout(() => {
+        saveSuccess.value = ''
+      }, 5000)
     } else {
       await axios.put(`/items/${itemId.value}`, requestData)
-      alert('Item updated successfully')
+      saveSuccess.value = 'Item updated successfully'
+      setTimeout(() => {
+        saveSuccess.value = ''
+      }, 5000)
     }
     fetchItem()
   } catch (error) {
@@ -215,7 +229,7 @@ const buildItemRequest = (formData: Record<string, unknown>): Record<string, unk
   // Transform the formData into the format expected by the API
   return {
     ...formData,
-    owner: null
+    owner: null,
   }
 }
 
@@ -329,12 +343,20 @@ watch(
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--color-danger);
-  color: var(--color-primary-contrast);
   padding: 0 20px;
   border-radius: 8px;
   font-weight: bold;
   z-index: 1000;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.sticky-note-success {
+  background-color: var(--color-success);
+  color: var(--color-primary-contrast);
+}
+
+.sticky-note-error {
+  background-color: var(--color-danger);
+  color: var(--color-primary-contrast);
 }
 </style>

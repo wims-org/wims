@@ -1,6 +1,8 @@
 from datetime import datetime
 
+import bson
 from bson.objectid import ObjectId
+from loguru import logger
 from pymongo.database import Database
 
 from models.database import User
@@ -29,7 +31,11 @@ def get_user_by_name(name: str, db: Database) -> User | None:
 
 def get_user_by_id(id: str, db: Database) -> User | None:
     collection = db[COLLECTION_NAME]
-    user = collection.find_one({"_id": ObjectId(id)})
+    try:
+        user = collection.find_one({"_id": ObjectId(id)})
+    except bson.errors.InvalidId:
+        logger.warning(f"Invalid user ID format: {id}")
+        return None
     if user:
         user["_id"] = str(user["_id"])
     return User(**user) if user else None

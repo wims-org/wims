@@ -12,6 +12,7 @@ export const clientStore = defineStore('client', {
   state: () => ({
     client_id: uuidv4(),
     reader_id: '',
+    reader: {} as components['schemas']['ReaderResponseModel'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],
@@ -59,7 +60,7 @@ export const clientStore = defineStore('client', {
       if (this.reader_id.length && this.reader_id !== reader_id) {
         await serverStream()
           .unsubscribe(this.client_id, this.reader_id)
-          .then(() => {
+          .then(async () => {
             this.reader_id = 'loading'
           })
           .catch(() => { })
@@ -67,8 +68,9 @@ export const clientStore = defineStore('client', {
       console.log('connecting serverstream with reader_id %s', reader_id)
       await serverStream()
         .subscribe(this.client_id, reader_id)
-        .then(() => {
+        .then(async () => {
           this.reader_id = reader_id
+          this.reader = await axios.get(`/readers/${reader_id}`).then(res => res.data)
         })
         .catch(() => {
           this.reader_id = ''

@@ -13,6 +13,7 @@
           <BNavItem to="/readers" data-testid="offcanvas-nav-readers">Readers</BNavItem>
           <BNavItem to="/users">Users</BNavItem>
           <BNavItem to="/about">About</BNavItem>
+          <BNavItem :href="`${api_url}/redoc`" target="_blank">API Docs</BNavItem>
           <hr />
 
           <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
@@ -46,11 +47,15 @@
       <!-- Desktop Navigation -->
 
       <BNav class="d-flex d-lg-none ms-auto">
-        <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{ connection_msg }}</BNavItem>
+        <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{
+          connection_msg
+        }}</BNavItem>
       </BNav>
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
-          <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{ connection_msg }}</BNavItem>
+          <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
+            connection_msg
+          }}</BNavItem>
           <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
@@ -71,22 +76,23 @@
               <BNavItem to="/readers" data-testid="desktop-nav-readers">Readers</BNavItem>
               <BNavItem to="/users">Users</BNavItem>
               <BNavItem to="/about">About</BNavItem>
+              <BNavItem :href="`${api_url}/redoc`" target="_blank">API Docs</BNavItem>
             </BNavItemDropdown>
           </BNavbarNav>
         </BCollapse>
         <BNavForm @onSubmit.prevent="search" class="mx-2">
           <BFormInput placeholder="Search" />
         </BNavForm>
-        <IMaterialSymbolsSunny />
+        <IMaterialSymbolsSunny class="cursor-pointer" />
         <BFormCheckbox
           switch
           :checked="isDark"
           @change="toggleTheme"
           size="lg"
-          class="mx-2"
+          class="mx-2 cursor-pointer"
           aria-label="Toggle dark theme"
         >
-          <IMaterialSymbolsMoonStarsOutline />
+          <IMaterialSymbolsMoonStarsOutline class="cursor-pointer" />
         </BFormCheckbox>
       </BNavbar>
 
@@ -151,12 +157,14 @@ const client_store = clientStore()
 const server_stream = serverStream()
 const msg = 'WIMS?!'
 const menuOpen = ref(false)
+const api_url = import.meta.env.VITE_API_URL || ''
 
 // Computed Properties
 
 const connection_msg = computed(() => {
   if (connection_state.value === 0) {
-    return `🟢 ${client_store.reader_id}`
+    const name = client_store.reader?.reader_name || ''
+    return `🟢 ${name.length > 20 ? name.substring(0, 20) + '...' : name}`
   } else if (connection_state.value === 1) {
     return 'Connecting...'
   } else {

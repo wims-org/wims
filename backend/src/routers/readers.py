@@ -21,7 +21,7 @@ async def get_readers(request: Request):
 
 @router.get("/{reader_id}", response_model=Reader)
 async def read_user(request: Request, reader_id: str):
-    reader = get_bs(request).dbc.read("readers", {"reader_id": reader_id})
+    reader = get_bs(request).dbc.read("readers", {"reader_id": reader_id}).pop()
     if reader is None:
         raise HTTPException(status_code=404, detail="Reader not found")
     return reader

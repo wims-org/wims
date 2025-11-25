@@ -5,8 +5,9 @@ from loguru import logger
 
 import routers.items.get_items as get_items
 from database_connector import RecursiveContainerObject
+from db import db_items
 from models.database import Item
-from models.requests import ItemBacklogRequest, ItemRequest
+from models.requests import ItemBacklogRequest, ItemRequest, SearchQuery
 from routers.utils import get_bs
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
@@ -155,44 +156,13 @@ async def get_item_content(
     return content
 
 
-class ItemSearchRequest(pydantic.BaseModel):
-    query: dict = {}
-    offset: int | None = None
-    limit: int | None = None
-    term: str | None = None
-
-
 @router.post("/search", response_model=list[Item])
-async def get_item_search(request: Request, item_search_req: ItemSearchRequest) -> list[Item]:
-    request.body = await request.body()
-    # this is kind of dirty
-    if item_search_req.query.get("term", None):
-        item_search_req.term = item_search_req.query.pop("term")
-    if term := item_search_req.term:
-        item_search_req.query.update(
-            {
-                "$or": [
-                    {"tag_uuid": {"$regex": term, "$options": "i"}},
-                    {"short_name": {"$regex": term, "$options": "i"}},
-                    {"item_type": {"$regex": term, "$options": "i"}},
-                    {"tags": {"$regex": term, "$options": "i"}},
-                    {"manufacturer": {"$regex": term, "$options": "i"}},
-                ]
-            }
-        )
-
-    items = (
-        get_bs(request)
-        .dbc.db["items"]
-        .aggregate(
-            [
-                {"$match": item_search_req.query},
-                {"$skip": item_search_req.offset or 0},
-                {"$limit": item_search_req.limit or 1000},
-            ]
-        )
-    )
-    items = list(items)
+async def get_item_search(request: Request, query: SearchQuery) -> list[Item]:
+    """
+    Search for items based on a query object, post to allow for body.
+    """
+    logger.debug(f"Searching items with search query: {query}")
+    items = db_items.get_items_with_search_query(query=query, db=get_bs(request).dbc.db)
     if not items:
         raise HTTPException(status_code=404, detail="Item not found")
     return items
