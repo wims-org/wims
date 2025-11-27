@@ -6,8 +6,8 @@
         :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
         class="text-decoration-none"
       >
-        <font-awesome-icon icon="arrow-left" />
-    </router-link>
+        <IFaArrowLeft  />
+      </router-link>
     </BCol>
     <BCol>
       <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
@@ -21,10 +21,17 @@
             @update:value="handleContainerSelect"
           />
           <ItemList
+            v-if="items.length > 0"
             :items="items"
             @select="handleItemSelect"
             :title="`Items in ${item?.short_name}`"
           />
+          <div v-else-if="loading" class="text-center mt-5">
+            <BSpinner label="Loading..."></BSpinner>
+          </div>
+          <div v-else-if="noContent" class="text-center mt-5">
+            <p>No content found in this container.</p>
+          </div>
           <div class="d-flex justify-content-center mt-3">
             <button
               @click="() => (showModal = true)"
@@ -68,7 +75,7 @@
         :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
         class="text-decoration-none"
       >
-        <font-awesome-icon icon="arrow-right" />
+        <IFaArrowRight />
       </router-link>
     </BCol>
     <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
@@ -119,6 +126,7 @@ const nextItemId = ref<string>('')
 const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
+const loading = ref(false)
 
 // Stores
 const clientStore = useClientStore()
@@ -147,6 +155,7 @@ const fetchItem = async () => {
 }
 
 const fetchContainerContent = async () => {
+  loading.value = true
   axios
     .get(`/items/${itemId.value}/content`)
     .then((res) => {
@@ -164,12 +173,14 @@ const fetchContainerContent = async () => {
     })
     .finally(() => {
       tabCheck.value++
+      loading.value = false
     })
 }
 
 const fetchPrevNextItems = async () => {
   previousItemId.value = ''
   nextItemId.value = ''
+  if (!query_param.value) return
   const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
   try {
     if (offset.value > 0) {
@@ -244,8 +255,18 @@ const handleCompletion = (result: { data: { response: object } }) => {
 }
 
 const handleItemSelect = (item: Item) => {
-  clientStore.expected_event_action = EventAction.REDIRECT
-  eventBus.emit(EventAction.REDIRECT, { rfid: item.tag_uuid } as Events[EventAction.REDIRECT])
+  const tag = item.tag_uuid
+  console.log('Selected tag:', tag)
+  const offset = items.value.findIndex((i) => i.tag_uuid === item.tag_uuid)
+  const query = {
+    query: {
+      container_tag_uuid: itemId.value,
+    }
+  }
+  router.push(
+    `/items/${tag}` +
+      (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+  )
 }
 
 const handleContentSelect = async (tag: string) => {
@@ -275,13 +296,17 @@ const closeModal = () => {
 
 const handle_item_prev = () => {
   if (previousItemId.value) {
-    router.push(`/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`)
+    router.push(
+      `/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`,
+    )
   }
 }
 
 const handle_item_next = () => {
   if (nextItemId.value) {
-    router.push(`/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`)
+    router.push(
+      `/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`,
+    )
   }
 }
 
@@ -303,7 +328,11 @@ onMounted(() => {
     const target = e.target as HTMLElement | null
     if (target) {
       const tag = target.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (target.isContentEditable && target.isContentEditable === true)) {
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        (target.isContentEditable && target.isContentEditable === true)
+      ) {
         return
       }
     }
@@ -335,6 +364,11 @@ watch(
   async (newId) => {
     if (itemId.value !== newId) {
       itemId.value = typeof newId === 'string' ? newId : ''
+      items.value = []
+      item.value = undefined
+      completion.value = undefined
+      newItem.value = false
+      isComparing.value = false
       await fetchItem()
       await fetchContainerContent()
       await fetchPrevNextItems()
