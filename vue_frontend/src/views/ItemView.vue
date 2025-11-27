@@ -3,11 +3,11 @@
     <BCol class="align-content-center col-1 p-0 width-1 text-end">
       <router-link
         v-show="previousItemId"
-        :to="`/items/${previousItemId}?offset=${+offset - 1 || 0}&query=${encodeURIComponent(query)}`"
+        :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
         class="text-decoration-none"
       >
         <font-awesome-icon icon="arrow-left" />
-      </router-link>
+    </router-link>
     </BCol>
     <BCol>
       <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
@@ -65,7 +65,7 @@
     <BCol class="align-content-center col-1 p-0">
       <router-link
         v-show="nextItemId"
-        :to="`/items/${nextItemId}?offset=${+offset + 1}&query=${encodeURIComponent(query)}`"
+        :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
         class="text-decoration-none"
       >
         <font-awesome-icon icon="arrow-right" />
@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import eventBus from '../stores/eventBus'
@@ -90,6 +90,7 @@ import ItemCompare from '../components/ItemComparison.vue'
 import ItemList from '@/components/ItemList.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
+import router from '@/router'
 
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
@@ -112,7 +113,7 @@ const saveSuccess = ref('')
 const items = ref<Item[]>([])
 const noContent = ref(false)
 const showModal = ref(false)
-const query = ref<string>(decodeURIComponent((route.query.query as string) || ''))
+const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
 const previousItemId = ref<string>('')
 const nextItemId = ref<string>('')
 const offset = ref<number>(0)
@@ -169,8 +170,7 @@ const fetchContainerContent = async () => {
 const fetchPrevNextItems = async () => {
   previousItemId.value = ''
   nextItemId.value = ''
-  const parsedQuery: SearchQuery = JSON.parse(query.value.trim().toLowerCase())
-  console.log('Fetching prev/next items with query:', parsedQuery, 'and offset:', offset.value)
+  const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
   try {
     if (offset.value > 0) {
       const prevItem = await axios.post('/items/search', {
@@ -273,18 +273,54 @@ const closeModal = () => {
   clientStore.expected_event_action = EventAction.REDIRECT
 }
 
+const handle_item_prev = () => {
+  if (previousItemId.value) {
+    router.push(`/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`)
+  }
+}
+
+const handle_item_next = () => {
+  if (nextItemId.value) {
+    router.push(`/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`)
+  }
+}
+
 // Lifecycle Hooks
 onMounted(fetchItem)
 onMounted(fetchContainerContent)
 onMounted(() => {
-  query.value = decodeURIComponent((route.query.query as string) || '')
+  query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
-  if (query.value) {
+  if (query_param.value) {
     fetchPrevNextItems()
   } else {
     previousItemId.value = ''
     nextItemId.value = ''
   }
+  // Keyboard navigation: left/right arrows navigate prev/next item.
+  const onKeyDown = (e: KeyboardEvent) => {
+    // Ignore inputs
+    const target = e.target as HTMLElement | null
+    if (target) {
+      const tag = target.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (target.isContentEditable && target.isContentEditable === true)) {
+        return
+      }
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      handle_item_prev()
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      handle_item_next()
+    }
+  }
+
+  window.addEventListener('keydown', onKeyDown)
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', onKeyDown)
+  })
 })
 
 eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
@@ -310,11 +346,11 @@ watch(
   () => [route.query.query, route.query.offset],
   async ([newQuery, newOffset]) => {
     if (newQuery && typeof newQuery === 'string') {
-      query.value = decodeURIComponent(newQuery || '')
+      query_param.value = decodeURIComponent(newQuery || '')
       offset.value = parseInt(newOffset as string, 10) || 0
       await fetchPrevNextItems()
     } else {
-      query.value = ''
+      query_param.value = ''
       previousItemId.value = ''
       nextItemId.value = ''
     }
