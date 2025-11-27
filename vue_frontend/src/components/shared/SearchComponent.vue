@@ -90,7 +90,7 @@ const queries = ref<Query[]>([
   },
 ])
 
-const searchInput = useTemplateRef('searchInput')
+const searchInput = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   searchInput.value?.focus()

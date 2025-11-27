@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-  "build": "npm run build-only",
+    "build": "npm run build-only",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
@@ -31,6 +31,8 @@
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.2",
+    "@iconify-json/fa7-regular": "^1.2.1",
+    "@iconify-json/fa7-solid": "^1.2.2",
     "@iconify-json/line-md": "^1.2.11",
     "@iconify-json/material-symbols": "^1.2.47",
     "@iconify-json/mdi": "^1.2.3",

@@ -1,10 +1,10 @@
 <template>
   <BContainer fluid class="d-flex row" data-testid="item-view">
-    <BCol class="align-content-center col-1 p-0 width-1 text-end">
+    <BCol class="col-1 p-0 text-end">
       <router-link
         v-show="previousItemId"
         :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
-        class="text-decoration-none"
+        class="text-decoration-none arrow-button"
       >
         <IFaArrowLeft  />
       </router-link>
@@ -69,11 +69,11 @@
         </BTab>
       </BTabs>
     </BCol>
-    <BCol class="align-content-center col-1 p-0">
+    <BCol class="col-1 p-0">
       <router-link
         v-show="nextItemId"
         :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
-        class="text-decoration-none"
+        class="text-decoration-none arrow-button"
       >
         <IFaArrowRight />
       </router-link>
@@ -84,7 +84,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import eventBus from '../stores/eventBus'
 import { type Events } from '../stores/eventBus'
@@ -97,13 +97,13 @@ import ItemCompare from '../components/ItemComparison.vue'
 import ItemList from '@/components/ItemList.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
-import router from '@/router'
 
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 // Reactive State
 const route = useRoute()
+const router = useRouter()
 const itemId = ref<string>(
   typeof route.params.tag_uuid === 'string'
     ? route.params.tag_uuid
@@ -428,5 +428,14 @@ watch(
 .sticky-note-error {
   background-color: var(--color-danger);
   color: var(--color-primary-contrast);
+}
+.arrow-button {
+  position: fixed;
+  top: 45vh;
+  font-size: 1.2rem;
+  transform: translateX(-50%);
+  &:hover {
+    background-color: unset;
+  }
 }
 </style>

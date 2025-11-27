@@ -111,9 +111,6 @@
   width: 100vw;
   background: linear-gradient(45deg, var(--color-navbar), var(--color-primary));
 
-  box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  -webkit-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  -moz-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .header ::after {

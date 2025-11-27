@@ -1,6 +1,7 @@
 <template>
   <div class="h-100">
     <TitleComponent />
+    <div class="title-liner"></div>
     <BContainer class="content">
       <RouterView />
     </BContainer>
@@ -46,6 +47,11 @@ watch(
 <style scoped>
 .h-100 {
   min-height: 100vh !important;
+}
+.title-liner {
+  box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -webkit-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  -moz-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .content {
