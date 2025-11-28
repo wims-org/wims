@@ -257,7 +257,7 @@ watch(
       emit('update:viewMode', newMode)
     }
 
-    if (newMode === 'image' || newMode === 'image-list') {
+    if (['image', 'image-list'].includes(newMode)) {
       nextTick(() => {
         scanVisibleImages()
         window.addEventListener('scroll', onScrollOrResize, { passive: true })
@@ -278,6 +278,17 @@ watch(
   },
 )
 
+watch(
+  () => props.items,
+  () => {
+    nextTick(() => {
+      if (['image', 'image-list'].includes(activeViewMode.value)) {
+        scanVisibleImages()
+      }
+    })
+  },
+)
+
 const onImageLoad = (id?: string) => {
   if (!id) return
   loadedImages.value[id] = true
@@ -291,11 +302,12 @@ const onImageError = (id?: string) => {
 }
 
 onMounted(() => {
-  if (activeViewMode.value === 'image' || activeViewMode.value === 'image-list') {
+  if (['image', 'image-list'].includes(activeViewMode.value)) {
     scanVisibleImages()
     window.addEventListener('scroll', onScrollOrResize, { passive: true })
     window.addEventListener('resize', onScrollOrResize)
   }
+
 })
 
 onUnmounted(() => {

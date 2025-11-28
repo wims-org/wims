@@ -1,0 +1,118 @@
+<template>
+  <BCol
+    class="my-4"
+    v-infinite-scroll="[onLoadMore, { distance: 10, canLoadMore: () => canLoadMore }]"
+  >
+    <div v-if="!items.length" class="d-flex justify-content-center">
+      <BSpinner />
+    </div>
+    <ItemList
+      :title="title"
+      v-if="items.length"
+      :items="items"
+      @select="handleSelect"
+      @update:view-mode="updateViewMode"
+      @update:imageSize="updateImageSize"
+      :view-mode="activeViewMode"
+      :image-size="activeImageSize"
+    />
+    <div v-if="!canLoadMore" class="text-center mt-2">No more items to load</div>
+  </BCol>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref, type PropType } from 'vue'
+import { vInfiniteScroll } from '@vueuse/components'
+import axios from 'axios'
+import ItemList from '@/components/ItemList.vue'
+import type { components } from '@/interfaces/api-types'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
+type Item = components['schemas']['Item'] & { [key: string]: unknown }
+
+// Props
+const props = defineProps({
+  title: {
+    type: String,
+    default: 'Item List',
+  },
+  settingsId: {
+    type: String,
+  },
+  viewMode: {
+    type: String as PropType<'text' | 'image-list' | 'image'>,
+    default: 'image-list',
+  },
+  imageSize: {
+    type: Number,
+    default: 3,
+  },
+  query: {
+    type: Object as PropType<SearchQuery>,
+    default: null,
+  },
+})
+
+const items = ref<Item[]>([])
+const searchQuery = ref<SearchQuery | null>(props.query)
+
+const batchSize = 1
+const canLoadMore = ref(true)
+
+onMounted(async () => {
+  activeViewMode.value =
+    (localStorage.getItem('home.itemListViewMode') as
+      | 'text'
+      | 'image-list'
+      | 'image'
+      | undefined) || 'image-list'
+  activeImageSize.value = parseInt(
+    localStorage.getItem(`${props.settingsId}.itemListImageSize`) || '3',
+  )
+})
+
+const fetchRecentItems = async (offset: number) => {
+  try {
+    searchQuery.value = {
+      states: ['latest'],
+      ...props.query,
+      limit: batchSize,
+      offset: offset,
+    }
+    const response = await axios.post('/items/search', searchQuery.value)
+    const data = Array.isArray(response.data) ? response.data : []
+    canLoadMore.value = data.length === batchSize
+    items.value = items.value.concat(data)
+  } catch {
+    canLoadMore.value = false
+  }
+}
+
+const onLoadMore = async () => {
+  await fetchRecentItems(items.value.length)
+}
+
+const activeViewMode = ref<'text' | 'image-list' | 'image' | undefined>('text')
+const updateViewMode = (newMode: string) => {
+  localStorage.setItem('home.itemListViewMode', newMode)
+}
+
+const activeImageSize = ref<number>(3)
+const updateImageSize = (newSize: number) => {
+  localStorage.setItem('home.itemListImageSize', newSize.toString())
+}
+
+const handleSelect = (item: { tag_uuid: string }) => {
+  const tag = item.tag_uuid
+  const offset = items.value.findIndex((i) => i.tag_uuid === tag)
+  console.log('Selected tag:', tag)
+  router.push(
+    `/items/${tag}` +
+      (searchQuery.value
+        ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
+        : ''),
+  )
+}
+</script>

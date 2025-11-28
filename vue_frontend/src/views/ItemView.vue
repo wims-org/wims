@@ -6,7 +6,7 @@
         :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
         class="text-decoration-none arrow-button"
       >
-        <IFaArrowLeft  />
+        <IFaArrowLeft />
       </router-link>
     </BCol>
     <BCol>
@@ -20,27 +20,21 @@
             :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
             @update:value="handleContainerSelect"
           />
-          <ItemList
-            v-if="items.length > 0"
-            :items="items"
+          <button
+            @click="() => (showModal = true)"
+            class="btn btn-primary my-3"
+            data-testid="add-content-button"
+          >
+            Add content now
+          </button>
+          <ItemListContainer
+            :settingsId="'item-view-container'"
+            :query="{
+              container_tag_uuid: itemId,
+            }"
             @select="handleItemSelect"
             :title="`Items in ${item?.short_name}`"
           />
-          <div v-else-if="loading" class="text-center mt-5">
-            <BSpinner label="Loading..."></BSpinner>
-          </div>
-          <div v-else-if="noContent" class="text-center mt-5">
-            <p>No content found in this container.</p>
-          </div>
-          <div class="d-flex justify-content-center mt-3">
-            <button
-              @click="() => (showModal = true)"
-              class="btn btn-primary mb-3"
-              data-testid="add-content-button"
-            >
-              Add content now
-            </button>
-          </div>
         </BTab>
         <BTab title="Item Data" id="itemData" data-testid="item-data">
           <button
@@ -261,7 +255,7 @@ const handleItemSelect = (item: Item) => {
   const query = {
     query: {
       container_tag_uuid: itemId.value,
-    }
+    },
   }
   router.push(
     `/items/${tag}` +
