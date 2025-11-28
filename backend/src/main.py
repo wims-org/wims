@@ -10,7 +10,8 @@ from dependencies.backend_service import BackendService
 from dependencies.config import read_config
 
 # Use absolute import
-from routers import camera, completion, config, healthz, items, queries, readers, scan, stream, users
+from routers import camera, completion, config, healthz, queries, readers, scan, stream, users
+from routers.items import items
 from utils import find
 
 # Read config

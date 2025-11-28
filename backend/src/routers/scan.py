@@ -31,7 +31,7 @@ async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
     )
     # Send db data to reader
     # todo don't fetch data from db twice
-    item_raw = request.app.state.backend_service.db.find_by_rfid("items", body.tag_id)
+    item_raw = request.app.state.backend_service.dbc.find_by_rfid("items", body.tag_id)
     if item_raw:
         try:
             item = Item.model_validate(item_raw, strict=False, from_attributes=True)

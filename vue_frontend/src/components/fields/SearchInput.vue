@@ -202,14 +202,20 @@ const getSearchTermFromValue = (value: string) => {
       case SearchType.USER:
         return axios.get(`/users/${value}`).then((response) => {
           resolve(response.data.username)
+        }).catch(() => {
+          resolve(value)
         })
       case SearchType.ITEM:
         return axios.get(`/items/${value}`).then((response) => {
           resolve(response.data.name)
+        }).catch(() => {
+          resolve(value)
         })
       case SearchType.QUERY:
         return axios.get(`/queries/${value}`).then((response) => {
           resolve(response.data.name)
+        }).catch(() => {
+          resolve(value)
         })
       default:
         resolve('')

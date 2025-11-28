@@ -19,7 +19,11 @@ class MongoDBConnector:
     def __init__(self, uri: str, database: str) -> None:
         try:
             self.client = MongoClient(
-                uri, username="root", password="example", authSource="admin", authMechanism="SCRAM-SHA-256"
+                uri,
+                username="root",
+                password="example",
+                authSource="admin",
+                authMechanism="SCRAM-SHA-256",
             )
             # Attempt to trigger server selection to catch connection errors early
             self.client.server_info()
@@ -45,20 +49,22 @@ class MongoDBConnector:
         pipeline = [
             {"$match": {"tag_uuid": rfid}},
             {
+                "$lookup": {
+                    "from": "items",
+                    "let": {"tag": "$tag_uuid"},
+                    "pipeline": [
+                        {"$match": {"$expr": {"$eq": ["$container_tag_uuid", "$$tag"]}}},
+                        {"$project": {"_id": 1}},
+                        {"$limit": 1},
+                    ],
+                    "as": "contained",
+                },
+            },
+            {
                 "$addFields": {
                     "container_tag_exists": {"$ne": ["$container_tag_uuid", None]},
                     "container_tag_uuid_copy": "$container_tag_uuid",
-                    #            "owner": {
-                    #                "$cond": [
-                    #                    {"$and": [
-                    #                        {"$ne": ["$owner_id", None]},
-                    #                        {"$not": [
-                    #                            {"$eq": [{"$type": "$owner_id"}, "objectId"]}]}
-                    #                    ]},
-                    #                    {"$toObjectId": "$owner_id"},
-                    #                    "$owner_id"
-                    #                ]
-                    #            }
+                    "is_container": {"$gt": [{"$size": "$contained"}, 0]},
                 }
             },
             {
@@ -70,24 +76,7 @@ class MongoDBConnector:
                 }
             },
             {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
-            #    {"$lookup": {
-            #        "from": "users",
-            #        "localField": "owner",
-            #        "foreignField": "_id",
-            #        "as": "owner",
-            #    }},
-            #    {"$unwind": {"path": "$owner", "preserveNullAndEmptyArrays": True}},
-            #    {
-            #        "$addFields": {
-            #            "owner._id": {
-            #                "$cond": [
-            #                    {"$ifNull": ["$owner._id", False]},
-            #                    {"$toString": "$owner._id"},
-            #                    None
-            #                ]
-            #            }
-            #        }
-            #    },
+            {"$project": {"contained": 0}},
         ]
         return next(collection.aggregate(pipeline), None)
 
