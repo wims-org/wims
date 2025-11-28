@@ -3,7 +3,7 @@
     class="my-4"
     v-infinite-scroll="[onLoadMore, { distance: 10, canLoadMore: () => canLoadMore }]"
   >
-    <div v-if="!items.length" class="d-flex justify-content-center">
+    <div v-if="!items.length && canLoadMore" class="d-flex justify-content-center">
       <BSpinner />
     </div>
     <ItemList
@@ -27,6 +27,7 @@ import axios from 'axios'
 import ItemList from '@/components/ItemList.vue'
 import type { components } from '@/interfaces/api-types'
 import { useRouter } from 'vue-router'
+import { watch } from 'vue'
 const router = useRouter()
 
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
@@ -57,6 +58,7 @@ const props = defineProps({
 
 const items = ref<Item[]>([])
 const searchQuery = ref<SearchQuery | null>(props.query)
+const currentRoute = ref<string>(router.currentRoute.value.fullPath as string)
 
 const batchSize = 1
 const canLoadMore = ref(true)
@@ -103,6 +105,18 @@ const activeImageSize = ref<number>(3)
 const updateImageSize = (newSize: number) => {
   localStorage.setItem('home.itemListImageSize', newSize.toString())
 }
+
+// Watchers
+watch(
+  () => router.currentRoute.value,
+  async (newRoute) => {
+    if (newRoute.fullPath !== currentRoute.value) {
+      currentRoute.value = newRoute.name as string
+      items.value = []
+      canLoadMore.value = true
+    }
+  },
+)
 
 const handleSelect = (item: { tag_uuid: string }) => {
   const tag = item.tag_uuid

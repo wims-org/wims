@@ -65,7 +65,6 @@
 import { ref, watch, onMounted, defineEmits } from 'vue'
 import axios from 'axios'
 import ItemList from '@/components/ItemList.vue'
-import { useTemplateRef } from 'vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'

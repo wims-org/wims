@@ -569,6 +569,8 @@ export interface components {
             /** Container Tag Uuid */
             container_tag_uuid?: string | null;
             container?: components["schemas"]["Item"] | null;
+            /** Is Container */
+            is_container?: boolean | null;
             /** Current Location */
             current_location?: string | null;
             /** Borrowed By */

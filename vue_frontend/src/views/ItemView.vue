@@ -30,7 +30,7 @@
           <ItemListContainer
             :settingsId="'item-view-container'"
             :query="{
-              container_tag_uuid: itemId,
+              query: { container_tag_uuid: itemId },
             }"
             @select="handleItemSelect"
             :title="`Items in ${item?.short_name}`"
@@ -88,7 +88,6 @@ import type { components } from '@/interfaces/api-types'
 import LLMCompletion from '@/components/LLMCompletion.vue'
 import ItemForm from '../components/ItemForm.vue'
 import ItemCompare from '../components/ItemComparison.vue'
-import ItemList from '@/components/ItemList.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
@@ -112,7 +111,6 @@ const completion = ref<Item>()
 const saveError = ref('')
 const saveSuccess = ref('')
 const items = ref<Item[]>([])
-const noContent = ref(false)
 const showModal = ref(false)
 const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
 const previousItemId = ref<string>('')
@@ -120,7 +118,6 @@ const nextItemId = ref<string>('')
 const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
-const loading = ref(false)
 
 // Stores
 const clientStore = useClientStore()
@@ -129,6 +126,7 @@ const clientStore = useClientStore()
 const fetchItem = async () => {
   try {
     const response = await axios.get(`/items/${itemId.value}`)
+    console.log('Fetched item:', response.data)
     item.value = response.data
     newItem.value = false
     isComparing.value = false
@@ -146,29 +144,6 @@ const fetchItem = async () => {
   // completion.value = item.value
   // isComparing.value = true
   tabCheck.value++
-}
-
-const fetchContainerContent = async () => {
-  loading.value = true
-  axios
-    .get(`/items/${itemId.value}/content`)
-    .then((res) => {
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        items.value = res.data as Item[]
-        noContent.value = false
-      } else {
-        items.value = []
-        noContent.value = true
-      }
-    })
-    .catch(() => {
-      items.value = []
-      noContent.value = true
-    })
-    .finally(() => {
-      tabCheck.value++
-      loading.value = false
-    })
 }
 
 const fetchPrevNextItems = async () => {
@@ -273,9 +248,7 @@ const handleContentSelect = async (tag: string) => {
   } catch (error) {
     saveError.value = 'Could not save changes. Please try again.'
     console.error(error)
-  } finally {
-    fetchContainerContent()
-  }
+  } 
 }
 
 const handleContainerSelect = (tag: string) => {
@@ -306,7 +279,6 @@ const handle_item_next = () => {
 
 // Lifecycle Hooks
 onMounted(fetchItem)
-onMounted(fetchContainerContent)
 onMounted(() => {
   query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
@@ -364,7 +336,6 @@ watch(
       newItem.value = false
       isComparing.value = false
       await fetchItem()
-      await fetchContainerContent()
       await fetchPrevNextItems()
     }
   },
@@ -392,7 +363,7 @@ watch(
       activeTab.value = 'itemData'
     } else if (newItem.value && clientStore.backend_config.llm_enabled) {
       activeTab.value = 'objectIdentification'
-    } else if (items.value.length > 0) {
+    } else if (item.value?.is_container) {
       activeTab.value = 'containerTree'
     } else {
       activeTab.value = 'itemData'
