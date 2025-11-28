@@ -1,5 +1,5 @@
 [project]
-authors = [{name = "EeveesEyes"}]
+authors = [{name = "wims-authors"}]
 description = ""
 license = {text = "GPL-3.0-or-later"}
 name = "backend"

@@ -1,0 +1,22 @@
+[project]
+name = "photobox"
+version = "0.1.0"
+description = ""
+authors = [{name = "wims-authors"}]
+license = {text = "GPL-3.0-or-later"}
+readme = "README.md"
+requires-python = ">=3.12"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+Adafruit-Blinka = "^8.62.0"
+adafruit-circuitpython-pn532 = "^2.4.5"
+adafruit-circuitpython-busdevice = "^5.2.13"  # optional, wird i.d.R. von pn532 mitgezogen
+picamera2 = "^0.3.30"
+Pillow = "^9.4.0"
+requests = "^2.28.1"
