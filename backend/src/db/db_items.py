@@ -6,19 +6,20 @@ from models.requests import AggregatedStates, SearchQuery
 
 def get_items_with_search_query(query: SearchQuery, db: Database) -> list[Item]:
     """Builds a MongoDB query from a SearchQuery object and returns matching items."""
-    if query.term:
-        query.query.update(
-            {
-                "$or": [
-                    {"tag_uuid": {"$regex": query.term, "$options": "i"}},
-                    {"short_name": {"$regex": query.term, "$options": "i"}},
-                    {"description": {"$regex": query.term, "$options": "i"}},
-                    {"item_type": {"$regex": query.term, "$options": "i"}},
-                    {"tags": {"$regex": query.term, "$options": "i"}},
-                    {"manufacturer": {"$regex": query.term, "$options": "i"}},
-                ]
-            }
-        )
+    term_query = {
+        "$or": [
+            {"tag_uuid": {"$regex": query.term, "$options": "i"}},
+            {"short_name": {"$regex": query.term, "$options": "i"}},
+            {"description": {"$regex": query.term, "$options": "i"}},
+            {"item_type": {"$regex": query.term, "$options": "i"}},
+            {"tags": {"$regex": query.term, "$options": "i"}},
+            {"manufacturer": {"$regex": query.term, "$options": "i"}},
+        ]
+    }
+    if query.term and query.query:
+        query.query.update(term_query)
+    elif query.term:
+        query.query = term_query
     for state in query.states or []:
         if state == AggregatedStates.borrowed:
             query.query.update({"borrowed_by": {"$regex": ".+"}})

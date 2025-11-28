@@ -14,6 +14,6 @@ const router = useRouter()
 
 const handleSelect = (tag: string, query: SearchQuery | null, offset: number | null) => {
   console.log('Selected tag:', tag)
-  router.push(`/items/${tag}` + (query ? `?query=${encodeURIComponent(JSON.stringify(query))}` : ''))
+  router.push(`/items/${tag}` + (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''))
 }
 </script>

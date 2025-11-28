@@ -79,6 +79,7 @@ class Item(BaseModel):
     # UUID of the parent item containing this item
     container_tag_uuid: str | None = None
     container: Item | None = None
+    is_container: bool | None = None  # aggregated field
     # temporary uuid of the location, for moving items around
     current_location: str | None = None
     # User Information

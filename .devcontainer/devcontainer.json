@@ -1,27 +1,13 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
   "name": "Python 3 & MQTT & somedb",
-  //"dockerComposeFile": "docker-compose.yml",
-  "dockerComposeFile": [
-    "../docker-compose.yml", // prod docker compose
-    "docker-compose.yml" // dev docker compose
-  ],
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
   "service": "devcontainer",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
     "source=inventory-commandhistory,target=/commandhistory,type=volume"
-    //"source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind",
-    //"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
   ],
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  // "image": "mcr.microsoft.com/devcontainers/python:1-3.12",
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
-  // Configure tool-specific properties.
   "customizations": {
-    // Configure properties specific to VS Code.
     "vscode": {
       "settings": {
         "remote.autoForwardPorts": false
@@ -52,23 +38,17 @@
       ]
     }
   },
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [5000, 8000, 1883, 5002],
-  // Use 'portsAttributes' to set default properties for specific forwarded ports.
-  // More info: https://containers.dev/implementors/json_reference/#port-attributes
   "portsAttributes": {
     "5000": {
       "label": "Hello Remote World",
       "onAutoForward": "notify"
     }
   },
-  // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": {
+    "Install Python dependencies": "poetry config virtualenvs.in-project true && cd /workspaces/wims/backend && poetry lock && poetry install && cd /workspaces/wims/vue_frontend && npm install",
     "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
     "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock",
-    "Install playwright browsers": "cd /workspaces/wims/integration && npm install && npx playwright install --with-deps && npx playwright install-deps",
+    "Install playwright browsers": "cd /workspaces/wims/integration && npm install && npx playwright install --with-deps && npx playwright install-deps"
   }
-  // "remoteUser": "root"
-  // uncomment if any errors occur in one of the services
-  // "runServices": ["devcontainer"]
 }

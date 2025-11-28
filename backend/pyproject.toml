@@ -1,11 +1,11 @@
 [project]
 authors = [{name = "EeveesEyes"}]
 description = ""
+license = {text = "GPL-3.0-or-later"}
 name = "backend"
 readme = "README.md"
 requires-python = ">=3.12"
 version = "0.1.0"
-license = {text = "GPL-3.0-or-later"}
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -16,27 +16,34 @@ package-mode = false
 packages = [{include = "frontend"}]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+deepmerge = "^2.0"
 fastapi = "^0.121.1"
+fastapi-utils = "^0.8.0"
+jsonschema = "^4.25.1"
+loguru = "^0.7.3"
 openai = "^2.7.2"
+opencv-python = "^4.12.0.88"
 paho-mqtt = "^2.1.0"
 pydantic = "^2.12.4"
 pymongo = "^4.15.3"
+python = "^3.14"
 python-multipart = "^0.0.20"
+pyyaml = "^6.0.3"
+requests = "^2.32.5"
 sse-starlette = "^3.0.3"
 uvicorn = "^0.38.0"
 wtforms = "^3.2.1"
-jsonschema = "^4.25.1"
-pyyaml = "^6.0.3"
-loguru = "^0.7.3"
-fastapi-utils = "^0.8.0"
-deepmerge = "^2.0"
-opencv-python = "^4.12.0.88"
-requests = "^2.32.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 ruff = "^0.8.0"
+taskipy = "^1.14.1"
+
+[tool.taskipy.tasks]
+format = "ruff format src"
+lf = "ruff check src --fix && ruff format src"
+lint = "ruff check src --fix"
+type-check = "ruff check src --select I"
 
 [tool.ruff]
 line-length = 120
