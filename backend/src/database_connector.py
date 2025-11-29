@@ -12,7 +12,7 @@ class RecursiveContainerObject(pydantic.BaseModel):
 
     tag_uuid: str
     short_name: str | None = None
-    container: "RecursiveContainerObject | None" = None
+    container: RecursiveContainerObject | None = None
 
 
 class MongoDBConnector:

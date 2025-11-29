@@ -9,9 +9,6 @@ database:
     user: "test"
     password: "test"
 
-camera:
-    url: http://yourcamip/stream
-
 logging:
     level: "INFO"
 

@@ -10,7 +10,6 @@ from loguru import logger
 
 from database_connector import MongoDBConnector
 from modules import chatgpt
-from modules.camera import Camera
 from utils import find
 
 MESSAGE_STREAM_DELAY = 0.3  # second
@@ -45,7 +44,7 @@ class SseMessage(pydantic.BaseModel):
 class ConfigResponseModel(pydantic.BaseModel):
     database_connected: bool
     llm_enabled: bool
-    camera_enabled: bool
+    camera_enabled: bool = False
 
 
 class BackendService:
@@ -70,12 +69,6 @@ class BackendService:
         except (KeyError, TypeError, openai.OpenAIError) as e:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
             self.llm_completion = None
-
-        try:
-            self.camera = Camera(find(key := "camera.url", config))
-        except (KeyError, TypeError, openai.OpenAIError) as e:
-            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
-            self.camera = None
         asyncio.create_task(self.push_heartbeats())
 
     async def push_heartbeats(self):
@@ -170,5 +163,5 @@ class BackendService:
         return ConfigResponseModel(
             database_connected=self.dbc.is_connected(),
             llm_enabled=self.llm_completion is not None,
-            camera_enabled=self.camera is not None,
+            camera_enabled=False,
         )

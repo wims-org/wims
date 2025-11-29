@@ -58,7 +58,7 @@
               nodejs_24
 
               # backend
-              poetry
+              uv
 
               # hardware
               python3Packages.pyserial
