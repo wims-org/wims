@@ -26,7 +26,6 @@ services:
       - database.host=db
       - database.user=root
       - database.password=example
-      - camera.url=http://192.168.178.184:8080/stream
       - RUN_MODE=production
 
   db:
