@@ -3,13 +3,14 @@ import enum
 import json
 import uuid
 from pathlib import Path
+from threading import Thread
 
 import openai
 import pydantic
 from loguru import logger
 
 from database_connector import MongoDBConnector
-from modules import chatgpt
+from modules import chatgpt, unspsc_importer
 from utils import find
 
 MESSAGE_STREAM_DELAY = 0.3  # second
@@ -70,6 +71,14 @@ class BackendService:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
             self.llm_completion = None
         asyncio.create_task(self.push_heartbeats())
+
+        # Start UNSPSC data import in the background, if needed
+        import_thread = Thread(
+            target=unspsc_importer.check_and_import_unspsc_data,
+            args=(self.dbc, "categories", str(Path(__file__).parent.parent.parent / "data" / "unspsc_data.xlsx")),
+        )
+        import_thread.start()
+        logger.info("BackendService initialized")
 
     async def push_heartbeats(self):
         message = SseMessage(

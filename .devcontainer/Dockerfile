@@ -15,11 +15,10 @@ RUN curl -fsSL https://get.docker.com | bash \
     && curl -L "https://github.com/docker/compose/releases/download/v2.40.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
 ARG USERNAME=vscode
 RUN groupadd -f docker && usermod -aG docker,users $USERNAME
 
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
     && mkdir /commandhistory \
     && touch /commandhistory/.bash_history \
