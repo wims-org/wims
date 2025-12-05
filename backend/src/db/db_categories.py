@@ -57,7 +57,10 @@ def get_category_tree(db, collection_name: str, unspsc_code: str) -> Category | 
         return None
 
 
-def find_categories_by_name(db, name_query: str) -> list[dict]:
-    regex_query = {"$regex": name_query, "$options": "i"}  # Case-insensitive search
+def find_categories_by_title(db, title_query: str) -> list[dict]:
+    regex_query = {"$regex": title_query, "$options": "i"}  # Case-insensitive search
     categories = list(db["categories"].find({"title": regex_query}))
     return categories
+
+def get_categories(db, offset: int, limit: int) -> list[dict]:
+    return list(db["categories"].find().skip(offset).limit(limit))

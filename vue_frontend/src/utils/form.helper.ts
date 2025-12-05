@@ -27,6 +27,7 @@ export const fieldTypeToComponent = (type: string) => {
     image: ImageThumbnailField,
     file: ImageThumbnailField,
     user: SearchInput,
+    category: SearchInput,
     default: TextField
   };
   return componentMap[type] || null;

@@ -29,7 +29,10 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/vue_frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -52,7 +55,10 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "test:ui"],
+      "runtimeArgs": [
+        "run",
+        "test:ui"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },
@@ -63,7 +69,11 @@
       "preLaunchTask": "Docker Compose Up with Tests",
       "cwd": "${workspaceFolder}/integration",
       "runtimeExecutable": "npx",
-      "args": ["playwright", "test", "--ui"],
+      "args": [
+        "playwright",
+        "test",
+        "--ui"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"
     },

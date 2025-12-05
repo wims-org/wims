@@ -27,9 +27,9 @@ async def get_category(request: Request, unspsc_code: str | int) -> Response | d
 
 
 @router.get("", response_model=list[CategoryResponse])
-async def get_categories(request: Request) -> Response | dict:
+async def get_categories(request: Request, offset: int = 0, limit: int = 100) -> Response | dict:
     db = get_bs(request).dbc.db
-    existing = db_categories.get_category_with_parents_and_children(db)
+    existing = db_categories.get_categories(db, offset=offset, limit=limit)
     if not existing:
         raise HTTPException(status_code=404, detail="No categories found.")
     return existing
@@ -51,10 +51,10 @@ async def get_category_tree(request: Request, unspsc_code: str) -> Response | di
 
 
 @router.get("/search/", response_model=list[CategoryResponse])
-async def search_categories(request: Request, name: str) -> Response | dict:
-    logger.debug(f"Searching categories with name query: {name}")
+async def search_categories(request: Request, term: str) -> Response | dict:
+    logger.debug(f"Searching categories with title query: {term}")
     db = get_bs(request).dbc.db
-    categories = db_categories.find_categories_by_name(db, name_query=name)
+    categories = db_categories.find_categories_by_title(db, title_query=term)
     logger.debug(f"Found categories: {categories}")
     if not categories:
         raise HTTPException(status_code=404, detail="No categories found.")
