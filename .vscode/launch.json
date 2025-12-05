@@ -73,6 +73,17 @@
       "request": "launch",
       "preLaunchTask": "Docker Compose Up",
       "platform": "node"
+    },
+    {
+      "name": "unspsc importer",
+      "type": "python",
+      "request": "launch",
+      "module": "unspsc_importer.main",
+      "cwd": "${workspaceFolder}/backend/unspsc_importer",
+      "env": {
+        "LLM_ENVIRONMENT": "development",
+        "CONFIG_FILE": "${workspaceFolder}/backend/src/config.yml"
+      }
     }
   ]
 }

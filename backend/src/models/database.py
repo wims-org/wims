@@ -38,10 +38,12 @@ class Relation(BaseModel):
 class Category(BaseModel):
     # ["Key", "Parent key", "Code", "Title"]
     model_config = ConfigDict(populate_by_name=True)
-    key: str | int = Field(alias="Key")
-    parent_key: str | None | int = Field(default=None, alias="Parent key")
-    unspsc_code: str | None | int = Field(alias="Code")
-    title: str = Field(alias="Title")
+    key: str | int = Field(validation_alias="Key")
+    parent_key: str | None | int = Field(default=None, validation_alias="Parent key")
+    unspsc_code: str | None | int = Field(validation_alias="Code")
+    title: str = Field(validation_alias="Title")
+    parent: Category | None = None
+    children: list[Category] = []
 
 
 # Field Alias is used to map the old field name to new field name during database migration after changes

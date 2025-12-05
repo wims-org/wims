@@ -141,9 +141,16 @@ content-type: application/json
 ###
 
 
+###
 
+GET http://localhost:5005/categories/10101500 HTTP/1.1
 
+###
+GET http://localhost:5005/categories/10101501/tree HTTP/1.1
 
+###
+
+GET http://localhost:5005/categories/search/?name=Electron HTTP/1.1
 
 
 

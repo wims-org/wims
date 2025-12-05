@@ -100,6 +100,9 @@ def check_and_import_unspsc_data(db_connector: MongoDBConnector, collection_name
         if collection_name not in db_connector.db.list_collection_names():
             db_connector.db.create_collection(collection_name)
             db_connector.db[collection_name].create_index("unspsc_code", unique=True)
+            db_connector.db[collection_name].create_index("key", unique=True)
+            db_connector.db[collection_name].create_index("parent_key")
+            db_connector.db[collection_name].create_index("title")
             logger.info(f"Category collection '{collection_name}' created.")
         if not collection_is_complete(db_connector, collection_name, file_path or ""):
             import_unspsc_data(db_connector, collection_name, file_path)
