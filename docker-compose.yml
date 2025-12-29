@@ -22,6 +22,7 @@ services:
       - db
     volumes:
       - ./docker/config.default.yml:/app/src/config.yml:ro
+      - ./docker/data/categories.json:/app/data/categories.json:ro
     environment:
       - database.host=db
       - database.user=root
