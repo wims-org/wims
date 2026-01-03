@@ -45,7 +45,7 @@
     }
   },
   "postCreateCommand": {
-    "Install uv Python dependencies": "uv sync && cd /workspaces/wims/vue_frontend && npm install",
+    "Install uv Python dependencies": "cd /workspaces/wims/backend && uv sync && cd /workspaces/wims/vue_frontend && npm install",
     "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
     "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock",
     "Install playwright browsers": "cd /workspaces/wims/integration && npm install && npx playwright install --with-deps && npx playwright install-deps"

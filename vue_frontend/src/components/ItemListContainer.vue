@@ -60,7 +60,8 @@ const items = ref<Item[]>([])
 const searchQuery = ref<SearchQuery | null>(props.query)
 const currentRoute = ref<string>(router.currentRoute.value.fullPath as string)
 
-const batchSize = 1
+const loading = ref(false)
+const batchSize = 10
 const canLoadMore = ref(true)
 
 onMounted(async () => {
@@ -77,6 +78,8 @@ onMounted(async () => {
 
 const fetchRecentItems = async (offset: number) => {
   try {
+    if (loading.value || !canLoadMore.value) return
+    loading.value = true
     searchQuery.value = {
       states: ['latest'],
       ...props.query,
@@ -89,6 +92,8 @@ const fetchRecentItems = async (offset: number) => {
     items.value = items.value.concat(data)
   } catch {
     canLoadMore.value = false
+  } finally {
+    loading.value = false
   }
 }
 

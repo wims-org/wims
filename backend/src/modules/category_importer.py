@@ -43,7 +43,7 @@ def write_md5_to_file(db_connector: MongoDBConnector, collection_name: str, file
     res_data = db_connector.db.command({"dbHash": 1, "collections": [collection_name]})
 
     logger.debug(f"Writing DB Hash for {collection_name}: {res_data} to {import_file}")
-    # import_file.write_text(json.dumps({"md5": res_data.get("collections", {}).get(collection_name, None)}))
+    import_file.write_text(json.dumps({"md5": res_data.get("collections", {}).get(collection_name, None)}))
 
 
 def import_category_data(db_connector: MongoDBConnector, collection_name: str, file_path: str | None = None):

@@ -3,8 +3,6 @@ from typing import Any
 from loguru import logger
 from pymongo.collection import Collection
 
-from models.database import Category
-
 
 def get_category_with_parents_and_children(db, category_key: str | int) -> dict:
     pipeline = [
@@ -33,28 +31,52 @@ def get_category_with_parents_and_children(db, category_key: str | int) -> dict:
     return next(db["categories"].aggregate(pipeline), None)
 
 
-def get_category_tree(db, collection_name: str, id: str) -> Category | None:
+def get_category_tree_up(db, collection_name: str, id: str) -> dict | None:
     """Returns a recursive nested object"""
     collection: Collection = db[collection_name]
-    logger.debug(f"Getting category tree for  code: {id} from collection: {collection_name}")
+    logger.debug(f"Getting category tree for code: {id} from collection: {collection_name}")
     if not (doc := collection.find_one({"_id": id})):
         return None
-    doc = Category.model_validate(doc, strict=False)
 
     def get_category_recursive(id: str) -> dict[str, Any] | None:
         if not (doc := collection.find_one({"_id": id})):
             return None
         logger.debug(f"Fetching category for id: {id}, found document: {doc}")
-        doc = Category.model_validate(doc, strict=False)
-        if parent_key := doc.parent_key:
-            doc.parent = get_category_recursive(parent_key)
+        if parent_id := doc.get("parent_id"):
+            doc["parent"] = get_category_recursive(parent_id)
         return doc
 
     try:
-        return get_category_recursive(doc.key)
+        return get_category_recursive(doc.id)
     except Exception as e:
         logger.exception(f"Error fetching category tree for id {id}: {e}")
         return None
+
+
+def get_category_tree_down(db, collection_name: str, id: str) -> dict | None:
+    """Returns a recursive nested object with children"""
+    collection: Collection = db[collection_name]
+    logger.debug(f"Getting category tree down for code: {id} from collection: {collection_name}")
+    if not (doc := collection.find_one({"_id": id})):
+        return None
+
+    def get_category_recursive(id: str) -> dict[str, Any] | None:
+        if not (doc := collection.find_one({"_id": id})):
+            return None
+        logger.debug(f"Fetching category for id: {id}, found document: {doc}")
+        children_cursor = collection.find({"parent_id": doc["_id"]})
+        doc["children"] = [get_category_recursive(child_doc["_id"]) for child_doc in children_cursor]
+        return doc
+
+    try:
+        return get_category_recursive(doc["_id"])
+    except Exception as e:
+        logger.exception(f"Error fetching category tree for id {id}: {e}")
+        return None
+
+
+def get_root_categories(db, collection_name: str) -> list[dict]:
+    return list(db[collection_name].find({"parent_id": None}))
 
 
 def find_categories_by_title(db, title_query: str) -> list[dict]:
@@ -64,4 +86,5 @@ def find_categories_by_title(db, title_query: str) -> list[dict]:
 
 
 def get_categories(db, offset: int, limit: int) -> list[dict]:
+    # with id
     return list(db["categories"].find().skip(offset).limit(limit))

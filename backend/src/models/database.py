@@ -66,7 +66,7 @@ class Relation(BaseModel):
 class Category(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    _id: Annotated[ObjectId, ObjectIdPydanticAnnotation] | None = None
+    id: Annotated[ObjectId, ObjectIdPydanticAnnotation] | None = Field(alias="_id")
     parent_id: Annotated[ObjectId, ObjectIdPydanticAnnotation] | None = None
     title: str
     description: str | None
