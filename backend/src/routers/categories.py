@@ -23,19 +23,6 @@ async def get_categories(request: Request, offset: int = 0, limit: int = 100) ->
     return existing
 
 
-@router.get("/{id}/tree", response_model=CategoryReqRes)
-async def get_category_tree(request: Request, id: str) -> Response | dict:
-    logger.debug(f"Fetching category tree for id: {id}")
-    category = db_categories.get_category_tree_up(get_bs(request).dbc.db, collection_name="categories", id=id)
-    logger.debug(f"Fetched category tree: {category}")
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found.")
-    try:
-        return category
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
-
-
 @router.get("/tree", response_model=list[CategoryReqRes])
 async def get_all_categories_tree(request: Request) -> list[CategoryReqRes] | Response:
     logger.debug("Fetching all root categories for category tree")
@@ -76,6 +63,19 @@ async def get_category(request: Request, id: str | int) -> Response | dict:
         raise HTTPException(status_code=404, detail="Category not found.")
     try:
         return CategoryReqRes.model_validate(category)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail="Invalid category data.") from e
+
+
+@router.get("/{id}/tree", response_model=CategoryReqRes)
+async def get_category_tree(request: Request, id: str) -> Response | dict:
+    logger.debug(f"Fetching category tree for id: {id}")
+    category = db_categories.get_category_tree_up(get_bs(request).dbc.db, collection_name="categories", id=id)
+    logger.debug(f"Fetched category tree: {category}")
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found.")
+    try:
+        return category
     except ValidationError as e:
         raise HTTPException(status_code=400, detail="Invalid category data.") from e
 

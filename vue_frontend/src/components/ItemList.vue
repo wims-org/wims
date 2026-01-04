@@ -47,14 +47,14 @@
       }"
     >
       <div
-        v-for="item in items"
+        v-for="(item, i) in items"
         :key="item.tag_uuid"
         :class="{
           'list-group-item list-group-item-action':
             activeViewMode === 'text' || activeViewMode === 'image-list',
           'list-group-panel': activeViewMode === 'image',
         }"
-        @click="selectItem(item)"
+        @click="selectItem(item, i)"
       >
         <template v-if="activeViewMode === 'text'">
           <h5 class="mb-1">{{ item.short_name }}</h5>
@@ -204,14 +204,14 @@ watch(
 
 // Emits
 const emit = defineEmits<{
-  (event: 'select', item: Item): void
+  (event: 'select', item: Item, offset: number): void
   (event: 'update:viewMode', mode: 'text' | 'image-list' | 'image'): void
   (event: 'update:imageSize', size: number): void
 }>()
 
 // Methods
-const selectItem = (item: Item) => {
-  emit('select', item)
+const selectItem = (item: Item, index: number) => {
+  emit('select', item, index)
 }
 
 const setViewMode = (mode: 'text' | 'image-list' | 'image') => {

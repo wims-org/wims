@@ -1,12 +1,22 @@
 from typing import Any
 
+from bson import ObjectId
 from loguru import logger
 from pymongo.collection import Collection
 
 
-def get_category_with_parents_and_children(db, category_key: str | int) -> dict:
-    pipeline = [
-        {"$match": {"_id": category_key}},
+def get_category_with_parents_and_children(db, term: str | int) -> dict:
+    logger.debug(
+        f"Getting category with parents and children for term: {term}")
+    pipeline = []
+    try:
+        _id = ObjectId(term)
+        pipeline += [{"$match": {"_id": _id}}]
+    except Exception as e:
+        logger.debug(f"Term is not a valid ObjectId: {e}")
+        pipeline += [{"$match": {"title": {"$regex": term, "$options": "i"}}}]
+
+    pipeline += [
         {
             "$lookup": {
                 "from": "categories",
@@ -34,7 +44,8 @@ def get_category_with_parents_and_children(db, category_key: str | int) -> dict:
 def get_category_tree_up(db, collection_name: str, id: str) -> dict | None:
     """Returns a recursive nested object"""
     collection: Collection = db[collection_name]
-    logger.debug(f"Getting category tree for code: {id} from collection: {collection_name}")
+    logger.debug(
+        f"Getting category tree for code: {id} from collection: {collection_name}")
     if not (doc := collection.find_one({"_id": id})):
         return None
 
@@ -56,7 +67,8 @@ def get_category_tree_up(db, collection_name: str, id: str) -> dict | None:
 def get_category_tree_down(db, collection_name: str, id: str) -> dict | None:
     """Returns a recursive nested object with children"""
     collection: Collection = db[collection_name]
-    logger.debug(f"Getting category tree down for code: {id} from collection: {collection_name}")
+    logger.debug(
+        f"Getting category tree down for code: {id} from collection: {collection_name}")
     if not (doc := collection.find_one({"_id": id})):
         return None
 
@@ -65,7 +77,8 @@ def get_category_tree_down(db, collection_name: str, id: str) -> dict | None:
             return None
         logger.debug(f"Fetching category for id: {id}, found document: {doc}")
         children_cursor = collection.find({"parent_id": doc["_id"]})
-        doc["children"] = [get_category_recursive(child_doc["_id"]) for child_doc in children_cursor]
+        doc["children"] = [get_category_recursive(
+            child_doc["_id"]) for child_doc in children_cursor]
         return doc
 
     try:
@@ -80,7 +93,8 @@ def get_root_categories(db, collection_name: str) -> list[dict]:
 
 
 def find_categories_by_title(db, title_query: str) -> list[dict]:
-    regex_query = {"$regex": title_query, "$options": "i"}  # Case-insensitive search
+    # Case-insensitive search
+    regex_query = {"$regex": title_query, "$options": "i"}
     categories = list(db["categories"].find({"title": regex_query}))
     return categories
 

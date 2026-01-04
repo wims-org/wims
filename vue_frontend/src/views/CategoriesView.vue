@@ -2,7 +2,7 @@
   <div>
     <h1>Categories</h1>
 
-    <CategoryTreeView :categories="categories" />
+    <CategoryTreeView :categories="categories" :selectable="true"/>
   </div>
 </template>
 

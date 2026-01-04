@@ -3,7 +3,7 @@
     <ul class="category-list">
       <li v-for="category in categories" :key="getCategoryKey(category)" class="category-node">
         <div
-          class="category-row"
+          class="d-flex align-items-center gap-2 py-1 flex-row"
           @mouseenter="hoveredKey = getCategoryKey(category)"
           @mouseleave="hoveredKey = null"
         >
@@ -27,6 +27,26 @@
           >
             {{ category.title }}
           </span>
+
+          <div
+            v-if="selectable"
+            class="actions"
+            :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) }"
+          >
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              type="button"
+              @click="
+                $router.push({
+                  name: 'category',
+                  params: { categoryId: getCategoryKey(category) },
+                })
+              "
+            >
+              <font-awesome-icon icon="fa-arrow-right" />
+              View
+            </button>
+          </div>
 
           <div
             class="actions"
@@ -64,6 +84,7 @@
           :expanded-categories="expandedCategories"
           :expand-all="expandAll"
           @add-child="$emit('add-child', $event)"
+          :selectable="selectable"
         />
       </li>
     </ul>
@@ -76,9 +97,10 @@
 import { computed, ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
+import router from '@/router'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 type Category = components['schemas']['CategoryReqRes']
-type Categories = Category[]
 
 type CategoryNode = Category & {
   _id?: string
@@ -86,9 +108,10 @@ type CategoryNode = Category & {
 }
 
 const props = defineProps<{
-  categories: Categories
+  categories: Category[]
   expandedCategories?: string[]
   expandAll?: boolean
+  selectable?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -202,13 +225,6 @@ const createCategory = async (
 
 .category-node {
   margin: 0;
-}
-
-.category-row {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0;
 }
 
 .toggle {
