@@ -205,17 +205,4 @@ const returnItem = () => {
   transition: color 0.3s, background-color 0.3s;
 }
 
-.sticky-note {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--color-danger);
-  color: var(--color-primary-contrast);
-  padding: 0 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  z-index: 1200;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-}
 </style>

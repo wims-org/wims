@@ -1,3 +1,4 @@
+import pymongo
 from fastapi import APIRouter, HTTPException, Request, Response
 from loguru import logger
 from pydantic import ValidationError
@@ -46,7 +47,6 @@ async def search_categories(request: Request, term: str) -> Response | dict:
     logger.debug(f"Searching categories with title query: {term}")
     db = get_bs(request).dbc.db
     categories = db_categories.find_categories_by_title(db, title_query=term)
-    logger.debug(f"Found categories: {categories}")
     if not categories:
         raise HTTPException(status_code=404, detail="No categories found.")
     try:
@@ -71,7 +71,6 @@ async def get_category(request: Request, id: str | int) -> Response | dict:
 async def get_category_tree(request: Request, id: str) -> Response | dict:
     logger.debug(f"Fetching category tree for id: {id}")
     category = db_categories.get_category_tree_up(get_bs(request).dbc.db, collection_name="categories", id=id)
-    logger.debug(f"Fetched category tree: {category}")
     if not category:
         raise HTTPException(status_code=404, detail="Category not found.")
     try:
@@ -81,10 +80,13 @@ async def get_category_tree(request: Request, id: str) -> Response | dict:
 
 
 @router.post("/", response_model=CategoryReqRes)
-async def create_category(request: Request, category: CategoryReqRes) -> Response | dict:
+async def create_category(request: Request, category: CategoryReqRes) -> CategoryReqRes:
     db = get_bs(request).dbc.db
     category_dict = category.model_dump(exclude_unset=True, exclude={"children", "parent"})
-    result = db["categories"].insert_one(category_dict)
+    try:
+        result = db["categories"].insert_one(category_dict)
+    except pymongo.errors.DuplicateKeyError:
+        raise HTTPException(status_code=400, detail="Category with this ID or name already exists.") from None
     created_category = db["categories"].find_one({"_id": result.inserted_id})
     if not created_category:
         raise HTTPException(status_code=500, detail="Failed to create category.")

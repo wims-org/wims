@@ -7,24 +7,20 @@
     <div v-else>
       <p>Loading category...</p>
     </div>
-    <ItemList
-      :items="containers"
-      :title="`Containers containing ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, containers_query, $event.offset)"
-    />
-    <ItemList
-      :items="items"
-      :title="`Items in ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, items_query, $event.offset)"
-    />
+    <CategoryTreeView :categories="category ? [category] : []" :selectable="true" :expand-all="true" />
+    <ItemList :items="containers" :title="`Containers containing ${category?.title}`"
+      @select="handleSelect($event.tag_uuid, containers_query, $event.offset)" />
+    <ItemList :items="items" :title="`Items in ${category?.title}`"
+      @select="handleSelect($event.tag_uuid, items_query, $event.offset)" />
   </div>
 </template>
 
 <script setup lang="ts">
 import axios from 'axios'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import router from '@/router'
+import CategoryTreeView from '@/components/shared/CategoryTreeView.vue'
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 
 type Category = components['schemas']['CategoryReqRes']
@@ -34,6 +30,25 @@ const items = ref<components['schemas']['Item'][]>([])
 const containers = ref<components['schemas']['Item'][]>([])
 const containers_query = ref<SearchQuery>({})
 const items_query = ref<SearchQuery>({})
+
+
+
+watch(
+  () => router.currentRoute.value.params.categoryId,
+  async (newId) => {
+    if (newId != null) {
+      containers.value = []
+      items.value = []
+      category.value = null
+      await fetchCategory(newId as string).then(async () => {
+        await fetchItemsByCategory(category.value?.title || '')
+        await fetchContainersForItems(
+          items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
+        )
+      })
+    }
+  },
+)
 
 const fetchCategory = async (id: string): Promise<void> => {
   return axios
@@ -74,14 +89,11 @@ const fetchContainersForItems = async (container_tag_uuids: string[]): Promise<v
 }
 
 onMounted(() => {
-  fetchCategory(router.currentRoute.value.params.categoryId as string).then(() => {
-    fetchItemsByCategory(category.value?.title || '').then(() => {
-      fetchContainersForItems(
+  fetchCategory(router.currentRoute.value.params.categoryId as string).then(async () => {
+    await fetchItemsByCategory(category.value?.title || '')
+    await fetchContainersForItems(
         items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
-      ).then(() => {
-        console.log('Containers fetched for items:', containers.value)
-      })
-    })
+      )
   })
 })
 
@@ -89,7 +101,7 @@ const handleSelect = (tag: string, query: SearchQuery | null, offset: number | n
   console.log('Selected tag:', tag)
   router.push(
     `/items/${tag}` +
-      (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
   )
 }
 </script>
