@@ -5,21 +5,21 @@
     <ul class="category-list">
       <li v-for="category in categories" :key="getCategoryKey(category)" class="category-node">
         <div class="d-flex align-items-center gap-2 py-1 flex-row category"
-          @mouseenter="hoveredKey = getCategoryKey(category)" @mouseleave="hoveredKey = null">
-          <button class="toggle" type="button" :disabled="!hasChildren(category)" @click="toggleExpanded(category)">
+          @click.stop="hasChildren(category) && toggleExpanded(category)" @mouseenter="hoveredKey = getCategoryKey(category)"
+          @mouseleave="hoveredKey = null">
+          <div class="list-toggle">
             <span v-if="hasChildren(category)">
               <font-awesome-icon :icon="`fa-chevron-${isExpanded(category) ? 'down' : 'right'}`" />
             </span>
             <span v-else class="toggle-placeholder">•</span>
-          </button>
-
-          <span class="title" @click="hasChildren(category) && toggleExpanded(category)">
+          </div>
+          <span class="title">
             {{ category.title }}
           </span>
 
           <div v-if="selectable" class="actions"
             :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) }">
-            <button class="btn btn-sm btn-outline-secondary" type="button" @click="
+            <button class="btn btn-sm btn-outline-secondary" type="button" @click.stop="
               $router.push({
                 name: 'category',
                 params: { categoryId: getCategoryKey(category) },
@@ -32,10 +32,10 @@
 
           <div class="actions" :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) }">
             <button v-if="!formKey" class="btn btn-sm btn-outline-secondary" type="button"
-              @click="formKey = getCategoryKey(category)">
+              @click.stop="formKey = getCategoryKey(category)">
               Add
             </button>
-            <button v-else class="btn btn-sm btn-outline-secondary" type="button" @click="closeAddForm">
+            <button v-else class="btn btn-sm btn-outline-secondary" type="button" @click.stop="closeAddForm">
               Cancel
             </button>
           </div>
@@ -185,6 +185,8 @@ const createCategory = async (
 
 .category {
   border-radius: 4px;
+  cursor: pointer;
+
   &:hover {
     background-color: var(--color-bg-light);
   }
@@ -233,5 +235,12 @@ const createCategory = async (
 
 .category-tree-view :deep(.category-tree-view) {
   padding-left: 1.5rem;
+}
+
+.list-toggle {
+  width: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

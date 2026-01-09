@@ -44,6 +44,14 @@ const props = defineProps({
     type: Object as PropType<SearchQuery>,
     default: null,
   },
+  batchSize: {
+    type: Number,
+    default: 10,
+  },
+  offset: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const items = ref<Item[]>([])
@@ -51,9 +59,15 @@ const searchQuery = ref<SearchQuery | null>(props.query)
 const currentRoute = ref<string>(router.currentRoute.value.fullPath as string)
 
 const loading = ref(false)
-const batchSize = 10
-const offset = ref(0)
+const batchSize = ref(props.batchSize)
+const offset = ref(props.offset)
 const canLoadMore = ref(true)
+
+watch(router.currentRoute, async () => {
+  items.value = []
+  offset.value = props.offset || 0
+  canLoadMore.value = true
+})
 
 onMounted(async () => {
   activeViewMode.value =
@@ -73,14 +87,14 @@ const fetchBatch = async (offset: number) => {
     searchQuery.value = {
       states: ['latest'],
       ...props.query,
-      limit: batchSize,
+      limit: batchSize.value,
       offset: offset,
     }
     const response = await axios.post('/items/search', searchQuery.value)
     console.log('Fetched items batch with names:', response.data.map((item: Item) => item.short_name))
     const data = Array.isArray(response.data) ? response.data : []
     items.value = items.value.concat(data)
-    canLoadMore.value = data.length === batchSize
+    canLoadMore.value = data.length === batchSize.value
     return true
   } catch (err) {
     console.error('Error fetching items batch', err)
@@ -93,7 +107,7 @@ const onLoadMore = async () => {
   if (!canLoadMore.value) return
   loading.value = true
   await fetchBatch(offset.value).then(() => {
-    offset.value += batchSize
+    offset.value += batchSize.value
   }).finally(() => {
     loading.value = false
   })

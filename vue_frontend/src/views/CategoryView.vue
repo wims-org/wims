@@ -52,7 +52,7 @@ watch(
 
 const fetchCategory = async (id: string): Promise<void> => {
   return axios
-    .get('/categories/' + id)
+    .get('/categories/' + id + '/tree')
     .then((response) => {
       console.log('Category fetched:', response.data)
       category.value = response.data
@@ -63,7 +63,7 @@ const fetchCategory = async (id: string): Promise<void> => {
 }
 
 const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
-  items_query.value = { query: { item_type: { $regex: categoryTitle, $options: 'i' } } }
+  items_query.value = { query: { item_type: { $regex: `^${categoryTitle}$`, $options: 'i' } } }
   return axios
     .post('/items/search', items_query.value)
     .then((response) => {
@@ -94,6 +94,8 @@ onMounted(() => {
     await fetchContainersForItems(
         items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
       )
+  }).catch((error) => {
+    console.error('Error fetching category on mount:', error)
   })
 })
 

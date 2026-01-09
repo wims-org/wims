@@ -68,15 +68,25 @@ async def get_category(request: Request, id: str | int) -> Response | dict:
 
 
 @router.get("/{id}/tree", response_model=CategoryReqRes)
-async def get_category_tree(request: Request, id: str) -> Response | dict:
+async def get_category_tree(request: Request, id: str) -> CategoryReqRes:
+    db = get_bs(request).dbc.db
+    category = db_categories.get_category_with_parents_and_children(db, id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found.")
+    doc_id = category.get("_id")
+    tree = db_categories.get_category_tree_down(db, collection_name="categories", id=doc_id)
+    if tree:
+        category.update({"children": tree.get("children", [])})
+    return category
+
+
+@router.get("/{id}/branch", response_model=CategoryReqRes)
+async def get_category_branch(request: Request, id: str) -> Response | dict:
     logger.debug(f"Fetching category tree for id: {id}")
     category = db_categories.get_category_tree_up(get_bs(request).dbc.db, collection_name="categories", id=id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found.")
-    try:
-        return category
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
+    return category
 
 
 @router.post("/", response_model=CategoryReqRes)
