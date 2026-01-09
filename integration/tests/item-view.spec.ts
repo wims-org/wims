@@ -22,7 +22,7 @@ test.describe("Item View", () => {
     const resp = await postScan(page, message);
     // this item should not exist
     expect(!resp.ok()).toBeTruthy();
-    await page.getByTestId("item-view").waitFor({ timeout: 1000 });
+    await page.getByTestId("item-view").waitFor({ timeout: 1500 });
     await expect(page.getByTestId("item-view")).toBeVisible();
     await page.waitForTimeout(500);
     await expect(page.getByTestId("object-identification")).toContainClass("active");

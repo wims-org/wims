@@ -61,7 +61,8 @@ class AggregatedStates(enum.StrEnum):
     borrowed = "borrowed"
     todo = "todo"
     empty = "empty"
-
+    name_asc = "name_asc"
+    name_desc = "name_desc"
 
 class SearchQuery(BaseModel):
     query: dict | None = None

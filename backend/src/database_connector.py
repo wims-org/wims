@@ -124,13 +124,14 @@ class MongoDBConnector:
         documents = list(collection.find(query or {}, projection={"_id": False}))
         return documents
 
-    def update(self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any]) -> int:
+    def update(
+        self, collection_name: str, query: dict[str, Any], update_values: dict[str, Any], upsert: bool = False
+    ) -> int:
         if self.db is None:
             logger.error("No database connection available for update operation.")
             return 0
         collection: Collection = self.db[collection_name]
-        result = collection.update_many(query, {"$set": update_values})
-        logger.debug(f"Documents updated: {str(result)[:100]}")
+        result = collection.update_many(query, {"$set": update_values}, upsert=upsert)
         return result.modified_count
 
     def delete(self, collection_name: str, query: dict[str, Any]) -> int:
@@ -152,3 +153,16 @@ class MongoDBConnector:
             return True
         except ServerSelectionTimeoutError:
             return False
+
+    def check_category_collection_exists(self) -> bool:
+        if self.db is None:
+            logger.error("No database connection available to check category collection.")
+            return False
+        return "categories" in self.db.list_collection_names()
+
+    def create_category_collection(self) -> None:
+        if self.db is None:
+            logger.error("No database connection available to create category collection.")
+            return
+        self.db.create_collection("categories")
+        self.db["categories"].create_index("title", unique=True)

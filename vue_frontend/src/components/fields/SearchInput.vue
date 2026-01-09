@@ -2,9 +2,10 @@
   <BContainer class="search-input">
     <div
       class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-      data-testid="text-field" >
+      data-testid="text-field"
+    >
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-      <div>
+      <div class="dropdown">
         <input
           v-model="searchTerm"
           type="text"
@@ -19,13 +20,12 @@
           @keydown.enter="handleEnter()"
           @keydown.esc="clearSearch()"
         />
-        <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu show">
+        <ul
+          v-if="!disabled && expanded && dropdownOptions.length"
+          class="dropdown-menu dropdown-menu-end show"
+        >
           <li v-for="option in dropdownOptions" :key="option.id">
-            <a 
-              class="dropdown-item" 
-              href="#" 
-              @mousedown.prevent="selectOption(option)"
-            >
+            <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
               {{ option.display_string }}
             </a>
           </li>
@@ -44,6 +44,7 @@ import type { components } from '@/interfaces/api-types'
 type User = components['schemas']['User'] & { [key: string]: unknown }
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
+type Category = components['schemas']['Category'] & { [key: string]: unknown }
 
 const props = defineProps({
   searchType: {
@@ -191,6 +192,15 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
     return (result as Query[]).map(
       (query) => ({ id: query.name, display_string: query.name, select: query }) as searchResult,
     )
+  } else if (props.searchType === SearchType.CATEGORY) {
+    return (result as Category[]).map(
+      (category) =>
+        ({
+          id: category._id,
+          display_string: category.title,
+          select: category.title,
+        }) as searchResult,
+    )
   }
 
   return options
@@ -200,26 +210,61 @@ const getSearchTermFromValue = (value: string) => {
   return new Promise<string>((resolve) => {
     switch (props.searchType) {
       case SearchType.USER:
-        return axios.get(`/users/${value}`).then((response) => {
-          resolve(response.data.username)
-        }).catch(() => {
-          resolve(value)
-        })
+        return axios
+          .get(`/users/${value}`)
+          .then((response) => {
+            resolve(response.data.username)
+          })
+          .catch(() => {
+            resolve(value)
+          })
       case SearchType.ITEM:
-        return axios.get(`/items/${value}`).then((response) => {
-          resolve(response.data.name)
-        }).catch(() => {
-          resolve(value)
-        })
+        return axios
+          .get(`/items/${value}`)
+          .then((response) => {
+            resolve(response.data.name)
+          })
+          .catch(() => {
+            resolve(value)
+          })
       case SearchType.QUERY:
-        return axios.get(`/queries/${value}`).then((response) => {
-          resolve(response.data.name)
-        }).catch(() => {
-          resolve(value)
-        })
+        return axios
+          .get(`/queries/${value}`)
+          .then((response) => {
+            resolve(response.data.name)
+          })
+          .catch(() => {
+            resolve(value)
+          })
+      case SearchType.CATEGORY:
+        return axios
+          .get(`/categories/${value}`)
+          .then((response) => {
+            resolve(response.data.title)
+          })
+          .catch(() => {
+            resolve(value)
+          })
       default:
         resolve('')
     }
   })
 }
 </script>
+
+<style scoped>
+.dropdown-menu {
+}
+
+.is-invalid {
+  padding-right: 0.75rem;
+}
+
+.search-input .dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bs-primary) var(--card-bg);
+}
+</style>

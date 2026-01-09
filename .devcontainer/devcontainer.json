@@ -30,7 +30,6 @@
         "yzhang.markdown-all-in-one",
         "be5invis.toml",
         "bierner.markdown-mermaid",
-        "zeshuaro.vscode-python-poetry",
         "ms-playwright.playwright",
         "github.vscode-github-actions",
         "bierner.github-markdown-preview",
@@ -46,7 +45,7 @@
     }
   },
   "postCreateCommand": {
-    "Install Python dependencies": "poetry config virtualenvs.in-project true && cd /workspaces/wims/backend && poetry lock && poetry install && cd /workspaces/wims/vue_frontend && npm install",
+    "Install uv Python dependencies": "cd /workspaces/wims/backend && uv sync && cd /workspaces/wims/vue_frontend && npm install",
     "Fix Volume Permissions": "sudo chown -R $(whoami): /commandhistory",
     "Own docker socket": "sudo chown $(whoami):docker /var/run/docker.sock",
     "Install playwright browsers": "cd /workspaces/wims/integration && npm install && npx playwright install --with-deps && npx playwright install-deps"

@@ -373,27 +373,6 @@ watch(
 </script>
 
 <style scoped>
-.sticky-note {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  z-index: 1000;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
-}
-
-.sticky-note-success {
-  background-color: var(--color-success);
-  color: var(--color-primary-contrast);
-}
-
-.sticky-note-error {
-  background-color: var(--color-danger);
-  color: var(--color-primary-contrast);
-}
 .arrow-button {
   position: fixed;
   top: 45vh;

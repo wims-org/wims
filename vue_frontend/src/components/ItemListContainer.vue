@@ -1,21 +1,11 @@
 <template>
-  <BCol
-    class="my-4"
-    v-infinite-scroll="[onLoadMore, { distance: 10, canLoadMore: () => canLoadMore }]"
-  >
+  <BCol class="my-4" v-infinite-scroll="[onLoadMore, { distance: 10, canLoadMore: () => canLoadMore }]">
     <div v-if="!items.length && canLoadMore" class="d-flex justify-content-center">
       <BSpinner />
     </div>
-    <ItemList
-      :title="title"
-      v-if="items.length"
-      :items="items"
-      @select="handleSelect"
-      @update:view-mode="updateViewMode"
-      @update:imageSize="updateImageSize"
-      :view-mode="activeViewMode"
-      :image-size="activeImageSize"
-    />
+    <ItemList :title="title" v-if="items.length" :items="items" @select="handleSelect"
+      @update:view-mode="updateViewMode" @update:imageSize="updateImageSize" :view-mode="activeViewMode"
+      :image-size="activeImageSize" />
     <div v-if="!canLoadMore" class="text-center mt-2">No more items to load</div>
   </BCol>
 </template>
@@ -54,14 +44,30 @@ const props = defineProps({
     type: Object as PropType<SearchQuery>,
     default: null,
   },
+  batchSize: {
+    type: Number,
+    default: 10,
+  },
+  offset: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const items = ref<Item[]>([])
 const searchQuery = ref<SearchQuery | null>(props.query)
 const currentRoute = ref<string>(router.currentRoute.value.fullPath as string)
 
-const batchSize = 1
+const loading = ref(false)
+const batchSize = ref(props.batchSize)
+const offset = ref(props.offset)
 const canLoadMore = ref(true)
+
+watch(router.currentRoute, async () => {
+  items.value = []
+  offset.value = props.offset || 0
+  canLoadMore.value = true
+})
 
 onMounted(async () => {
   activeViewMode.value =
@@ -75,25 +81,36 @@ onMounted(async () => {
   )
 })
 
-const fetchRecentItems = async (offset: number) => {
+const fetchBatch = async (offset: number) => {
   try {
+    console.debug('Fetching items with query:', searchQuery.value, 'offset:', offset)
     searchQuery.value = {
       states: ['latest'],
       ...props.query,
-      limit: batchSize,
+      limit: batchSize.value,
       offset: offset,
     }
     const response = await axios.post('/items/search', searchQuery.value)
+    console.log('Fetched items batch with names:', response.data.map((item: Item) => item.short_name))
     const data = Array.isArray(response.data) ? response.data : []
-    canLoadMore.value = data.length === batchSize
     items.value = items.value.concat(data)
-  } catch {
+    canLoadMore.value = data.length === batchSize.value
+    return true
+  } catch (err) {
+    console.error('Error fetching items batch', err)
     canLoadMore.value = false
+    return false
   }
 }
 
 const onLoadMore = async () => {
-  await fetchRecentItems(items.value.length)
+  if (!canLoadMore.value) return
+  loading.value = true
+  await fetchBatch(offset.value).then(() => {
+    offset.value += batchSize.value
+  }).finally(() => {
+    loading.value = false
+  })
 }
 
 const activeViewMode = ref<'text' | 'image-list' | 'image' | undefined>('text')
@@ -124,9 +141,9 @@ const handleSelect = (item: { tag_uuid: string }) => {
   console.log('Selected tag:', tag)
   router.push(
     `/items/${tag}` +
-      (searchQuery.value
-        ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
-        : ''),
+    (searchQuery.value
+      ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
+      : ''),
   )
 }
 </script>
