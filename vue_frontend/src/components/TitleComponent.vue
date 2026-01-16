@@ -7,40 +7,43 @@
       </BNavbarBrand>
 
       <!-- Offcanvas side menu for mobile screens -->
-      <BOffcanvas id="offcanvasMenu" title="Menu" placement="start" is-nav>
-        <BNav vertical>
-          <BNavItem to="/items" data-testid="offcanvas-nav-items">Items</BNavItem>
-          <BNavItem to="/readers" data-testid="offcanvas-nav-readers">Readers</BNavItem>
-          <BNavItem to="/users">Users</BNavItem>
-          <BNavItem to="/about">About</BNavItem>
-          <BNavItem :href="`${api_url}/redoc`" target="_blank">API Docs</BNavItem>
-          <hr />
-
-          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
-          <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
-          <BNavItem v-else to="/users">Sign In</BNavItem>
-        </BNav>
-
-        <div class="mt-2">
-          <BFormGroup class="d-flex">
-            <BFormInput placeholder="Search" />
-            <BButton variant="outline-light" class="me-2" @click="search">
-              <IMaterialSymbolsChevronRight />
+      <BOffcanvas id="offcanvasMenu" class="offcanvas-menu" title="Menu" placement="start" is-nav width="280px">
+        <template #header="{ hide }">
+          <div class="d-flex align-items-center w-100 navbar-brand">
+            <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block me-2" height="50" />
+            <span class="d-sm-inline me-auto">{{ msg }}</span>
+            <BButton size="sm" @click="($event) => hide()" variant="outline-light" aria-label="Close menu">
+              <IMaterialSymbolsClose />
             </BButton>
-          </BFormGroup>
-        </div>
+          </div>
+        </template>
+        <div>
+          <BNav vertical>
+            <BNavItem to="/items" data-testid="offcanvas-nav-items">Items</BNavItem>
+            <BNavItem to="/readers" data-testid="offcanvas-nav-readers">Readers</BNavItem>
+            <BNavItem to="/users">Users</BNavItem>
+            <BNavItem to="/about">About</BNavItem>
+            <BNavItem :href="`${api_url}/redoc`" target="_blank">API Docs</BNavItem>
+            <hr />
 
-        <div class="mt-3 ms-3 d-flex align-items-center">
-          <IMaterialSymbolsSunny />
-          <BFormCheckbox
-            switch
-            :checked="isDark"
-            @change="toggleTheme"
-            class="mx-2"
-            aria-label="Toggle dark theme"
-          >
-            <IMaterialSymbolsMoonStarsOutline />
-          </BFormCheckbox>
+            <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
+            <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
+            <BNavItem v-else to="/users">Sign In</BNavItem>
+          </BNav>
+          <!-- Search bar disabled for now, has no functionality -->
+          <div class="mt-2" v-if="false">
+            <BFormGroup class="d-flex">
+              <BFormInput placeholder="Search" />
+              <BButton variant="outline-light" class="me-2" @click="search">
+                <IMaterialSymbolsChevronRight />
+              </BButton>
+            </BFormGroup>
+          </div>
+
+          <div class="mt-3 ms-3 d-flex align-items-center">
+            <IMaterialSymbolsSunny v-if="isDark" @click="toggleTheme" aria-label="Toggle dark theme" />
+            <IMaterialSymbolsMoonStarsOutline v-else @click="toggleTheme" aria-label="Toggle dark theme" />
+          </div>
         </div>
       </BOffcanvas>
 
@@ -62,16 +65,14 @@
 
         <BCollapse id="nav-collapse" class="d-lg-flex d-none">
           <BNavbarNav>
-            <BNavItemDropdown right hover>
+            <BNavItemDropdown left hover @hide="menuOpen = false"  @show="menuOpen = true">
               <template #button-content>
-                <IMaterialSymbolsChevronRight
-                  @click="menuOpen = !menuOpen"
-                  :style="{
-                    transform: menuOpen ? 'rotate(90deg)' : 'rotate(-90deg)',
-                    transition: 'transform 0.3s ease',
-                  }"
-                />
+                <IMaterialSymbolsChevronRight @click="menuOpen = !menuOpen" :style="{
+                  transform: menuOpen ? 'rotate(-90deg)' : 'rotate(90deg)',
+                  transition: 'transform 0.3s ease',
+                }" />
               </template>
+              <BNavItem to="/" data-testid="desktop-nav-home">Home</BNavItem>
               <BNavItem to="/items" data-testid="desktop-nav-items">Items</BNavItem>
               <BNavItem to="/readers" data-testid="desktop-nav-readers">Readers</BNavItem>
               <BNavItem to="/users">Users</BNavItem>
@@ -83,17 +84,8 @@
         <BNavForm @onSubmit.prevent="search" class="mx-2">
           <BFormInput placeholder="Search" />
         </BNavForm>
-        <IMaterialSymbolsSunny class="cursor-pointer" />
-        <BFormCheckbox
-          switch
-          :checked="isDark"
-          @change="toggleTheme"
-          size="lg"
-          class="mx-2 cursor-pointer"
-          aria-label="Toggle dark theme"
-        >
-          <IMaterialSymbolsMoonStarsOutline class="cursor-pointer" />
-        </BFormCheckbox>
+        <IMaterialSymbolsSunny v-if="isDark" @click="toggleTheme" aria-label="Toggle dark theme" />
+        <IMaterialSymbolsMoonStarsOutline v-else @click="toggleTheme" aria-label="Toggle dark theme" />
       </BNavbar>
 
       <BNavbarToggle target="offcanvasMenu" class="d-flex d-lg-none" aria-label="Open menu">
@@ -116,11 +108,18 @@
 .header ::after {
   display: none;
 }
-.header .navbar-brand {
+
+.navbar-brand {
   font-weight: bold;
   font-size: 2rem;
   font-family: 'Space Mono', monospace;
   color: var(--color-primary-contrast) !important;
+}
+
+.offcanvas-menu {
+  .navbar-brand {
+    color: var(--color-text) !important;
+  }
 }
 
 .nav-container {
@@ -148,6 +147,7 @@ import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
 import { useThemeStore } from '@/stores/themeStore'
 import { ref } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // State and Stores
 const client_store = clientStore()

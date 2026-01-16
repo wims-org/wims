@@ -18,10 +18,11 @@ test.describe("Item View", () => {
       tag_id: uuidv4(),
     };
 
-    await connectToReader(page, "04-04-46-42-CD-66-84");
-    const resp = await postScan(page, message);
-    // this item should not exist
-    expect(!resp.ok()).toBeTruthy();
+    await connectToReader(page, "04-04-46-42-CD-66-84").then(async (readerId) => {
+      const resp = await postScan(page, message);
+      // this item should not exist
+      expect(!resp.ok()).toBeTruthy();
+    });
     await page.getByTestId("item-view").waitFor({ timeout: 1500 });
     await expect(page.getByTestId("item-view")).toBeVisible();
     await page.waitForTimeout(500);
