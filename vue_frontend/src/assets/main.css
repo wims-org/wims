@@ -1,4 +1,5 @@
 @import './base.css';
+@import './_bootstrap-variables.scss';
 
 :root {
   --color-primary: #00d3e2; /* #09634b; */
@@ -30,6 +31,10 @@
   --bg-page: var(--primary-bg-color);
   --card-bg: #ffffff;
   --hover-bg: rgba(10, 91, 69, 0.08);
+  /* Table-specific tokens used by Bootstrap SCSS variable overrides */
+  --table-striped-bg: rgba(0, 0, 0, 0.03);
+  --table-hover-bg: rgba(0, 0, 0, 0.06);
+  --table-active-bg: rgba(0, 0, 0, 0.09);
 }
 
 /* Dark theme overrides (runtime via [data-theme="dark"]) */
@@ -58,6 +63,11 @@
   --bg-page: var(--primary-bg-color);
   --card-bg: #071014;
   --hover-bg: rgba(255, 255, 255, 0.04);
+
+  /* Table-specific tokens used by Bootstrap SCSS variable overrides */
+  --table-striped-bg: rgba(255, 255, 255, 0.02);
+  --table-hover-bg: rgba(255, 255, 255, 0.04);
+  --table-active-bg: rgba(255, 255, 255, 0.06);
 
   .text-secondary {
     color: var(--color-muted) !important;

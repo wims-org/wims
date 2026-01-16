@@ -78,12 +78,15 @@ const cameraInput = ref<HTMLInputElement | null>(null)
 const webCamUrl = ref<string>()
 const requestInProgress = ref(false)
 const requestError = ref<string>()
-
+  
 defineProps<{
   images?: Array<string>
 }>()
 
 onMounted(() => {
+  if (clientStore().backend_config.camera_enabled === false) {
+    return
+  }
   // Fetch the camera URL from the backend
   axios
     .get('/camera')
