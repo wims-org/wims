@@ -1,0 +1,200 @@
+[
+  {
+    "title": "Tools",
+    "description": "Handheld and powered tools used in a makerspace.",
+    "children": [
+      {
+        "title": "Hand Tools",
+        "description": "Manual tools for assembly, shaping, cutting, and fastening.",
+        "children": [
+          { "title": "Screwdrivers", "description": "Flat, Phillips, Torx and specialty screwdrivers.", "children": [] },
+          { "title": "Pliers", "description": "Needle-nose, combination, locking, and cutting pliers.", "children": [] },
+          { "title": "Wrenches", "description": "Adjustable and fixed wrenches, socket sets.", "children": [] }
+        ]
+      },
+      {
+        "title": "Power Tools",
+        "description": "Electric and battery-powered tools.",
+        "children": [
+          { "title": "Drills & Drivers", "description": "Cordless drills, impact drivers, hammer drills.", "children": [] },
+          { "title": "Saws", "description": "Jigsaws, circular saws, reciprocating saws.", "children": [] },
+          { "title": "Sanders & Grinders", "description": "Orbital sanders, belt sanders, angle grinders.", "children": [] }
+        ]
+      },
+      {
+        "title": "Measuring & Layout",
+        "description": "Tools for measuring, marking, and alignment.",
+        "children": [
+          { "title": "Calipers", "description": "Digital and analog calipers and gauges.", "children": [] },
+          { "title": "Squares & Levels", "description": "Try squares, combination squares, spirit levels.", "children": [] },
+          { "title": "Tape Measures", "description": "Tape measures, rulers, and measuring tapes.", "children": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Electronics",
+    "description": "Electronic components and electronics work equipment.",
+    "children": [
+      {
+        "title": "Passive Components",
+        "description": "Components that do not amplify or generate signals.",
+        "children": [
+          { "title": "Resistors", "description": "Through-hole and SMD resistors.", "children": [] },
+          { "title": "Capacitors", "description": "Ceramic, electrolytic, film capacitors.", "children": [] },
+          { "title": "Inductors", "description": "Chokes and inductors for filtering and power.", "children": [] }
+        ]
+      },
+      {
+        "title": "Semiconductors & ICs",
+        "description": "Active components including ICs and semiconductors.",
+        "children": [
+          { "title": "Diodes", "description": "Rectifier, Schottky, Zener, and LED diodes.", "children": [] },
+          { "title": "Transistors", "description": "BJT, MOSFET, and other transistors.", "children": [] },
+          { "title": "Logic ICs", "description": "Common logic families and interface ICs.", "children": [] }
+        ]
+      },
+      {
+        "title": "Tools & Measurement",
+        "description": "Equipment used for electronics assembly and debugging.",
+        "children": [
+          { "title": "Soldering Stations", "description": "Soldering irons, stations, tips, and holders.", "children": [] },
+          { "title": "Multimeters", "description": "Digital multimeters and test leads.", "children": [] },
+          { "title": "Oscilloscopes", "description": "Bench and USB oscilloscopes.", "children": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Digital Fabrication",
+    "description": "Machines and supplies for digital manufacturing.",
+    "children": [
+      {
+        "title": "3D Printing",
+        "description": "3D printers and related supplies.",
+        "children": [
+          { "title": "FDM Printers", "description": "Filament-based printers (FDM/FFF).", "children": [] },
+          { "title": "SLA/DLP Printers", "description": "Resin-based printers (SLA/DLP).", "children": [] },
+          { "title": "Filaments & Resins", "description": "PLA, PETG, ABS, TPU, and resin materials.", "children": [] }
+        ]
+      },
+      {
+        "title": "Laser Cutting",
+        "description": "Laser cutters, engraving, and associated tooling.",
+        "children": [
+          { "title": "Laser Cutters", "description": "CO2 and fiber laser cutter machines.", "children": [] },
+          { "title": "Fume Extraction", "description": "Exhaust hoses, filters, and extraction units.", "children": [] },
+          { "title": "Laser Materials", "description": "Acrylic, plywood, and laser-safe materials.", "children": [] }
+        ]
+      },
+      {
+        "title": "CNC",
+        "description": "Computer-controlled cutting and milling.",
+        "children": [
+          { "title": "CNC Routers", "description": "CNC routers for wood and composites.", "children": [] },
+          { "title": "CNC Mills", "description": "CNC mills for metal and plastics.", "children": [] },
+          { "title": "Endmills & Bits", "description": "Cutters, endmills, and router bits.", "children": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Materials",
+    "description": "Common raw materials and hardware for building.",
+    "children": [
+      {
+        "title": "Metals",
+        "description": "Metal stock and hardware.",
+        "children": [
+          { "title": "Aluminium Stock", "description": "Sheets, bars, and extrusions of aluminium.", "children": [] },
+          { "title": "Steel Stock", "description": "Sheets, rods, and structural steel.", "children": [] },
+          { "title": "Brass & Copper Stock", "description": "Copper and brass sheets, rods, and wire.", "children": [] }
+        ]
+      },
+      {
+        "title": "Plastics",
+        "description": "Plastic sheets, rods, and polymers.",
+        "children": [
+          { "title": "Acrylic Sheets", "description": "Acrylic/PMMA sheets for laser cutting.", "children": [] },
+          { "title": "Polycarbonate Sheets", "description": "Impact-resistant plastic sheets.", "children": [] },
+          { "title": "3D Printing Filaments", "description": "PLA, PETG, ABS, TPU filaments.", "children": [] }
+        ]
+      },
+      {
+        "title": "Wood",
+        "description": "Wood stock and sheet goods.",
+        "children": [
+          { "title": "Plywood", "description": "Plywood sheets for furniture and prototypes.", "children": [] },
+          { "title": "MDF", "description": "MDF sheets for templates and laser cutting.", "children": [] },
+          { "title": "Solid Lumber", "description": "Boards and timber for woodworking.", "children": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Textiles & Crafts",
+    "description": "Textile work, crafting supplies and equipment.",
+    "children": [
+      {
+        "title": "Sewing",
+        "description": "Sewing machines and sewing supplies.",
+        "children": [
+          { "title": "Sewing Machines", "description": "Domestic and industrial sewing machines.", "children": [] },
+          { "title": "Threads & Needles", "description": "Threads, needles, pins, and bobbins.", "children": [] },
+          { "title": "Fabrics", "description": "Cotton, canvas, felt, and technical fabrics.", "children": [] }
+        ]
+      },
+      {
+        "title": "Leatherwork",
+        "description": "Leather crafting tools and materials.",
+        "children": [
+          { "title": "Leather Sheets", "description": "Vegetable-tanned and finished leather sheets.", "children": [] },
+          { "title": "Punches & Stamps", "description": "Punch tools, stamps, and edge tools.", "children": [] },
+          { "title": "Rivets & Hardware", "description": "Rivets, buckles, snaps, and clasps.", "children": [] }
+        ]
+      },
+      {
+        "title": "General Crafting",
+        "description": "General crafting materials and tools.",
+        "children": [
+          { "title": "Paper & Cardstock", "description": "Paper stock for models and crafts.", "children": [] },
+          { "title": "Cutting Mats", "description": "Self-healing mats for safe cutting.", "children": [] },
+          { "title": "Craft Knives", "description": "Precision knives and replacement blades.", "children": [] }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Safety & Organization",
+    "description": "Safety equipment, consumables, and storage systems.",
+    "children": [
+      {
+        "title": "PPE",
+        "description": "Personal protective equipment.",
+        "children": [
+          { "title": "Safety Glasses", "description": "Safety glasses and goggles.", "children": [] },
+          { "title": "Hearing Protection", "description": "Earplugs and earmuffs.", "children": [] },
+          { "title": "Gloves", "description": "Work gloves, nitrile gloves, heat gloves.", "children": [] }
+        ]
+      },
+      {
+        "title": "Consumables",
+        "description": "Consumable items used in projects and maintenance.",
+        "children": [
+          { "title": "Sandpaper & Abrasives", "description": "Abrasive papers, discs, and pads.", "children": [] },
+          { "title": "Adhesives & Tapes", "description": "Epoxy, super glue, masking tape.", "children": [] },
+          { "title": "Cleaning Supplies", "description": "Wipes, cleaners, and solvents.", "children": [] }
+        ]
+      },
+      {
+        "title": "Storage",
+        "description": "Storage systems for parts and tools.",
+        "children": [
+          { "title": "Small Parts Bins", "description": "Bins and organizers for components.", "children": [] },
+          { "title": "Tool Storage", "description": "Pegboards, toolboxes, and shadow boards.", "children": [] },
+          { "title": "Labels & Tags", "description": "Label makers, labels, and tagging supplies.", "children": [] }
+        ]
+      }
+    ]
+  }
+]
