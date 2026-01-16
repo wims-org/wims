@@ -38,7 +38,7 @@ export const formFields: Record<string, FormField> = {
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: false, required: false },
   images: { label: 'Images', type: 'images', disabled: false, hidden: false, details: false, required: false },
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
-  item_type: { label: 'Item Type', type: 'category', disabled: false, hidden: false, details: false, required: true, search_type: SearchType.CATEGORY },
+  item_type: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: true, search_type: SearchType.CATEGORY },
   tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: false },
   consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: false },
   created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false, required: false },

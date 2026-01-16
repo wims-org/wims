@@ -50,6 +50,7 @@
             :item_new="completion"
             :newItem="newItem"
             @submit="handleFormSubmit"
+            :key="item?.tag_uuid"
           />
           <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
         </BTab>
@@ -59,7 +60,7 @@
           id="objectIdentification"
           data-testid="object-identification"
         >
-          <LLMCompletion :images="item?.images" />
+          <LLMCompletion :images="item?.images" :key="item?.tag_uuid" />
         </BTab>
       </BTabs>
     </BCol>

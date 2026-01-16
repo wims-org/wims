@@ -14,82 +14,48 @@
         </button>
         <div class="col-2">New Value</div>
       </div>
-      <table class="table table-bordered">
+      <table class="table table-bordered" :class="{ 'table-dark': isDark }">
         <tbody>
-          <tr
-            v-for="(field, key) in formFields"
-            :key="key"
-            :class="{
-              'table-danger':
-                key in formData_new &&
-                formData_new[key] != null &&
-                '' + formData_org[key] !== '' + formData_new[key]
-            }"
-            v-show="formData_new[key] && !field.hidden && (!field.details || showDetails)"
-          >
+          <tr v-for="(field, key) in formFields" :key="key" :class="{
+            'border-danger border-2': 
+              key in formData_new &&
+              formData_new[key] != null &&
+              '' + formData_org[key] !== '' + formData_new[key]
+          }" v-show="formData_new[key] && !field.hidden && (!field.details || showDetails)">
             <td>
-              <component
-                :is="getFieldComponent(field.type)"
-                :name="String(key)"
-                :label="field.label || key"
-                :value="formData_org[key]"
-                :disabled="field.disabled ?? undefined"
-                :required="field.required"
-                @update:value="updateFieldModel($event, String(key), field.type)"
-                @click="handleInputClick(key)"
-                :class="{ 'is-invalid': field.required && item_org.value && item_org?.[key] }"
-              />
+              <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
+                :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
+                @update:value="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)"
+                :class="{ 'is-invalid': field.required && item_org.value && item_org?.[key] }" />
             </td>
             <td class="text-center col-2 align-content-center">
-              <button
-                type="button"
-                @click="() => (formData_org[key] = formData_new[key])"
-                class="btn btn-primary mr-3"
+              <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mr-3"
                 :disabled="!(
                   key in formData_new &&
                   formData_new[key] != null &&
                   formData_org[key] !== formData_new[key]
-                )"
-                title="Overwrite"
-              >
-                <font-awesome-icon
-                  v-if="
-                    key in formData_new &&
-                    formData_new[key] != null &&
-                    formData_org[key] != formData_new[key]
-                  "
-                  icon="arrow-left"
-                />
+                )" title="Overwrite">
+                <font-awesome-icon v-if="
+                  key in formData_new &&
+                  formData_new[key] != null &&
+                  formData_org[key] != formData_new[key]
+                " icon="arrow-left" />
                 <font-awesome-icon v-else icon="equals" />
               </button>
-              <button
-                type="button"
-                v-if="Array.isArray(formData_org[key]) && Array.isArray(formData_new[key])"
+              <button type="button" v-if="Array.isArray(formData_org[key]) && Array.isArray(formData_new[key])"
                 @click="() => ((formData_org[key] as unknown[]).push(...(formData_new[key] as unknown[])))"
-                class="btn btn-primary ml-3"
-                title="Append all new values to the old array"
-              >
+                class="btn btn-primary ml-3" title="Append all new values to the old array">
                 <font-awesome-icon icon="plus" />
               </button>
-              <button
-                type="button"
-                v-if="formData_new[key]"
-                title="Copy to clipboard"
-                @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''"
-                class="btn btn-secondary ml-3"
-              >
+              <button type="button" v-if="formData_new[key]" title="Copy to clipboard"
+                @click="formData_new[key] ? copyToClipboard(formData_new[key]) : ''" class="btn btn-secondary ml-3">
                 <font-awesome-icon icon="clipboard" />
               </button>
             </td>
             <td>
-              <component
-                :is="getFieldComponent(field.type)"
-                :name="String(key)"
-                :value="formData_new[key]"
-                :disabled="true"
-                @update:value="updateFieldModel($event, String(key), field.type)"
-                @click="handleInputClick(key)"
-              />
+              <component :is="getFieldComponent(field.type)" :name="String(key)" :value="formData_new[key]"
+                :disabled="true" @update:value="updateFieldModel($event, String(key), field.type)"
+                @click="handleInputClick(key)" />
             </td>
           </tr>
         </tbody>
@@ -110,13 +76,18 @@
 </template>
 
 <script setup lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 import { fieldTypeToComponent } from '@/utils/form.helper';
 import { formFields } from '@/interfaces/FormField.interface';
 import SearchModal from '@/components/shared/SearchModal.vue';
 import type { PropType } from 'vue';
 import type { components } from '@/interfaces/api-types';
+import { useThemeStore } from '@/stores/themeStore';
+import { not } from '@vuelidate/validators';
 type Item = components['schemas']['Item'] & { [key: string]: unknown };
+
+const themeStore = useThemeStore()
+const isDark = computed(() => themeStore.theme === 'dark')
 
 defineComponent({
   name: 'ItemComparison',
