@@ -5,6 +5,7 @@ services:
       - ./integration/playwright-results:/workspaces/integration/playwright-results
     environment:
       - CI=true
+      - BACKEND_URL=http://backend:5005
     depends_on:
       - proxy
       - frontend
