@@ -1,2 +1,5 @@
 src/config.yml
 src/config.local.yml
+__pycache__/
+*.py[cod]
+data/

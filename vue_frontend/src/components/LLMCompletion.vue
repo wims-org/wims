@@ -1,33 +1,15 @@
 <template>
-  <div class="container">
-    <div class="col border p-3">
-      <div class="row p-2 justify-content-between align-items-center">
+  <BContainer>
+    <BCol>
+      <BRow>
         <input
           type="text"
           class="form-control"
           v-model="stringInput"
           placeholder="Add Item by Description or Name..."
         />
-        <div class="p-2">
-          <div @click="() => (useCam = !useCam)">
-            <font-awesome-icon
-              :icon="!useCam ? 'chevron-up' : 'chevron-down'"
-              aria-label="Toggle Cam"
-            />
-            Use Cam
-          </div>
-          <div v-if="webCamUrl && useCam">
-            <div>
-              <font-awesome-icon icon="camera" aria-label="Camera" />Webcam camera is currenly not
-              working and under development.
-            </div>
-            <div class="wrap mb-2">
-              <iframe id="scaled-frame" :src="webCamUrl" />
-            </div>
-
-            <button type="button" class="btn btn-secondary" @click="takePhoto()">Take Photo</button>
-          </div>
-          <div v-else class="d-flex mt-3 ml-0 col-12 justify-content-between">
+        <div v-if="clientStore().backend_config?.camera_enabled">
+          <div class="d-flex mt-3 ml-0 col-12 justify-content-between">
             <input
               ref="fileInput"
               type="file"
@@ -44,12 +26,12 @@
             />
           </div>
         </div>
-      </div>
-      <div class="row mt-3">
+      </BRow>
+      <BRow>
         <h5>Upload Images:</h5>
         <ImageThumbnailField :value="uploadedImages" @update:value="updateImage($event)" />
-      </div>
-      <div class="row mt-3" v-if="images && images.length > 0">
+      </BRow>
+      <BRow  v-if="images && images.length > 0">
         <h5>Select existing Images:</h5>
         <ImageThumbnailField
           :value="images"
@@ -57,7 +39,7 @@
           selector
           @update:selectedImages="selectedImages = $event"
         />
-      </div>
+      </BRow>
 
       <button
         type="button"
@@ -76,8 +58,8 @@
       <div v-if="requestError" class="alert alert-danger mt-3">
         Error processing request. Please try again. {{ requestError }}
       </div>
-    </div>
-  </div>
+    </BCol>
+  </BContainer>
 </template>
 
 <script setup lang="ts">
@@ -96,13 +78,15 @@ const cameraInput = ref<HTMLInputElement | null>(null)
 const webCamUrl = ref<string>()
 const requestInProgress = ref(false)
 const requestError = ref<string>()
-const useCam = ref(false)
-
+  
 defineProps<{
   images?: Array<string>
 }>()
 
 onMounted(() => {
+  if (clientStore().backend_config.camera_enabled === false) {
+    return
+  }
   // Fetch the camera URL from the backend
   axios
     .get('/camera')
@@ -146,26 +130,6 @@ const fetchIdentification = async () => {
   }
 }
 
-const takePhoto = () => {
-  // save the current webcam image to the imageUrls array
-  // WIP
-  axios
-    .get('/camera/snapshot', { responseType: 'blob' })
-    .then((response) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const imageUrl = e.target.result as string
-          uploadedImages.value.push(imageUrl) // Add base64-encoded URL to the list
-        }
-      }
-      reader.readAsDataURL(response.data)
-    })
-    .catch((error) => {
-      console.error('Error taking photo:', error)
-    })
-}
-
 const uploadPhoto = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const maxSize = 5 * 1024 * 1024 // 5MB in bytes
@@ -197,7 +161,7 @@ const updateImage = (updatedValue: Array<string>) => {
 .wrap {
   display: block;
   overflow: hidden;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   width: 450px;
   height: 250px;
 }

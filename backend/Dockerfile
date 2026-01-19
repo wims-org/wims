@@ -1,23 +1,34 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.12-slim
+# ref https://depot.dev/docs/container-builds/optimal-dockerfiles/python-uv-dockerfile
+FROM python:3.14-slim AS build
+
+COPY --from=ghcr.io/astral-sh/uv:0.9.13 /uv /uvx /bin/
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl iputils-ping mosquitto libgl1 libglib2.0-0 && apt-get clean
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
-RUN pip install --no-cache-dir poetry
+COPY uv.lock pyproject.toml ./
 
-ENV POETRY_VIRTUALENVS_CREATE=false
-
-# Layer caching for dependencies
-COPY pyproject.toml poetry.lock ./
-
-RUN poetry install --no-root
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-install-project --no-dev
 
 COPY . .
 
-EXPOSE 8000
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+FROM python:3.14-slim AS runtime
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m -d /app -s /bin/false appuser
+
+WORKDIR /app
+
+COPY --from=build --chown=appuser:appgroup /app .
+
+USER appuser
 
 WORKDIR /app/src
-
-ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["python", "-m","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

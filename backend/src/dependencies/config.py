@@ -47,11 +47,7 @@ def read_env_config(config: dict) -> dict:
         try:
             update(key, config, os.environ[key])
         except (KeyError, TypeError) as e:
-            logger.error(
-                f"Error updating config key {
-                    key}, check config file and environment variables: {e}"
-            )
-    logger.debug(f"Config: {config}")
+            logger.error(f"Error updating config key {key}, check config file and environment variables: {e}")
     return config
 
 

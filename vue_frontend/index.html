@@ -1,10 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="">
   <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WIMS?</title>
+    <!-- Inline theme-preload: runs before any CSS/JS to avoid flash of un-themed content -->
+    <script>
+      ;(function () {
+        try {
+          const selectedTheme = localStorage.getItem('wims_theme')
+          if (selectedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark')
+          }
+        } catch (e) {
+          /* ignore if access to localStorage is restricted */
+        }
+      })()
+    </script>
+    <style>
+      html[data-theme='dark'] {
+        background-color: #071014 !important;
+        color: #e9f3f6 !important;
+      }
+      html:not([data-theme='dark']) {
+        background-color: #f6f8f9 !important;
+        color: #0b1216 !important;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>

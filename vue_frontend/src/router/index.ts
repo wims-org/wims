@@ -41,10 +41,30 @@ const router = createRouter({
       component: () => import('../views/ReaderView.vue'),
     },
     {
+      path: '/users',
+      name: 'users',
+      component: () => import('../views/UsersView.vue'),
+    },
+    {
+      path: '/users/:user_id',
+      name: 'user',
+      component: () => import('../views/ProfileView.vue'),
+    },
+    {
       path: '/import',
       name: 'import',
       component: () => import('../views/ImportView.vue'),
-    }
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('../views/CategoriesView.vue'),
+    },
+    {
+      path: '/categories/:categoryId',
+      name: 'category',
+      component: () => import('../views/CategoryView.vue'),
+    },
   ],
 })
 

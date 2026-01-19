@@ -11,6 +11,12 @@ GET http://localhost:8080/api/healthz/ready  HTTP/1.1
 GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174000  HTTP/1.1
 
 ###
+GET http://localhost:5005/items/123e4567-e89b-12d3-a456-426614174008  HTTP/1.1
+
+###
+GET http://localhost:5005/users  HTTP/1.1
+
+###
 GET http://localhost:5005/items/321-321-321-321-321  HTTP/1.1
 
 ###
@@ -124,13 +130,27 @@ Content-Type: application/json
 DELETE http://localhost:5005/queries/68875655b6ff3abd55480912
 
 
+###
+POST http://localhost:5005/scan  HTTP/1.1
+content-type: application/json
+
+{
+    "reader_id": "04-04-46-42-CD-66-81",
+    "tag_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+###
 
 
+###
 
+GET http://localhost:5005/categories/10101500 HTTP/1.1
 
+###
+GET http://localhost:5005/categories/10101501/tree HTTP/1.1
 
+###
 
-
+GET http://localhost:5005/categories/search/?term=Electron HTTP/1.1
 
 
 

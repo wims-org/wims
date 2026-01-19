@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 from typing import Annotated
 
@@ -41,7 +42,7 @@ class ItemRequest(BaseModel):
     borrowed_by: str | None = None
     borrowed_at: int | None = None
     borrowed_until: int | None = None
-    owner: str | None = None
+    owner_id: str | None = None
 
 
 class ItemBacklogRequest(ItemRequest):
@@ -53,3 +54,19 @@ class ItemBacklogRequest(ItemRequest):
     vendors: list[str] | None = None
     shop_url: list[str] | None = None
     documentation: list[str] | None = None
+
+
+class AggregatedStates(enum.StrEnum):
+    latest = "latest"
+    borrowed = "borrowed"
+    todo = "todo"
+    empty = "empty"
+    name_asc = "name_asc"
+    name_desc = "name_desc"
+
+class SearchQuery(BaseModel):
+    query: dict | None = None
+    offset: int | None = None
+    limit: int | None = None
+    term: str | None = None
+    states: list[AggregatedStates] | None = None

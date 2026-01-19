@@ -9,15 +9,9 @@ database:
     user: "root"
     password: "example"
 
-mqtt:
-    broker: 
-        host: "mqtt"
-        port: 1883
-        username: "admin"
-        password: "1234"
-    topics:
-        scan: "rfid/scan/#"
-        result: "rfid/itemdata"
-
 logging:
     level: "INFO"
+
+features:
+    openai:
+        api_key: "test-api-key"

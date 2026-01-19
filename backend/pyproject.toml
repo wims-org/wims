@@ -1,41 +1,38 @@
 [project]
 authors = [{name = "EeveesEyes"}]
+dependencies = [
+  "deepmerge>=2.0",
+  "fastapi>=0.122.0",
+  "fastapi-utils>=0.8.0",
+  "jsonschema>=4.25.1",
+  "loguru>=0.7.3",
+  "openai>=2.8.1",
+  "openpyxl>=3.1.5",
+  "paho-mqtt>=2.1.0",
+  "pydantic>=2.12.5",
+  "pymongo>=4.15.4",
+  "python-multipart>=0.0.20",
+  "pyyaml>=6.0.3",
+  "requests>=2.32.5",
+  "sse-starlette>=3.0.3",
+  "uvicorn>=0.38.0",
+  "wtforms>=3.2.1",
+]
 description = ""
+license = {text = "GPL-3.0-or-later"}
 name = "backend"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.14.*"
 version = "0.1.0"
-license = {text = "GPL-3.0-or-later"}
 
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+[dependency-groups]
+dev = ["pytest", "taskipy", "ruff"]
 
-[tool.poetry]
-package-mode = false
-packages = [{include = "frontend"}]
-
-[tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "^0.116.1"
-openai = "^1.99.3"
-paho-mqtt = "^2.1.0"
-pydantic = "^2.11.7"
-pymongo = "^4.14.0"
-python-multipart = "^0.0.20"
-sse-starlette = "^3.0.2"
-uvicorn = "^0.35.0"
-wtforms = "^3.2.1"
-jsonschema = "^4.25.0"
-pyyaml = "^6.0.2"
-loguru = "^0.7.3"
-fastapi-utils = "^0.8.0"
-deepmerge = "^2.0"
-opencv-python = "^4.12.0.88"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-ruff = "^0.8.0"
+[tool.taskipy.tasks]
+format = "ruff format src"
+lf = "ruff check src --fix && ruff format src"
+lint = "ruff check src --fix"
+type-check = "ruff check src --select I"
 
 [tool.ruff]
 line-length = 120

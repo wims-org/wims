@@ -49,6 +49,10 @@ The provided `docker-compose.yml` includes all necessary startup configurations.
 1. Start with `docker compose up`.
 2. Visit [localhost:8080](localhost:8080) 
 
+### Alternative: Helm Chart
+
+See [Helm Chart](chart) for setup information.
+
 ### Adapting Service Configuration
 
 There are several ways to configure the application. These are, ordered:

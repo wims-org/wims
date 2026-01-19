@@ -14,7 +14,7 @@
             <font-awesome-icon icon="check" />
           </div>
         </div>
-        <div v-if="value.length === 0" class="text-center m-2">
+        <div v-if="value?.length === 0" class="text-center m-2">
           <font-awesome-icon icon="camera" size="xl" />
           <p>No images</p>
         </div>
@@ -45,9 +45,8 @@ const props = defineProps({
     required: false,
   },
   value: {
-    type: Array as () => string[],
+    type: Array as () => (string[] | null),
     default: () => [],
-    required: true,
   },
   disabled: {
     type: Boolean,
@@ -88,7 +87,7 @@ function addImage(event: Event) {
     const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target?.result) {
-        const updatedValue = [...props.value, e.target.result as string] as string[]
+        const updatedValue = [...(props.value || []), e.target.result as string] as string[]
         emit('update:value', updatedValue)
       }
     }
@@ -97,6 +96,7 @@ function addImage(event: Event) {
 }
 
 function removeImage(index: number) {
+  if (!props.value) return
   const updatedValue = props.value.filter((_, i) => i !== index) as string[]
   emit('update:value', updatedValue)
 }
@@ -133,7 +133,7 @@ function selectImage(image: string) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
 }
 
@@ -144,14 +144,14 @@ function selectImage(image: string) {
   background: none;
   border: none;
   cursor: pointer;
-  color: #ff0000;
+  color: var(--color-danger);
   border-radius: 50%;
 }
 
-.remove-btn:hover {
-  color: #ff0000;
+remove-btn:hover {
+  color: var(--color-danger);
   transform: scale(1.2);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(var(--color-muted), 0.2);
 }
 
 .add-image-container {
@@ -181,7 +181,7 @@ function selectImage(image: string) {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 128, 0, 0.5);
+  background-color: rgba(var(--color-success), 0.5);
   display: flex;
   justify-content: center;
   align-items: center;

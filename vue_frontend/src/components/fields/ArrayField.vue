@@ -1,39 +1,36 @@
 <template>
-  <BContainer>
+  <BContainer class="p-2" >
     <BRow align-v="center">
       <BCol>
         <span v-if="!hideLabel || !label" :for="name" class="mr-auto">{{ label }}</span>
       </BCol>
       <BCol cols="12" md="auto">
         <div class="pills-wrapper">
-          <span v-for="(item, index) in value" :key="index" class="pill" data-testid="pill">
+          <span v-for="(item, index) in currentValue" :key="index" class="pill" data-testid="pill">
             {{ item }}
             <button type="button" @click="removeItem(index)" class="pill-remove" title="Remove item">&times;</button>
           </span>
         </div>
       </BCol>
       <BCol>
-        <BInputGroup v-if="!disabled" class="borderless-input flex-nowrap">
-          <BInput
-            v-model="newItem"
-            :disabled="disabled"
-            @keydown.enter.prevent="addItem"
-            placeholder="Add items separated by ,"
-            :class="{ 'borderless-input': borderless }"
-            :required="!value.length && required"
-          />
-          <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items">
-            <font-awesome-icon icon="fa-solid fa-plus" />
-          </BButton>
-        </BInputGroup>
-      </BCol>
+          <BInputGroup v-if="!disabled" class="flex-nowrap">
+            <BFormInput
+              v-model="newItem"
+              :disabled="disabled"
+              @keydown.enter.prevent="addItem"
+              placeholder="Add items separated by ,"
+            />
+            <BButton :disabled="!newItem.trim()" @click="addItem" title="Add items">+</BButton>
+          </BInputGroup>
+        </BCol>
     </BRow>
   </BContainer>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { PropType } from 'vue';
+import { BFormInput, BInputGroup, BButton } from 'bootstrap-vue-next'
 
 const props = defineProps({
   name: {
@@ -45,15 +42,10 @@ const props = defineProps({
     default: '',
   },
   value: {
-    type: Array as PropType<string[]>,
-    default: () => [],
-    required: true,
+    type: Array as PropType<string[] | null>,
+    default: null,
   },
   disabled: {
-    type: Boolean,
-    default: false,
-  },
-  required: {
     type: Boolean,
     default: false,
   },
@@ -70,6 +62,7 @@ const props = defineProps({
 const emit = defineEmits(['update:value']);
 
 const newItem = ref('');
+const currentValue = computed(() => props.value ?? []);
 
 const addItem = () => {
   if (newItem.value.trim() !== '') {
@@ -79,15 +72,17 @@ const addItem = () => {
       .map((item) => item.trim())
       .filter((item) => item !== '');
 
-    emit('update:value', [...props.value, ...itemsToAdd]);
+    const base = props.value ? [...props.value] : [];
+    emit('update:value', [...base, ...itemsToAdd]);
     newItem.value = '';
   }
 };
 
 const removeItem = (index: number) => {
-  const newValue = [...props.value];
-  newValue.splice(index, 1);
-  emit('update:value', newValue);
+  const base = props.value ? [...props.value] : [];
+  base.splice(index, 1);
+  // emit null when list becomes empty to allow explicit null state if desired
+  emit('update:value', base.length ? base : null);
 };
 </script>
 
@@ -109,7 +104,7 @@ const removeItem = (index: number) => {
 .pill {
   display: flex;
   align-items: center;
-  background-color: #e0e0e0;
+  background-color: var(--hover-bg);
   border-radius: 15px;
   padding: 0px .75rem;
 }
@@ -128,5 +123,10 @@ const removeItem = (index: number) => {
   box-shadow: none !important;
   padding: 0.1rem 0.2rem !important;
   min-width: 0;
+}
+
+.row {
+  margin-left: 0;
+  margin-right: 0;
 }
 </style>

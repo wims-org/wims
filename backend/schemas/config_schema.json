@@ -28,39 +28,7 @@
                 }
             },
             "required": ["host", "port", "name", "database", "user", "password"]
-        },
-        "mqtt": {
-            "type": "object",
-            "properties": {
-                "broker": {
-                    "type": "object",
-                    "properties": {
-                        "host": {
-                            "type": "string"
-                        },
-                        "port": {
-                            "type": "integer"
-                        },
-                        "username": {
-                            "type": "string"
-                        }
-                    },
-                    "required": ["host", "port"]
-                },
-                "topics": {
-                    "type": "object",
-                    "properties": {
-                        "scan": {
-                            "type": "string"
-                        },
-                        "result": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "required": ["broker", "topics"]
         }
     },
-    "required": ["schema_version", "database", "mqtt"]
+    "required": ["schema_version", "database"]
 }

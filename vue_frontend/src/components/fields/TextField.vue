@@ -1,28 +1,28 @@
 <template>
   <BContainer>
-    <div
-      class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
+    <BFormGroup
+      class="d-flex p-2 justify-content-between align-items-center"
       data-testid="text-field"
     >
-      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
-      <input
-        :type="type || 'text'"
+      <label v-if="!hideLabel || !label" :for="name">{{ label }}</label>
+      <BFormInput
+        :id="name"
+        :type="(type || 'text') as any"
         :name="name"
         :disabled="disabled ?? undefined"
-        :value="value"
+        :modelValue="value as any"
         :required="required"
-        @input="updateField"
-        class="form-control"
-        :class="[{ 'is-invalid': required && !value }, { 'borderless-input': borderless }]"
+        @update:modelValue="onModelUpdate"
         :placeholder="hideLabel ? '' : label"
+        :class="[{ 'borderless-input': borderless }]"
       />
-    </div>
+    </BFormGroup>
   </BContainer>
 </template>
 
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
-
+import { BFormInput, BFormGroup } from 'bootstrap-vue-next'
 defineProps({
   name: {
     type: String,
@@ -35,6 +35,24 @@ defineProps({
   type: {
     type: String,
     default: 'text',
+    validator: (value: string) => {
+      return [
+        'text',
+        'number',
+        'email',
+        'password',
+        'search',
+        'url',
+        'tel',
+        'date',
+        'time',
+        'range',
+        'color',
+        'datetime-local',
+        'month',
+        'week',
+      ].includes(value)
+    },
   },
   value: {
     type: [String, Number, Boolean],
@@ -58,17 +76,15 @@ defineProps({
   },
 })
 
-const emit = defineEmits<{
-  (e: 'update:value', value: string): void
-}>()
+const emit = defineEmits<{ (e: 'update:value', value: string | number | null): void }>()
 
-function updateField(event: Event) {
-  const target = event.target as HTMLInputElement
-  emit('update:value', target.value)
+function onModelUpdate(v: string | number | null) {
+  emit('update:value', v)
 }
 </script>
 
 <style scoped>
+
 .borderless span {
   display: none !important;
 }

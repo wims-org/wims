@@ -3,16 +3,14 @@ import enum
 import json
 import uuid
 from pathlib import Path
+from threading import Thread
 
 import openai
 import pydantic
 from loguru import logger
 
 from database_connector import MongoDBConnector
-from models.database import Item
-from modules import chatgpt
-from modules.camera import Camera
-from mqtt_client import MQTTClientManager, ReaderMessage
+from modules import category_importer, chatgpt
 from utils import find
 
 MESSAGE_STREAM_DELAY = 0.3  # second
@@ -44,15 +42,18 @@ class SseMessage(pydantic.BaseModel):
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
 
+class ConfigResponseModel(pydantic.BaseModel):
+    database_connected: bool
+    llm_enabled: bool
+    camera_enabled: bool = False
+
+
 class BackendService:
-    def __init__(self, db_config, mqtt_config, config):
+    def __init__(self, db_config, config):
         self.config = config
-        self.db = MongoDBConnector(
+        self.dbc = MongoDBConnector(
             uri=f"mongodb://{db_config.get('host', 'localhost')}:{db_config.get('port', '27017')}",
             database=db_config.get("database", "inventory"),
-        )
-        self.mqtt_client_manager = MQTTClientManager(
-            callback=self.handle_message, mqtt_config=mqtt_config.get("broker", {})
         )
 
         self._queues_lock = asyncio.Lock()
@@ -63,85 +64,21 @@ class BackendService:
             schema = json.load(schema_file)
 
         try:
-            self.item_data_topic = find(key := "mqtt.topics.result", config)
-        except (KeyError, TypeError, openai.OpenAIError) as e:
-            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
-            self.item_data_topic = None
-
-        try:
             self.llm_completion = chatgpt.ChatGPT(
                 api_key=find(key := "features.openai.api_key", config), response_schema=schema
             )
         except (KeyError, TypeError, openai.OpenAIError) as e:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
             self.llm_completion = None
-
-        try:
-            self.camera = Camera(find(key := "camera.url", config))
-        except (KeyError, TypeError, openai.OpenAIError) as e:
-            logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
-            self.camera = None
         asyncio.create_task(self.push_heartbeats())
 
-    async def handle_message(self, message, topic):
-        logger.debug(f"Handle message: {message} on topic {topic}")
-        try:
-            msg = ReaderMessage(**json.loads(message))
-        except (pydantic.ValidationError, json.JSONDecodeError) as e:
-            logger.error(f"Error parsing message: {e}, {message}")
-            return
-        data = SseMessage.SseMessageData(reader_id=msg.reader_id, rfid=msg.tag_id).model_dump(
-            mode="json", exclude_none=True
+        # Start category data import in the background, if needed
+        import_thread = Thread(
+            target=category_importer.check_and_import_category_data,
+            args=(self.dbc, "categories", str(Path(__file__).parent.parent.parent / "data" / "categories.json")),
         )
-        await self.append_message_to_all_queues_with_reader(
-            reader=msg.reader_id,
-            message=SseMessage(data=data, event=Event.SCAN),
-        )
-        # Send db data to reader
-        # todo don't fetch data from db twice
-        item_raw = self.db.find_by_rfid("items", msg.tag_id)
-        if item_raw is None:
-            # Item not found
-            self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "null")
-        else:
-            try:
-                item = Item.model_validate(item_raw, strict=False, from_attributes=True)
-                self.mqtt_client_manager.publish(
-                    self.item_data_topic + f"/{msg.reader_id}",
-                    str(
-                        item.model_dump(
-                            mode="json",
-                            include={
-                                "tag_uuid",
-                                "short_name",
-                                "amount",
-                                "item_type",
-                                "borrowed",
-                                "container_tag_uuid",
-                                "container_name",
-                            },
-                        )
-                    ),
-                )
-            except pydantic.ValidationError as e:
-                logger.error(f"Error validating item: {e}")
-                self.mqtt_client_manager.publish(self.item_data_topic + f"/{msg.reader_id}", "ValidationError")
-
-    def start_mqtt(self):
-        try:
-            self.mqtt_client_manager.connect()
-        except ConnectionRefusedError:
-            logger.error(
-                "MQTT connection refused. This results in unexpected behavior! "
-                "Please check your MQTT broker configuration."
-            )
-
-    def add_mqtt_topic(self, topic):
-        self.mqtt_client_manager.add_topic(topic)
-
-    def close(self):
-        self.db.close()
-        self.mqtt_client_manager.stop()
+        import_thread.start()
+        logger.info("BackendService initialized")
 
     async def push_heartbeats(self):
         message = SseMessage(
@@ -229,4 +166,11 @@ class BackendService:
                 self.__message_queues[stream_id].message_queue.append(msg)
 
     def is_ready(self) -> bool:
-        return self.db.is_connected() and self.mqtt_client_manager.is_connected()
+        return self.dbc.is_connected()
+
+    def get_config(self) -> ConfigResponseModel:
+        return ConfigResponseModel(
+            database_connected=self.dbc.is_connected(),
+            llm_enabled=self.llm_completion is not None,
+            camera_enabled=False,
+        )

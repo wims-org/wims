@@ -1,16 +1,17 @@
 <template>
   <BContainer fluid class="d-flex row" data-testid="item-view">
-    <BCol class="align-content-center col-1 p-0 width-1 text-end">
+    <BCol class="col-1 p-0 text-end">
       <router-link
         v-show="previousItemId"
-        :to="`/items/${previousItemId}?offset=${+offset - 1 || 0}&query=${encodeURIComponent(query)}`"
-        class="text-decoration-none"
+        :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
+        class="text-decoration-none arrow-button"
       >
-        <font-awesome-icon icon="arrow-left" />
+        <IFaArrowLeft />
       </router-link>
     </BCol>
     <BCol>
-      <div v-if="saveError" class="sticky-note">Error saving changes</div>
+      <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
+      <div v-if="saveSuccess" class="sticky-note sticky-note-success">{{ saveSuccess }}</div>
       <h1 class="m-4">{{ item?.short_name }}</h1>
       <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
         <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
@@ -19,20 +20,21 @@
             :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
             @update:value="handleContainerSelect"
           />
-          <ItemList
-            :items="items"
+          <button
+            @click="() => (showModal = true)"
+            class="btn btn-primary my-3"
+            data-testid="add-content-button"
+          >
+            Add content now
+          </button>
+          <ItemListContainer
+            :settingsId="'item-view-container'"
+            :query="{
+              query: { container_tag_uuid: itemId },
+            }"
             @select="handleItemSelect"
             :title="`Items in ${item?.short_name}`"
           />
-          <div class="d-flex justify-content-center mt-3">
-            <button
-              @click="() => (showModal = true)"
-              class="btn btn-primary mb-3"
-              data-testid="add-content-button"
-            >
-              Add content now
-            </button>
-          </div>
         </BTab>
         <BTab title="Item Data" id="itemData" data-testid="item-data">
           <button
@@ -48,26 +50,27 @@
             :item_new="completion"
             :newItem="newItem"
             @submit="handleFormSubmit"
+            :key="item?.tag_uuid"
           />
-          <ItemForm
-            v-else
-            :item="item"
-            :isNewItem="newItem"
-            @submit="handleFormSubmit"
-          />
+          <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
         </BTab>
-        <BTab title="Object Identification" id="objectIdentification" data-testid="object-identification">
-          <LLMCompletion :images="item?.images" />
+        <BTab
+          v-if="clientStore.backend_config?.llm_enabled"
+          title="Object Identification"
+          id="objectIdentification"
+          data-testid="object-identification"
+        >
+          <LLMCompletion :images="item?.images" :key="item?.tag_uuid" />
         </BTab>
       </BTabs>
     </BCol>
-    <BCol class="align-content-center col-1 p-0">
+    <BCol class="col-1 p-0">
       <router-link
         v-show="nextItemId"
-        :to="`/items/${nextItemId}?offset=${+offset + 1}&query=${encodeURIComponent(query)}`"
-        class="text-decoration-none"
+        :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
+        class="text-decoration-none arrow-button"
       >
-        <font-awesome-icon icon="arrow-right" />
+        <IFaArrowRight />
       </router-link>
     </BCol>
     <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
@@ -75,8 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import eventBus from '../stores/eventBus'
 import { type Events } from '../stores/eventBus'
@@ -86,14 +89,15 @@ import type { components } from '@/interfaces/api-types'
 import LLMCompletion from '@/components/LLMCompletion.vue'
 import ItemForm from '../components/ItemForm.vue'
 import ItemCompare from '../components/ItemComparison.vue'
-import ItemList from '@/components/ItemList.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
+type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 // Reactive State
 const route = useRoute()
+const router = useRouter()
 const itemId = ref<string>(
   typeof route.params.tag_uuid === 'string'
     ? route.params.tag_uuid
@@ -106,10 +110,10 @@ const newItem = ref(false)
 const isComparing = ref(false)
 const completion = ref<Item>()
 const saveError = ref('')
+const saveSuccess = ref('')
 const items = ref<Item[]>([])
-const noContent = ref(false)
 const showModal = ref(false)
-const query = ref<string>(decodeURIComponent((route.query.query as string) || ''))
+const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
 const previousItemId = ref<string>('')
 const nextItemId = ref<string>('')
 const offset = ref<number>(0)
@@ -123,6 +127,7 @@ const clientStore = useClientStore()
 const fetchItem = async () => {
   try {
     const response = await axios.get(`/items/${itemId.value}`)
+    console.log('Fetched item:', response.data)
     item.value = response.data
     newItem.value = false
     isComparing.value = false
@@ -142,31 +147,15 @@ const fetchItem = async () => {
   tabCheck.value++
 }
 
-const fetchContainerContent = async () => {
-  try {
-    const response = await axios.get(`/items/${itemId.value}/content`)
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      items.value = response.data as Item[]
-      noContent.value = false
-    } else {
-      items.value = []
-      noContent.value = true
-    }
-  } catch {
-    noContent.value = true
-    items.value = []
-  }
-  tabCheck.value++
-}
-
 const fetchPrevNextItems = async () => {
   previousItemId.value = ''
   nextItemId.value = ''
-  const parsedQuery = JSON.parse(query.value.trim().toLowerCase())
+  if (!query_param.value) return
+  const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
   try {
     if (offset.value > 0) {
       const prevItem = await axios.post('/items/search', {
-        query: parsedQuery,
+        ...parsedQuery,
         offset: offset.value - 1,
         limit: 1,
       })
@@ -179,15 +168,15 @@ const fetchPrevNextItems = async () => {
   }
   try {
     const nextItem = await axios.post('/items/search', {
-      query: parsedQuery,
+      ...parsedQuery,
       offset: offset.value + 1,
       limit: 1,
     })
     if (nextItem.data.length > 0) {
       nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
     }
-  } catch (error) {
-    console.error('Error fetching next items:', error)
+  } catch {
+    nextItemId.value = ''
   }
 }
 
@@ -195,12 +184,19 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
   saveError.value = ''
   try {
     isComparing.value = false
+    const requestData = buildItemRequest(formData)
     if (newItem.value) {
-      await axios.post('/items', formData)
-      alert('Item created successfully')
+      await axios.post('/items', requestData)
+      saveSuccess.value = 'Item created successfully'
+      setTimeout(() => {
+        saveSuccess.value = ''
+      }, 5000)
     } else {
-      await axios.put(`/items/${itemId.value}`, formData)
-      alert('Item updated successfully')
+      await axios.put(`/items/${itemId.value}`, requestData)
+      saveSuccess.value = 'Item updated successfully'
+      setTimeout(() => {
+        saveSuccess.value = ''
+      }, 5000)
     }
     fetchItem()
   } catch (error) {
@@ -208,6 +204,14 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     console.error('Error submitting form:', error)
   }
   tabCheck.value++
+}
+
+const buildItemRequest = (formData: Record<string, unknown>): Record<string, unknown> => {
+  // Transform the formData into the format expected by the API
+  return {
+    ...formData,
+    owner: null,
+  }
 }
 
 const handleCompletion = (result: { data: { response: object } }) => {
@@ -221,8 +225,18 @@ const handleCompletion = (result: { data: { response: object } }) => {
 }
 
 const handleItemSelect = (item: Item) => {
-  clientStore.expected_event_action = EventAction.REDIRECT
-  eventBus.emit(EventAction.REDIRECT, { rfid: item.tag_uuid } as Events[EventAction.REDIRECT])
+  const tag = item.tag_uuid
+  console.log('Selected tag:', tag)
+  const offset = items.value.findIndex((i) => i.tag_uuid === item.tag_uuid)
+  const query = {
+    query: {
+      container_tag_uuid: itemId.value,
+    },
+  }
+  router.push(
+    `/items/${tag}` +
+      (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+  )
 }
 
 const handleContentSelect = async (tag: string) => {
@@ -235,9 +249,7 @@ const handleContentSelect = async (tag: string) => {
   } catch (error) {
     saveError.value = 'Could not save changes. Please try again.'
     console.error(error)
-  } finally {
-    fetchContainerContent()
-  }
+  } 
 }
 
 const handleContainerSelect = (tag: string) => {
@@ -250,18 +262,61 @@ const closeModal = () => {
   clientStore.expected_event_action = EventAction.REDIRECT
 }
 
+const handle_item_prev = () => {
+  if (previousItemId.value) {
+    router.push(
+      `/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`,
+    )
+  }
+}
+
+const handle_item_next = () => {
+  if (nextItemId.value) {
+    router.push(
+      `/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`,
+    )
+  }
+}
+
 // Lifecycle Hooks
 onMounted(fetchItem)
-onMounted(fetchContainerContent)
 onMounted(() => {
-  query.value = decodeURIComponent((route.query.query as string) || '')
+  query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
-  if (query.value) {
+  if (query_param.value) {
     fetchPrevNextItems()
   } else {
     previousItemId.value = ''
     nextItemId.value = ''
   }
+  // Keyboard navigation: left/right arrows navigate prev/next item.
+  const onKeyDown = (e: KeyboardEvent) => {
+    // Ignore inputs
+    const target = e.target as HTMLElement | null
+    if (target) {
+      const tag = target.tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        (target.isContentEditable && target.isContentEditable === true)
+      ) {
+        return
+      }
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      handle_item_prev()
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      handle_item_next()
+    }
+  }
+
+  window.addEventListener('keydown', onKeyDown)
+
+  onUnmounted(() => {
+    window.removeEventListener('keydown', onKeyDown)
+  })
 })
 
 eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
@@ -276,8 +331,12 @@ watch(
   async (newId) => {
     if (itemId.value !== newId) {
       itemId.value = typeof newId === 'string' ? newId : ''
+      items.value = []
+      item.value = undefined
+      completion.value = undefined
+      newItem.value = false
+      isComparing.value = false
       await fetchItem()
-      await fetchContainerContent()
       await fetchPrevNextItems()
     }
   },
@@ -287,11 +346,11 @@ watch(
   () => [route.query.query, route.query.offset],
   async ([newQuery, newOffset]) => {
     if (newQuery && typeof newQuery === 'string') {
-      query.value = decodeURIComponent(newQuery || '')
+      query_param.value = decodeURIComponent(newQuery || '')
       offset.value = parseInt(newOffset as string, 10) || 0
       await fetchPrevNextItems()
     } else {
-      query.value = ''
+      query_param.value = ''
       previousItemId.value = ''
       nextItemId.value = ''
     }
@@ -303,9 +362,9 @@ watch(
   () => {
     if (isComparing.value) {
       activeTab.value = 'itemData'
-    } else if (newItem.value) {
+    } else if (newItem.value && clientStore.backend_config.llm_enabled) {
       activeTab.value = 'objectIdentification'
-    } else if (items.value.length > 0) {
+    } else if (item.value?.is_container) {
       activeTab.value = 'containerTree'
     } else {
       activeTab.value = 'itemData'
@@ -315,17 +374,13 @@ watch(
 </script>
 
 <style scoped>
-.sticky-note {
+.arrow-button {
   position: fixed;
-  top: 0;
-  left: 50%;
+  top: 45vh;
+  font-size: 1.2rem;
   transform: translateX(-50%);
-  background-color: red;
-  color: white;
-  padding: 0 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  z-index: 1000;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  &:hover {
+    background-color: unset;
+  }
 }
 </style>

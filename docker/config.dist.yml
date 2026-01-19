@@ -9,19 +9,6 @@ database:
     user: "test"
     password: "test"
 
-mqtt:
-    broker: 
-        host: "127.0.0.1"
-        port: 1883
-        username: "test"
-        password: "test"
-    topics:
-        scan: "rfid/scan/#"
-        result: "rfid/itemdata"
-        
-camera:
-    url: http://yourcamip/stream
-
 logging:
     level: "INFO"
 
