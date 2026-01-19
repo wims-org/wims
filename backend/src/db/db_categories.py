@@ -6,8 +6,7 @@ from pymongo.collection import Collection
 
 
 def get_category_with_parents_and_children(db, term: str | int) -> dict:
-    logger.debug(
-        f"Getting category with parents and children for term: {term}")
+    logger.debug(f"Getting category with parents and children for term: {term}")
     pipeline = []
     try:
         _id = ObjectId(term)
@@ -44,8 +43,7 @@ def get_category_with_parents_and_children(db, term: str | int) -> dict:
 def get_category_tree_up(db, collection_name: str, id: str) -> dict | None:
     """Returns a recursive nested object"""
     collection: Collection = db[collection_name]
-    logger.debug(
-        f"Getting category tree for code: {id} from collection: {collection_name}")
+    logger.debug(f"Getting category tree for code: {id} from collection: {collection_name}")
     if not (doc := collection.find_one({"_id": id})):
         return None
 
@@ -67,8 +65,7 @@ def get_category_tree_up(db, collection_name: str, id: str) -> dict | None:
 def get_category_tree_down(db, collection_name: str, id: str) -> dict | None:
     """Returns a recursive nested object with children"""
     collection: Collection = db[collection_name]
-    logger.debug(
-        f"Getting category tree down for code: {id} from collection: {collection_name}")
+    logger.debug(f"Getting category tree down for code: {id} from collection: {collection_name}")
     if not (doc := collection.find_one({"_id": id})):
         return None
 
@@ -77,8 +74,7 @@ def get_category_tree_down(db, collection_name: str, id: str) -> dict | None:
             return None
         logger.debug(f"Fetching category for id: {id}, found document: {doc}")
         children_cursor = collection.find({"parent_id": doc["_id"]})
-        doc["children"] = [get_category_recursive(
-            child_doc["_id"]) for child_doc in children_cursor]
+        doc["children"] = [get_category_recursive(child_doc["_id"]) for child_doc in children_cursor]
         return doc
 
     try:

@@ -86,6 +86,23 @@ Then start the backend and frontend services using the provided profiles in `.vs
 + `backend` and `frontend` for a native environment, or
 + `build-services` for full docker setup 
 
+
+## Backup/Restore
+For small database you can your the `/backup` endpoint of the API to quickly create json based backups of your database.
+
+```bash
+# Make a backup
+curl http://wims/api/backup/create > /tmp/backup.json
+
+# Restore a backup
+curl -X POST  -F 'file=@/tmp/backup.json' -v http://wims/api/backup/load
+```
+
+The restore endpoint has a safe-guard and will only work on empty databases. So there is no way to accidentially
+importing a backup and loosing files.
+
+For bigger datbases, please directly use `mongodump` and `mongorestore` with the MongoDB database.
+
 ### Running Tests
 
 To run full integration tests of all services together using playwright, you have multiple options:
