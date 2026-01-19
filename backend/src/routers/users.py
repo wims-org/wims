@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 
 from db import db_users
 from models.database import User
-from routers.utils import get_bs
+from routers.utils import get_db
 
-router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 class UserRequest(BaseModel):
@@ -19,7 +19,10 @@ class UserRequest(BaseModel):
 
 @router.post("", response_model=User)
 async def create_user(request: Request, user: UserRequest) -> Response | dict:
-    db = get_bs(request).dbc.db
+    """
+    Create a user
+    """
+    db = get_db(request)
     existing_user = db_users.get_user_by_name(user.username, db)
     if existing_user:
         raise HTTPException(status_code=400, detail="User with this name already exists.")
@@ -29,7 +32,10 @@ async def create_user(request: Request, user: UserRequest) -> Response | dict:
 
 @router.get("/{id}", response_model=User)
 async def get_user(request: Request, id: str) -> Response | dict:
-    db = get_bs(request).dbc.db
+    """
+    Get a single user
+    """
+    db = get_db(request)
     user = db_users.get_user_by_id(id, db)
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -37,8 +43,11 @@ async def get_user(request: Request, id: str) -> Response | dict:
 
 
 @router.get("", response_model=list[User])
-async def get_all_users(request: Request, term: str | None = None) -> Response | list[User]:
-    db = get_bs(request).dbc.db
+async def list_users(request: Request, term: str | None = None) -> Response | list[User]:
+    """
+    List all users
+    """
+    db = get_db(request)
     if not term:
         users = db_users.get_all_users(db)
         return users
@@ -46,10 +55,15 @@ async def get_all_users(request: Request, term: str | None = None) -> Response |
     users = db_users.search_users(db, query)
     return users
 
+# TODO: Add /search
+
 
 @router.put("/{id}", response_model=User)
 async def update_user(request: Request, id: str, user: User) -> Response | dict:
-    db = get_bs(request).dbc.db
+    """
+    Update a user
+    """
+    db = get_db(request)
     updated_user = db_users.update_user(id, user, db)
     if not updated_user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -58,7 +72,10 @@ async def update_user(request: Request, id: str, user: User) -> Response | dict:
 
 @router.delete("/{id}")
 async def delete_user(request: Request, id: str):
-    db = get_bs(request).dbc.db
+    """
+    Delete a user
+    """
+    db = get_db(request)
     deleted = db_users.delete_user(id, db)
     if not deleted:
         raise HTTPException(status_code=404, detail="User not found.")

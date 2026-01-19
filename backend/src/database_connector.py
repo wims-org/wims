@@ -4,11 +4,11 @@ import pydantic
 from loguru import logger
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from pymongo.errors import ServerSelectionTimeoutError  # Add this import
+from pymongo.errors import ServerSelectionTimeoutError
 
 
 class RecursiveContainerObject(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(orm_mode=True, arbitrary_types_allowed=True)
+    model_config = pydantic.ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
 
     tag_uuid: str
     short_name: str | None = None
@@ -64,7 +64,6 @@ class MongoDBConnector:
                 "$addFields": {
                     "container_tag_exists": {"$ne": ["$container_tag_uuid", None]},
                     "container_tag_uuid_copy": "$container_tag_uuid",
-                    "is_container": {"$gt": [{"$size": "$contained"}, 0]},
                 }
             },
             {
@@ -76,7 +75,6 @@ class MongoDBConnector:
                 }
             },
             {"$unwind": {"path": "$container", "preserveNullAndEmptyArrays": True}},
-            {"$project": {"contained": 0}},
         ]
         return next(collection.aggregate(pipeline), None)
 

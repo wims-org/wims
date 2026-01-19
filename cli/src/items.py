@@ -1,22 +1,23 @@
 import typer
+import requests
+
 
 app = typer.Typer()
 
 
 @app.command()
-def create(item: str):
-    print(f"Creating item: {item}")
-
-
-@app.command()
-def delete(item: str):
-    print(f"Deleting item: {item}")
-
+def create():
+    print("not yet implemented")
 
 @app.command()
-def sell(item: str):
-    print(f"Selling item: {item}")
+def delete():
+    print("not yet implemented")
 
+@app.command()
+def search(query: str):
+    payload = {"query": {"term": query}}
+    r = requests.post('http://localhost:5005/items/search', json=payload)
+    print(r)
 
 if __name__ == "__main__":
     app()

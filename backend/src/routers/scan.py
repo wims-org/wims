@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 from dependencies.backend_service import Event, SseMessage
 from models.database import Item
 
-router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/scan", tags=["Scan"])
 
 
 class ScanRequest(BaseModel):
@@ -21,6 +21,9 @@ class ScanResponse(BaseModel):
 
 @router.post("", response_model=ScanResponse)
 async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
+    """
+    Endpoint for the scanner to send a scan event to
+    """
     logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}'")
 
     await request.app.state.backend_service.append_message_to_all_queues_with_reader(

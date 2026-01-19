@@ -3,16 +3,12 @@ import pymongo
 from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
 
-import routers.items.get_items as get_items
 from database_connector import RecursiveContainerObject
-from db import db_items
 from models.database import Item
 from models.requests import ItemBacklogRequest, ItemRequest, SearchQuery
-from routers.utils import get_bs
+from routers.utils import get_bs, get_db, parse_pydantic_errors
 
-router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
-router.include_router(get_items.router)
-
+router = APIRouter(prefix="/items", tags=["Items"])
 
 class ItemChangedResponse(pydantic.BaseModel):
     message: str
@@ -42,10 +38,7 @@ async def put_item(request: Request, rfid: str, item: ItemRequest) -> ItemChange
 
 
 @router.post("", response_model=ItemChangedResponse)
-async def post_item(
-    request: Request,
-    item: ItemRequest,
-) -> ItemChangedResponse:
+async def post_item( request: Request, item: ItemRequest) -> ItemChangedResponse:
     """
     Create an item. If the item already exists, an error is raised.
     """
@@ -69,10 +62,7 @@ async def post_item(
 
 
 @router.post("/backlog", response_model=ItemChangedResponse)
-async def post_backlog_item(
-    request: Request,
-    item: ItemBacklogRequest,
-) -> ItemChangedResponse:
+async def post_backlog_item( request: Request, item: ItemBacklogRequest) -> ItemChangedResponse:
     """
     Create a backlog item (no strict validation). If the item already exists, an error is raised.
     """
@@ -98,11 +88,11 @@ async def post_backlog_item(
 
 
 @router.delete("/{rfid}", response_model=ItemChangedResponse)
-async def delete_item(
-    request: Request,
-    rfid: str,
-) -> ItemChangedResponse:
-    updated_rows = get_bs(request).dbc.delete(
+async def delete_item( request: Request, rfid: str) -> ItemChangedResponse:
+    """
+    Delete a single item
+    """
+    updated_rows = get_db(request).delete(
         collection_name="items",
         query={"tag_uuid": rfid},
     )
@@ -113,19 +103,17 @@ async def delete_item(
 
 
 @router.get("/{rfid}", response_model=Item)
-async def get_item(
-    request: Request,
-    rfid: str,
-) -> Item:
-    item = get_bs(request).dbc.find_by_rfid(collection_name="items", rfid=rfid)
+async def get_item( request: Request, rfid: str) -> Item:
+    """
+    Get a single item
+    """
+    item = get_bs(request).db.find_by_rfid(collection_name="items", rfid=rfid)
     if item:
         try:
             return Item.model_validate(item, strict=False, from_attributes=True)
         except pydantic.ValidationError as e:
             logger.error(f"Error validating item: {str(item)[:100]}, {e}")
-            errors = [
-                f"{'.'.join(map(str, err.get('loc', [])))} {err.get('type')}: {err.get('msg')}" for err in e.errors()
-            ]
+            errors = parse_pydantic_errors(e)
             valid_item = Item.model_construct(**item)
             res = valid_item.model_dump(exclude_unset=True, exclude_defaults=True, exclude_none=True)
             res["errors"] = errors
@@ -135,48 +123,109 @@ async def get_item(
 
 
 @router.get("/{rfid}/containers", response_model=RecursiveContainerObject)
-async def get_item_with_containers(
-    request: Request,
-    rfid: str,
-) -> RecursiveContainerObject:
-    recursive_containers = get_bs(request).dbc.get_recursive_container_tags(collection_name="items", rfid=rfid)
+async def get_item_with_containers(request: Request, rfid: str) -> RecursiveContainerObject:
+    """
+    Get a nested dictionary of all parents of this item
+    """
+    recursive_containers = get_bs(request).db.get_recursive_container_tags(collection_name="items", rfid=rfid)
     if not recursive_containers:
         raise HTTPException(status_code=404, detail="Item not found")
     return recursive_containers
 
 
 @router.get("/{rfid}/content", response_model=list[Item])
-async def get_item_content(
-    request: Request,
-    rfid: str,
-) -> list[Item]:
-    content = get_bs(request).dbc.read(collection_name="items", query={"container_tag_uuid": rfid})
+async def get_item_content(request: Request, rfid: str) -> list[Item]:
+    """
+    Get list of items that are inside a given item
+    """
+    content = get_bs(request).db.read(collection_name="items", query={"container_tag_uuid": rfid})
     if not content:
         raise HTTPException(status_code=404, detail="Item content not found")
     return content
 
 
+@router.get("", response_model=list[Item])
+async def get_items(request: Request, query: str | None = SearchQuery) -> list[Item]:
+    """
+    Get a list of items
+    """
+    #TODO: Remove query feature
+    if query:
+        items = get_bs(request).db.read(
+            collection_name="items",
+            query={
+                "$or": [
+                    {"tag_uuid": {"$regex": query, "$options": "i"}},
+                    {"short_name": {"$regex": query, "$options": "i"}},
+                    {"item_type": {"$regex": query, "$options": "i"}},
+                    {"tags": {"$regex": query, "$options": "i"}},
+                    {"manufacturer": {"$regex": query, "$options": "i"}},
+                ]
+            },
+        )
+        logger.debug(f"Found {len(items)} items matching query: {query}")
+    else:
+        items = get_bs(request).db.read(collection_name="items")
+    if items:
+        return items
+    else:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+
+class ItemSearchRequest(pydantic.BaseModel):
+    query: dict = {}
+    offset: int | None = None
+    limit: int | None = None
+    term: str | None = None
+
+
 @router.post("/search", response_model=list[Item])
-async def get_item_search(request: Request, query: SearchQuery) -> list[Item]:
-    """
-    Search for items based on a query object, post to allow for body.
-    """
-    logger.debug(f"Searching items with search query: {query}")
-    items = db_items.get_items_with_search_query(query=query, db=get_bs(request).dbc.db)
+async def get_item_search(request: Request, item_search_req: ItemSearchRequest) -> list[Item]:
+    #TODO Turn into GET with query parameters
+    request.body = await request.body()
+    # this is kind of dirty
+    if item_search_req.query.get("term", None):
+        item_search_req.term = item_search_req.query.pop("term")
+    if term := item_search_req.term:
+        item_search_req.query.update(
+            {
+                "$or": [
+                    {"tag_uuid": {"$regex": term, "$options": "i"}},
+                    {"short_name": {"$regex": term, "$options": "i"}},
+                    {"item_type": {"$regex": term, "$options": "i"}},
+                    {"tags": {"$regex": term, "$options": "i"}},
+                    {"manufacturer": {"$regex": term, "$options": "i"}},
+                ]
+            }
+        )
+
+    db = get_db(request)
+    items = (
+        db["items"]
+        .aggregate(
+            [
+                {"$match": item_search_req.query},
+                {"$skip": item_search_req.offset or 0},
+                {"$limit": item_search_req.limit or 1000},
+            ]
+        )
+    )
+    items = list(items)
     if not items:
         raise HTTPException(status_code=404, detail="Item not found")
     return items
 
 
 @router.patch("", response_model=list[Item])
-async def patch_items(
-    request: Request,
-) -> list[Item]:
-    items = get_bs(request).dbc.read(collection_name="items")
+async def patch_items(request: Request) -> list[Item]:
+    """
+    Update an existing item
+    """
+    items = get_bs(request).db.read(collection_name="items")
     for item_data in items:
         item = Item.model_validate(item_data, strict=False, from_attributes=True)
         item_data = item.model_dump(mode="json")
-        _ = get_bs(request).dbc.update(
+        get_bs(request).db.update(
             collection_name="items",
             query={"container_tag_uuid": item_data["container_tag_uuid"]},
             update_values=item_data,
@@ -188,10 +237,7 @@ async def patch_items(
 
 
 @router.post("/bulk", response_model=ItemChangedResponse)
-async def bulk_import_items(
-    request: Request,
-    items: list[ItemRequest],
-) -> ItemChangedResponse:
+async def bulk_import_items(request: Request, items: list[ItemRequest]) -> ItemChangedResponse:
     """
     Bulk import items. Accepts a list of item dicts.
     If an item with the same tag_uuid exists, it is updated; otherwise, it is created.

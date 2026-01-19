@@ -4,14 +4,13 @@ import os
 import time
 
 import openai
-import pydantic
-from fastapi import APIRouter, HTTPException, Request, UploadFile
+from fastapi import APIRouter, HTTPException, Request
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
 from dependencies.backend_service import Event, SseMessage
 from routers.utils import get_bs
 
-router = APIRouter(prefix="/completion", tags=["completion"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/completion", tags=["Completion"])
 
 
 class EmptyResponseException(Exception):
@@ -22,15 +21,11 @@ class MockResponseException(Exception):
     pass
 
 
-class IdentificationRequest(pydantic.BaseModel):
-    data: pydantic.Json | None = None
-    images: list[UploadFile] = None
-
-
 @router.post("/identification")
-async def identification(
-    request: Request,
-):
+async def identification(request: Request):
+    """
+    Identify an object by picture with ChatGPT
+    """
     try:
         # Parse JSON data from the request body
         body = await request.json()
@@ -97,13 +92,6 @@ async def identification(
                 raise MockResponseException("Development mode: Mock response used for testing")
 
             chatgpt_response = get_bs(request).llm_completion.identify_object(query, imageUrls)
-            if (
-                not chatgpt_response
-                or not chatgpt_response.choices
-                or not chatgpt_response.choices[0].message
-                or not chatgpt_response.choices[0].message.content
-            ):
-                raise EmptyResponseException()
         except (openai.APIConnectionError, EmptyResponseException, Exception) as e:
             sse_message = SseMessage(
                 data=SseMessage.SseMessageData(
@@ -117,7 +105,11 @@ async def identification(
             print(e)
             pass
 
-        result = json.loads(chatgpt_response.choices.pop(0).message.content)
+        try:
+            result = json.loads(chatgpt_response.choices[0].message.content)
+        except:
+            raise EmptyResponseException()
+
         if imageUrls:
             result.setdefault("images", []).extend(imageUrls)
         sse_message = SseMessage(

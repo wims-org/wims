@@ -9,7 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from dependencies.backend_service import MESSAGE_STREAM_DELAY, Event
 
-router = APIRouter(prefix="/stream", tags=["stream"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/stream", tags=["Stream"])
 
 
 class StreamRequestData(BaseModel):

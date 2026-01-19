@@ -1,0 +1,33 @@
+packages:
+  base: !include
+    file: common.yaml
+    vars:
+      reader_id: "133742"
+      reader_name: "fleazbox"
+      wims_url: http://10.10.37.213:5005
+      wims_url_2: https://wims.projects.fleaz.me/api
+      display_platform: ssd1306_i2c
+      display_model: "SSD1306 128x64"
+      display_flip_x: true
+      display_rotate: 0
+      rtttl_pin: 10
+      sda_pin: 4
+      scl_pin: 5
+
+esphome:
+  on_boot:
+    # include optional bootup sound
+    - priority: -100.0
+      then:
+        - rtttl.play: "scanner_beep:d=16,o=5,b=100:4e,4e,4e,8c,p,g,4e" # Star Wars Theme
+        - display.page.show: page_qrcode
+
+esp32:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  framework:
+    type: arduino
+
+wifi:
+  fast_connect: true
+  output_power: 8.5
