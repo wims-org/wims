@@ -5,10 +5,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
+from prometheus_client import Counter, disable_created_metrics
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from dependencies.backend_service import BackendService
 from dependencies.config import read_config
-from routers import backup, categories, completion, config, healthz, queries, readers, scan, stream, users
+from routers import backup, categories, completion, config, healthz, metrics, queries, readers, scan, stream, users
 from routers.items import items
 from utils import find
 
@@ -18,22 +20,22 @@ configuration = read_config()
 
 logger.info("Starting backend service")
 
+disable_created_metrics()
+
+REQUEST_COUNT = Counter("http_requests_total", "Total number of HTTP requests", ["method", "endpoint", "http_status"])
+
 # Set up the FastAPI app
 
 
-def setup_middleware(app):
-    frontend_config = configuration.get("frontend", {})
-    origins = [
-        "*",
-    ]
-    origins.append(f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+class MetricsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+
+        REQUEST_COUNT.labels(
+            method=request.method, endpoint=request.url.path, http_status=str(response.status_code)
+        ).inc()
+
+        return response
 
 
 @asynccontextmanager
@@ -63,13 +65,22 @@ app.include_router(scan.router)
 app.include_router(config.router)
 app.include_router(categories.router)
 app.include_router(backup.router)
+app.include_router(metrics.router)
 
 if find("features.openai", configuration):
     app.include_router(completion.router)
     logger.info("LLM features enabled")
 else:
     logger.info("Handarbeit")
-setup_middleware(app)
+
+app.add_middleware(MetricsMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/openapi.json", include_in_schema=False)

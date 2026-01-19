@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse
 
-router = APIRouter(prefix="/healthz", tags=["healthz"])
+router = APIRouter(prefix="", tags=["healthz"])
 
 
-@router.get("", response_class=PlainTextResponse)
+@router.get("/healthz", response_class=PlainTextResponse)
 async def healthz():
     return "OK"
 
