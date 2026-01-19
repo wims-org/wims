@@ -11,3 +11,7 @@ database:
 
 logging:
     level: "INFO"
+
+features:
+    openai:
+        api_key: "test-api-key"
