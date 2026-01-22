@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,7 +18,9 @@ from utils import find
 # Read config
 
 configuration = read_config()
-
+sentry_dsn = configuration.get("sentry", {}).get("backend", {}).get("dsn")
+logger.info(f"Sentry DSN: {sentry_dsn}")
+sentry_sdk.init(dsn=sentry_dsn)
 logger.info("Starting backend service")
 
 # Set up the FastAPI app

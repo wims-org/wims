@@ -14,6 +14,7 @@ dependencies = [
   "python-multipart>=0.0.20",
   "pyyaml>=6.0.3",
   "requests>=2.32.5",
+  "sentry-sdk[fastapi]>=2.49.0",
   "sse-starlette>=3.0.3",
   "uvicorn>=0.38.0",
   "wtforms>=3.2.1",

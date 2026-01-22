@@ -388,23 +388,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/categories/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Category */
-        get: operations["get_category_categories__id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/categories": {
         parameters: {
             query?: never;
@@ -414,6 +397,57 @@ export interface paths {
         };
         /** Get Categories */
         get: operations["get_categories_categories_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All Categories Tree */
+        get: operations["get_all_categories_tree_categories_tree_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/search/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Categories */
+        get: operations["search_categories_categories_search__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Category */
+        get: operations["get_category_categories__id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -439,17 +473,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/categories/search/": {
+    "/categories/{id}/branch": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Search Categories */
-        get: operations["search_categories_categories_search__get"];
+        /** Get Category Branch */
+        get: operations["get_category_branch_categories__id__branch_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Category */
+        post: operations["create_category_categories__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -481,21 +532,40 @@ export interface components {
          * AggregatedStates
          * @enum {string}
          */
-        AggregatedStates: "latest" | "borrowed" | "todo" | "empty";
+        AggregatedStates: "latest" | "borrowed" | "todo" | "empty" | "name_asc" | "name_desc";
         /** CategoryReqRes */
-        CategoryReqRes: {
+        "CategoryReqRes-Input": {
+            /** Id */
+            _id: string | null;
             /** Parent Id */
             parent_id?: string | null;
             /** Title */
             title: string;
             /** Description */
             description: string | null;
-            parent?: components["schemas"]["CategoryReqRes"] | null;
+            parent?: components["schemas"]["CategoryReqRes-Input"] | null;
             /**
              * Children
              * @default []
              */
-            children: components["schemas"]["CategoryReqRes"][];
+            children: components["schemas"]["CategoryReqRes-Input"][];
+        };
+        /** CategoryReqRes */
+        "CategoryReqRes-Output": {
+            /** Id */
+            _id: string | null;
+            /** Parent Id */
+            parent_id?: string | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            parent?: components["schemas"]["CategoryReqRes-Output"] | null;
+            /**
+             * Children
+             * @default []
+             */
+            children: components["schemas"]["CategoryReqRes-Output"][];
         };
         /** Change */
         Change: {
@@ -519,6 +589,8 @@ export interface components {
              * @default false
              */
             camera_enabled: boolean;
+            /** Sentry Dsn */
+            sentry_dsn?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2040,37 +2112,6 @@ export interface operations {
             };
         };
     };
-    get_category_categories__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string | number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_categories_categories_get: {
         parameters: {
             query?: {
@@ -2089,7 +2130,89 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryReqRes"][];
+                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_categories_tree_categories_tree_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
+                };
+            };
+        };
+    };
+    search_categories_categories_search__get: {
+        parameters: {
+            query: {
+                term: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_category_categories__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string | number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryReqRes-Output"];
                 };
             };
             /** @description Validation Error */
@@ -2120,7 +2243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryReqRes"];
+                    "application/json": components["schemas"]["CategoryReqRes-Output"];
                 };
             };
             /** @description Validation Error */
@@ -2134,13 +2257,13 @@ export interface operations {
             };
         };
     };
-    search_categories_categories_search__get: {
+    get_category_branch_categories__id__branch_get: {
         parameters: {
-            query: {
-                term: string;
-            };
+            query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -2151,7 +2274,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CategoryReqRes"][];
+                    "application/json": components["schemas"]["CategoryReqRes-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_category_categories__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryReqRes-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryReqRes-Output"];
                 };
             };
             /** @description Validation Error */

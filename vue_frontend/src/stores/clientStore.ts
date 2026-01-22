@@ -12,10 +12,10 @@ export const clientStore = defineStore('client', {
   state: () => ({
     client_id: uuidv4(),
     reader_id: '',
-    reader: {} as components['schemas']['ReaderResponseModel'],
+    reader: {} as components['schemas']['Reader'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
-    backend_config: {} as components['schemas']['ConfigResponseModel'],
+    backend_config: {} as components['schemas']['ConfigResponseModel']
   }),
   getters: {
     getClientId(): string {
@@ -94,7 +94,7 @@ export const clientStore = defineStore('client', {
       this.expected_event_action = expected_event_action
     },
     async fetchBackendConfig() {
-      axios
+      await axios
         .get('/config/')
         .then((response) => {
           this.backend_config = response.data

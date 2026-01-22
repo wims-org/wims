@@ -46,6 +46,7 @@ class ConfigResponseModel(pydantic.BaseModel):
     database_connected: bool
     llm_enabled: bool
     camera_enabled: bool = False
+    sentry_dsn: str | None = None
 
 
 class BackendService:
@@ -173,4 +174,5 @@ class BackendService:
             database_connected=self.dbc.is_connected(),
             llm_enabled=self.llm_completion is not None,
             camera_enabled=False,
+            sentry_dsn=self.config.get("sentry", {}).get("frontend").get("dsn", None),
         )

@@ -12,6 +12,12 @@ database:
 logging:
     level: "INFO"
 
+sentry:
+    frontend:
+        dsn: "insert your Sentry DSN here"
+    backend:
+        dsn: "insert your Sentry DSN here"
+
 features:
     openai:
         api_key: "insert your API key here"

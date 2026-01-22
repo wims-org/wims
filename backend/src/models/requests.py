@@ -64,6 +64,7 @@ class AggregatedStates(enum.StrEnum):
     name_asc = "name_asc"
     name_desc = "name_desc"
 
+
 class SearchQuery(BaseModel):
     query: dict | None = None
     offset: int | None = None
