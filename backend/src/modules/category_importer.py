@@ -95,7 +95,7 @@ def check_and_import_category_data(db_connector: MongoDBConnector, collection_na
         else:
             logger.info(f"category data in collection '{collection_name}' is already complete.")
     except Exception as e:
-        logger.exception(f"Error importing category data: {e}")
+        logger.error(f"Error importing category data: {e}")
 
 
 if __name__ == "__main__":
