@@ -3,14 +3,26 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from loguru import logger
 from prometheus_client import Counter, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from dependencies.backend_service import BackendService
 from dependencies.config import read_config
-from routers import backup, categories, completion, config, healthz, metrics, queries, readers, scan, stream, users
+from routers import (
+    backup,
+    categories,
+    completion,
+    config,
+    healthz,
+    metrics,
+    openapi,
+    queries,
+    readers,
+    scan,
+    stream,
+    users,
+)
 from routers.items import items
 from utils import find
 
@@ -66,12 +78,13 @@ app.include_router(config.router)
 app.include_router(categories.router)
 app.include_router(backup.router)
 app.include_router(metrics.router)
+app.include_router(openapi.router)
 
 if find("features.openai", configuration):
     app.include_router(completion.router)
     logger.info("LLM features enabled")
 else:
-    logger.info("Handarbeit")
+    logger.info("LLM feature disabled. Handarbeit!")
 
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(
@@ -81,11 +94,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/openapi.json", include_in_schema=False)
-async def custom_openapi():
-    """
-    Serve the OpenAPI spec for frontend code generation.
-    """
-    return JSONResponse(app.openapi())
