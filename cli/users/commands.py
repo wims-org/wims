@@ -1,0 +1,17 @@
+import click
+
+@click.group(name="users", help="Manages users in WIMS")
+def command_group():
+    pass
+
+@command_group.command()
+def create():
+    print("not yet implemented")
+
+@command_group.command()
+def delete():
+    print("not yet implemented")
+
+@command_group.command()
+def search(query: str):
+    print("not yet implemented")

@@ -1,11 +1,11 @@
 [project]
-name = "cli"
+name = "wims-cli"
 version = "0.1.0"
-description = "Add your description here"
+description = "A cli client for WIMS"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "click>=8.3.1",
     "pyserial>=3.5",
     "requests>=2.32.5",
-    "typer>=0.20.0",
 ]

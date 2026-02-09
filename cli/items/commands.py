@@ -1,23 +1,20 @@
-import typer
+import click
 import requests
 
+@click.group(name="items", help="Manage items in WIMS")
+def command_group():
+    pass
 
-app = typer.Typer()
-
-
-@app.command()
+@command_group.command()
 def create():
     print("not yet implemented")
 
-@app.command()
+@command_group.command()
 def delete():
     print("not yet implemented")
 
-@app.command()
+@command_group.command()
 def search(query: str):
     payload = {"query": {"term": query}}
     r = requests.post('http://localhost:5005/items/search', json=payload)
     print(r)
-
-if __name__ == "__main__":
-    app()
