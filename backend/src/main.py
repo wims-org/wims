@@ -1,10 +1,11 @@
 import os
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from prometheus_client import Counter, disable_created_metrics
+from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from dependencies.backend_service import BackendService
@@ -26,27 +27,38 @@ from routers import (
 from routers.items import items
 from utils import find
 
-# Read config
-
 configuration = read_config()
 
 logger.info("Starting backend service")
 
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total number of HTTP requests",
+    ["method", "endpoint", "http_status"],
+)
+REQUEST_DURATION = Histogram(
+    "request_duration_seconds",
+    "Request duration in seconds",
+    ["method", "endpoint", "http_status"],
+)
 disable_created_metrics()
-
-REQUEST_COUNT = Counter("http_requests_total", "Total number of HTTP requests", ["method", "endpoint", "http_status"])
-
-# Set up the FastAPI app
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        start_time = time.time()
         response = await call_next(request)
+        duration = time.time() - start_time
 
-        REQUEST_COUNT.labels(
-            method=request.method, endpoint=request.url.path, http_status=str(response.status_code)
-        ).inc()
+        try:
+            routePath = request.scope["route"].path
+        except KeyError:
+            # Sometimes we don't have a route object. Pls don't ask me why...
+            routePath = request.scope["path"]
 
+        REQUEST_COUNT.labels(request.method, routePath, str(response.status_code)).inc()
+        REQUEST_DURATION.labels(request.method, routePath, str(response.status_code)).observe(duration)
         return response
 
 
