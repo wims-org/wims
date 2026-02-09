@@ -1,39 +1,65 @@
 import os
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from loguru import logger
+from prometheus_client import Counter, Histogram, disable_created_metrics
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from dependencies.backend_service import BackendService
 from dependencies.config import read_config
-from routers import backup, categories, completion, config, healthz, queries, readers, scan, stream, users
+from routers import (
+    backup,
+    categories,
+    completion,
+    config,
+    healthz,
+    metrics,
+    openapi,
+    queries,
+    readers,
+    scan,
+    stream,
+    users,
+)
 from routers.items import items
 from utils import find
-
-# Read config
 
 configuration = read_config()
 
 logger.info("Starting backend service")
 
-# Set up the FastAPI app
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total number of HTTP requests",
+    ["method", "endpoint", "http_status"],
+)
+REQUEST_DURATION = Histogram(
+    "request_duration_seconds",
+    "Request duration in seconds",
+    ["method", "endpoint", "http_status"],
+)
+disable_created_metrics()
 
 
-def setup_middleware(app):
-    frontend_config = configuration.get("frontend", {})
-    origins = [
-        "*",
-    ]
-    origins.append(f"http://{frontend_config.get('host', '0.0.0.0')}:{frontend_config.get('port', '8080')}")
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+class MetricsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        duration = time.time() - start_time
+
+        try:
+            routePath = request.scope["route"].path
+        except KeyError:
+            # Sometimes we don't have a route object. Pls don't ask me why...
+            routePath = request.scope["path"]
+
+        REQUEST_COUNT.labels(request.method, routePath, str(response.status_code)).inc()
+        REQUEST_DURATION.labels(request.method, routePath, str(response.status_code)).observe(duration)
+        return response
 
 
 @asynccontextmanager
@@ -63,18 +89,20 @@ app.include_router(scan.router)
 app.include_router(config.router)
 app.include_router(categories.router)
 app.include_router(backup.router)
+app.include_router(metrics.router)
+app.include_router(openapi.router)
 
 if find("features.openai", configuration):
     app.include_router(completion.router)
     logger.info("LLM features enabled")
 else:
-    logger.info("Handarbeit")
-setup_middleware(app)
+    logger.info("LLM feature disabled. Handarbeit!")
 
-
-@app.get("/openapi.json", include_in_schema=False)
-async def custom_openapi():
-    """
-    Serve the OpenAPI spec for frontend code generation.
-    """
-    return JSONResponse(app.openapi())
+app.add_middleware(MetricsMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
