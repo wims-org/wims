@@ -73,11 +73,17 @@ class BackendService:
         asyncio.create_task(self.push_heartbeats())
 
         # Start category data import in the background, if needed
-        import_thread = Thread(
-            target=category_importer.check_and_import_category_data,
-            args=(self.dbc, "categories", str(Path(__file__).parent.parent.parent / "data" / "categories.json")),
-        )
-        import_thread.start()
+        if (cat_file := (Path(__file__).parent.parent.parent / "data" / "categories.json")).exists():
+            import_thread = Thread(
+                target=category_importer.check_and_import_category_data,
+                args=(self.dbc, "categories", str(cat_file)),
+            )
+            import_thread.start()
+        else:
+            logger.warning(
+                f"Category data file '{cat_file}' not found. Skipping category import."
+                f"Add the file to enable automatic category import on startup."
+            )
         logger.info("BackendService initialized")
 
     async def push_heartbeats(self):

@@ -25,7 +25,8 @@ import {
   faPlus,
   faPenToSquare,
   faList,
-  faGripLines
+  faGripLines,
+  faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -52,7 +53,8 @@ library.add(
   faPlus,
   faPenToSquare,
   faList,
-  faGripLines
+  faGripLines,
+  faMagnifyingGlass,
 )
 
 export { FontAwesomeIcon }
