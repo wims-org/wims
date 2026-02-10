@@ -1,6 +1,5 @@
 <template>
   <BNavbar class="header" sticky="top">
-    <BNavbar class="nav-container" fluid>
       <BNavbarBrand to="/">
         <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block me-2" height="50" />
         <span class="d-none d-sm-inline">{{ msg }}</span>
@@ -47,13 +46,16 @@
         </div>
       </BOffcanvas>
 
-      <!-- Desktop Navigation -->
+      <!-- Mobile Navigation -->
 
       <BNav class="d-flex d-lg-none ms-auto">
         <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{
           connection_msg
         }}</BNavItem>
       </BNav>
+
+      <!-- Desktop Navigation -->
+      
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
           <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
@@ -92,7 +94,6 @@
         <IMaterialSymbolsMenu />
       </BNavbarToggle>
     </BNavbar>
-  </BNavbar>
 </template>
 
 <style scoped>
@@ -122,17 +123,6 @@
   }
 }
 
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0;
-  width: var(--content-max-width);
-}
-
 @media (max-width: var(--content-max-width)) {
   .nav-container {
     max-width: var(--content-max-width-small) !important;
@@ -147,7 +137,6 @@ import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
 import { useThemeStore } from '@/stores/themeStore'
 import { ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // State and Stores
 const client_store = clientStore()

@@ -5,6 +5,7 @@
     <BContainer class="content">
       <RouterView />
     </BContainer>
+    <FooterComponent class="footer" />
   </div>
 </template>
 
