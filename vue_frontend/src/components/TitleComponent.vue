@@ -1,5 +1,6 @@
 <template>
   <BNavbar class="header" sticky="top">
+    <BNavbar class="nav-container" fluid>
       <BNavbarBrand to="/">
         <img src="@/assets/icon.svg" alt="WIMS Logo" class="d-inline-block me-2" height="50" />
         <span class="d-none d-sm-inline">{{ msg }}</span>
@@ -51,23 +52,23 @@
       <BNav class="d-flex d-lg-none ms-auto">
         <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{
           connection_msg
-        }}</BNavItem>
+          }}</BNavItem>
       </BNav>
 
       <!-- Desktop Navigation -->
-      
+
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
           <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
             connection_msg
-          }}</BNavItem>
+            }}</BNavItem>
           <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
 
         <BCollapse id="nav-collapse" class="d-lg-flex d-none">
           <BNavbarNav>
-            <BNavItemDropdown left hover @hide="menuOpen = false"  @show="menuOpen = true">
+            <BNavItemDropdown left hover @hide="menuOpen = false" @show="menuOpen = true">
               <template #button-content>
                 <IMaterialSymbolsChevronRight @click="menuOpen = !menuOpen" :style="{
                   transform: menuOpen ? 'rotate(-90deg)' : 'rotate(90deg)',
@@ -94,6 +95,7 @@
         <IMaterialSymbolsMenu />
       </BNavbarToggle>
     </BNavbar>
+  </BNavbar>
 </template>
 
 <style scoped>
@@ -101,13 +103,23 @@
   align-items: center;
   background-color: var(--color-navbar);
   display: block;
-  width: 100vw;
+  width: 100%;
   background: linear-gradient(45deg, var(--color-navbar), var(--color-primary));
-
 }
 
 .header ::after {
   display: none;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  width: var(--content-max-width);
 }
 
 .navbar-brand {

@@ -4,7 +4,7 @@
             <IMaterialSymbolsQrCodeScanner class="qr-icon" />
         </BButton>
     </div>
-    <BModal v-model="showQRReaderModal" title="QR Code Scanner" size="lg" hide-footer>
+    <BModal v-if="showQRReaderModal" v-model="showQRReaderModal" title="QR Code Scanner" size="lg" hide-footer>
         <QRReader @scan="showQRReaderModal = false" />
     </BModal>
 </template>
@@ -17,11 +17,12 @@ const showQRReaderModal = ref(false)
 
 <style>
 .footer {
-    position: sticky;
+    position: fixed;
     display: flex;
     justify-content: right;
     padding: 1rem;
     bottom: 0;
+    right: 0;
     font-size: 5rem;
 }
 .qr-icon {

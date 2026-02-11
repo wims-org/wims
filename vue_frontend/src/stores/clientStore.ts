@@ -12,7 +12,7 @@ export const clientStore = defineStore('client', {
   state: () => ({
     client_id: uuidv4(),
     reader_id: '',
-    reader: {} as components['schemas']['ReaderResponseModel'],
+    reader: {} as components['schemas']['Reader'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],

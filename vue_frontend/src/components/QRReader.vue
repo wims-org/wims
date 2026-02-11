@@ -1,16 +1,18 @@
 <template>
-    <select v-model="selectedConstraints">
-        <option v-for="option in constraintOptions" :key="option.label" :value="option.constraints">
-            {{ option.label }}
-        </option>
-    </select>
     <div>
-        <BButton v-if="constraintOptions.length > 1" class="primary p-1" variant="success" size="lg" to="/qr-reader"
-            @click="toggleFrontReader()">
-            <IMaterialSymbolsCameraswitch class="cam-switch-icon" />
-        </BButton>
-        <qrcode-stream :constraints="selectedConstraints" :track="trackFunctionSelected.value"
-            :formats="selectedBarcodeFormats" @error="onError" @detect="onDetect" @camera-on="onCameraReady" />
+        <div>
+            <qrcode-stream :class="loading ? 'd-none' : ''" :constraints="selectedConstraints"
+                :track="trackFunctionSelected.value" :formats="selectedBarcodeFormats" @error="onError"
+                @detect="onDetect" @camera-on="onCameraReady">
+                <BButton v-if="constraintOptions.length > 1" class="camera-switch-button primary p-1" variant="success"
+                    size="lg" @click="toggleFrontReader()">
+                    <IMaterialSymbolsCameraswitch class="cam-switch-icon" />
+                </BButton>
+            </qrcode-stream>
+            <div v-if="loading">
+                <BSpinner />
+            </div>
+        </div>
         <p class="decode-result">
             Last result: <b>{{ result }}</b>
         </p>
@@ -31,6 +33,7 @@ import ScanService from '@/services/ScanService'
 /*** detection handling ***/
 
 const result = ref('')
+const loading = ref(true)
 
 // Emits
 const emit = defineEmits<{
@@ -76,6 +79,7 @@ async function onCameraReady() {
     // camera access permission. `QrcodeStream` internally takes care of
     // requesting the permissions. The `camera-on` event should guarantee that this
     // has happened.
+    loading.value = false
     const devices = await navigator.mediaDevices.enumerateDevices()
     const videoDevices = devices.filter(({ kind }) => kind === 'videoinput')
 
@@ -86,7 +90,10 @@ async function onCameraReady() {
             constraints: { deviceId }
         }))
     ]
-    selectedConstraints.value = constraintOptions.value[0].constraints
+    // todo store camera in localstorage
+    if (!(constraintOptions.value.filter(o => "" + o.constraints?.deviceId === "" + selectedConstraints.value?.deviceId).length)) {
+        selectedConstraints.value = constraintOptions.value[0].constraints
+    } 
     console.log('Available video devices:', constraintOptions.value)
     error.value = ''
 }
@@ -176,3 +183,12 @@ function onError(err: Error & { name: string }) {
 }
 
 </script>
+
+<style>
+.camera-switch-button {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 1rem;
+}
+</style>
