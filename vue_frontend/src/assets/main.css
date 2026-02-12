@@ -75,10 +75,10 @@
 }
 
 #app {
-  max-width: 1280px;
-  width: 100vw;
+  width: 100%;
   margin: 0 0;
   padding: 0 0 !important;
+  min-height: 100vh !important;
 
   font-weight: normal;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;

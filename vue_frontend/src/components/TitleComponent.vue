@@ -47,25 +47,28 @@
         </div>
       </BOffcanvas>
 
-      <!-- Desktop Navigation -->
+      <!-- Mobile Navigation -->
 
       <BNav class="d-flex d-lg-none ms-auto">
         <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{
           connection_msg
-        }}</BNavItem>
+          }}</BNavItem>
       </BNav>
+
+      <!-- Desktop Navigation -->
+
       <BNavbar class="d-none d-lg-flex align-items-center">
         <BNav>
           <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
             connection_msg
-          }}</BNavItem>
+            }}</BNavItem>
           <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
 
         <BCollapse id="nav-collapse" class="d-lg-flex d-none">
           <BNavbarNav>
-            <BNavItemDropdown left hover @hide="menuOpen = false"  @show="menuOpen = true">
+            <BNavItemDropdown left hover @hide="menuOpen = false" @show="menuOpen = true">
               <template #button-content>
                 <IMaterialSymbolsChevronRight @click="menuOpen = !menuOpen" :style="{
                   transform: menuOpen ? 'rotate(-90deg)' : 'rotate(90deg)',
@@ -100,13 +103,23 @@
   align-items: center;
   background-color: var(--color-navbar);
   display: block;
-  width: 100vw;
+  width: 100%;
   background: linear-gradient(45deg, var(--color-navbar), var(--color-primary));
-
 }
 
 .header ::after {
   display: none;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  width: var(--content-max-width);
 }
 
 .navbar-brand {
@@ -120,17 +133,6 @@
   .navbar-brand {
     color: var(--color-text) !important;
   }
-}
-
-.nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0;
-  width: var(--content-max-width);
 }
 
 @media (max-width: var(--content-max-width)) {
@@ -147,7 +149,6 @@ import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
 import { useThemeStore } from '@/stores/themeStore'
 import { ref } from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // State and Stores
 const client_store = clientStore()

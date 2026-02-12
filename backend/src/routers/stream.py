@@ -42,6 +42,7 @@ async def message_stream(request: Request, stream_id: str | None = None, reader_
             logger.debug(f"Deleted message queue for stream_id: {stream_id}")
 
     await backend_service.create_message_queue(stream_id)
+    await backend_service.add_subscription(stream_id, stream_id)
     if reader_id:
         await backend_service.add_subscription(stream_id, reader_id)
     return EventSourceResponse(event_generator())

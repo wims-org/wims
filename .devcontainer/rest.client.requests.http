@@ -139,6 +139,14 @@ content-type: application/json
     "tag_id": "123e4567-e89b-12d3-a456-426614174000"
 }
 ###
+POST http://localhost:5005/scan  HTTP/1.1
+content-type: application/json
+
+{
+    "reader_id": "7450fa3d-d7cb-4208-8024-f9441f72374f",
+    "tag_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+###
 
 
 ###

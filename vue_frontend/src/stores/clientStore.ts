@@ -12,10 +12,34 @@ export const clientStore = defineStore('client', {
   state: () => ({
     client_id: uuidv4(),
     reader_id: '',
-    reader: {} as components['schemas']['ReaderResponseModel'],
+    reader: {} as components['schemas']['Reader'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],
+    selectedBarcodeFormats: [
+      "aztec",
+      "code_128",
+      "code_39",
+      "code_93",
+      "codabar",
+      "databar",
+      "databar_expanded",
+      "data_matrix",
+      "dx_film_edge",
+      "ean_13",
+      "ean_8",
+      "itf",
+      "maxi_code",
+      "micro_qr_code",
+      "pdf417",
+      "qr_code",
+      "rm_qr_code",
+      "upc_a",
+      "upc_e",
+      "linear_codes",
+      "matrix_codes",
+    ] as string[],
+    cameraConstraints: null as Record<string, unknown> | null
   }),
   getters: {
     getClientId(): string {
@@ -30,6 +54,12 @@ export const clientStore = defineStore('client', {
     getUser(): User | undefined {
       return this.user
     },
+    getSelectedBarcodeFormats(): string[] {
+      return this.selectedBarcodeFormats
+    },
+    getCameraConstraints(): Record<string, unknown> | null {
+      return this.cameraConstraints
+    }
   },
   actions: {
     setClientId(client_id: string) {
@@ -102,6 +132,13 @@ export const clientStore = defineStore('client', {
         .catch((error) => {
           console.error('Error fetching backend config:', error)
         })
+    },
+    setSelectedBarcodeFormats(selectedBarcodeFormats: string[]) {
+      this.selectedBarcodeFormats = selectedBarcodeFormats
+    },
+    setCameraConstraints(cameraConstraints: Record<string, unknown>) {
+      sessionStorage.setItem('camera_constraints', JSON.stringify(cameraConstraints))
+      this.cameraConstraints = cameraConstraints
     }
   },
 })
