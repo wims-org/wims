@@ -39,6 +39,7 @@ export const clientStore = defineStore('client', {
       "linear_codes",
       "matrix_codes",
     ] as string[],
+    cameraConstraints: null as Record<string, unknown> | null
   }),
   getters: {
     getClientId(): string {
@@ -56,6 +57,9 @@ export const clientStore = defineStore('client', {
     getSelectedBarcodeFormats(): string[] {
       return this.selectedBarcodeFormats
     },
+    getCameraConstraints(): Record<string, unknown> | null {
+      return this.cameraConstraints
+    }
   },
   actions: {
     setClientId(client_id: string) {
@@ -131,6 +135,10 @@ export const clientStore = defineStore('client', {
     },
     setSelectedBarcodeFormats(selectedBarcodeFormats: string[]) {
       this.selectedBarcodeFormats = selectedBarcodeFormats
+    },
+    setCameraConstraints(cameraConstraints: Record<string, unknown>) {
+      sessionStorage.setItem('camera_constraints', JSON.stringify(cameraConstraints))
+      this.cameraConstraints = cameraConstraints
     }
   },
 })

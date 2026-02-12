@@ -53,7 +53,7 @@ function onDetect(detectedCodes: { rawValue: string }[]) {
 
 /*** select camera ***/
 
-const selectedConstraints = ref<Record<string, unknown>>({ facingMode: 'environment' })
+const selectedConstraints = ref<Record<string, unknown>>(clientStore().getCameraConstraints || { facingMode: 'environment' })
 const defaultConstraintOptions = [
     { label: 'rear camera', constraints: { facingMode: 'environment' } },
     { label: 'front camera', constraints: { facingMode: 'user' } }
@@ -72,6 +72,7 @@ const toggleFrontReader = () => {
         frontNotRearCamera.value = false
         selectedConstraints.value = constraintOptions.value[+frontNotRearCamera.value].constraints
     }
+    clientStore().setCameraConstraints(selectedConstraints.value)
 }
 
 async function onCameraReady() {
