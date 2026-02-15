@@ -5,8 +5,8 @@
     <ul class="category-list">
       <li v-for="category in categories" :key="getCategoryKey(category)" class="category-node">
         <div class="d-flex align-items-center gap-2 py-1 flex-row category"
-          @click.stop="hasChildren(category) && toggleExpanded(category)" @mouseenter="hoveredKey = getCategoryKey(category)"
-          @mouseleave="hoveredKey = null">
+          @click.stop="hasChildren(category) && toggleExpanded(category)"
+          @mouseenter="hoveredKey = getCategoryKey(category)" @mouseleave="hoveredKey = null">
           <div class="list-toggle">
             <span v-if="hasChildren(category)">
               <font-awesome-icon :icon="`fa-chevron-${isExpanded(category) ? 'down' : 'right'}`" />
@@ -25,15 +25,19 @@
                 params: { categoryId: getCategoryKey(category) },
               })
               ">
-              <font-awesome-icon icon="fa-arrow-right" />
-              View
+              <font-awesome-icon icon="fa-magnifying-glass" />
+              <span class="ms-1 d-none d-md-inline-flex">View</span>
             </button>
           </div>
 
-          <div class="actions" :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) }">
-            <button v-if="!formKey" class="btn btn-sm btn-outline-secondary" type="button"
-              @click.stop="formKey = getCategoryKey(category)">
-              Add
+          <div class="actions"
+            :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) || formKey === getCategoryKey(category) }">
+            <button v-if="formKey != getCategoryKey(category)" class="btn btn-sm btn-outline-secondary" type="button"
+              @click.stop="formKey = getCategoryKey(category); expandedCategories.add(getCategoryKey(category))">
+              <span class="d-md-none">
+                <font-awesome-icon icon="fa-plus" />
+              </span>
+              <span class="d-none d-md-inline-flex">Add Sub Category</span>
             </button>
             <button v-else class="btn btn-sm btn-outline-secondary" type="button" @click.stop="closeAddForm">
               Cancel
@@ -51,16 +55,33 @@
 
         <CategoryTreeView v-if="isExpanded(category) && hasChildren(category)" :categories="category.children || []"
           :expand-all="expandAll" :expanded-categories="expandedCategories" @add-child="$emit('add-child', $event)"
-          :selectable="selectable" />
+          :selectable="selectable" :parent="category" />
       </li>
     </ul>
+
+    <div v-if="formKey != 'root' && !parent" class="row text-center mt-3 gap-2 justify-content-center">
+      <button class="btn btn-sm btn-outline-primary rounded mx-auto add-category-button" type="button"
+        @click.stop="formKey = 'root'" title="Add Category">
+        +
+      </button>
+    </div>
+    <div v-if="formKey == 'root'" class="add-form">
+      <form class="d-flex gap-2" @submit.prevent="submitAddChild(parent || null)">
+        <input v-model="newChildTitle" type="text" class="form-control form-control-sm"
+          placeholder="New root category title" required />
+        <button class="btn btn-sm btn-primary" type="submit">Create</button>
+        <button class="btn btn-sm btn-outline-secondary" type="button" @click.stop="closeAddForm">
+          Cancel
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 // Component for displaying an expandable tree view of categories, grouped by parent categories.
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -75,18 +96,18 @@ type CategoryNode = Category & {
 const props = defineProps<{
   categories: Category[]
   expandAll?: boolean
-  expandedCategories?: string[]
+  expandedCategories?: Set<string>
   selectable?: boolean
+  parent?: CategoryNode
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-child', payload: { parentKey: string; title: string }): void
+  (e: 'add-child', payload: { parentKey: string | null; title: string }): void
 }>()
 
 const hoveredKey = ref<string | null>(null)
-const expandedCategories = ref<string[]>(
-  [...props.expandedCategories || []],
-)
+const expandedCategories = ref<Set<string>>(new Set(props.expandedCategories || []))
+const categories = ref<CategoryNode[]>([...props.categories || []])
 
 const formKey = ref<string>()
 const newChildTitle = ref<string>('')
@@ -94,6 +115,12 @@ const newChildTitle = ref<string>('')
 const saveError = ref<string>('')
 const saveSuccess = ref<string>('')
 
+watch(
+  () => props.categories,
+  (newCategories) => {
+    categories.value = [...newCategories]
+  },
+)
 
 const getCategoryKey = (category: CategoryNode): string => {
   return category._id || category.title
@@ -104,41 +131,34 @@ const hasChildren = (category: CategoryNode): boolean => {
 }
 
 const isExpanded = (category: CategoryNode) => {
-  return expandedCategories.value && expandedCategories.value.includes(getCategoryKey(category))
+  return expandedCategories.value && expandedCategories.value.has(getCategoryKey(category))
 }
 
 const toggleExpanded = (category: CategoryNode) => {
   if (isExpanded(category)) {
-    const index = expandedCategories.value?.indexOf(getCategoryKey(category))
-    if (index !== undefined && index > -1 && expandedCategories) {
-      expandedCategories.value.splice(index, 1)
-    }
+    expandedCategories.value.delete(getCategoryKey(category))
   } else {
-    expandedCategories.value.push(getCategoryKey(category))
+    expandedCategories.value.add(getCategoryKey(category))
   }
 }
-
 
 const closeAddForm = () => {
   formKey.value = ''
   newChildTitle.value = ''
 }
 
-const submitAddChild = (parent: CategoryNode) => {
+const submitAddChild = (parent: CategoryNode | null) => {
   const title = newChildTitle.value.trim()
   if (!title) return
-
-  const parentKey = getCategoryKey(parent)
+  const parentKey = parent ? getCategoryKey(parent) : null
   createCategory(title, parentKey)
     .then((newCategory) => {
       if (newCategory) {
-        if (!Array.isArray(parent.children)) parent.children = []
-        parent.children.push(newCategory)
         emit('add-child', { parentKey, title })
+        closeAddForm()
       }
     })
     .finally(() => {
-      closeAddForm()
     })
 }
 
@@ -157,7 +177,7 @@ const createCategory = async (
     .then((response) => {
       console.log('Category created:', response.data)
       saveSuccess.value = 'Category created successfully.'
-      setTimeout(() => saveSuccess.value = '', 5000)
+      setTimeout(() => (saveSuccess.value = ''), 5000)
       return response.data
     })
     .catch((error) => {
@@ -166,7 +186,8 @@ const createCategory = async (
         saveError.value = `Error: ${error.response.data.detail}`
       } else {
         saveError.value = 'An unexpected error occurred while creating the category.'
-      } setTimeout(() => saveError.value = '', 10000)
+      }
+      setTimeout(() => (saveError.value = ''), 10000)
       return null
     })
 }
@@ -224,6 +245,17 @@ const createCategory = async (
   transition: opacity 120ms ease-in-out;
 }
 
+@media (max-width: 768px) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+.actions-visible {
+  opacity: 1;
+}
+
+
 .actions-visible {
   opacity: 1;
 }
@@ -242,5 +274,15 @@ const createCategory = async (
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.add-category-button {
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
 }
 </style>

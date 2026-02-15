@@ -29,6 +29,7 @@ spec:
       containers:
         - name: frontend
           image: "{{ .image.repository }}:{{ .image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: "{{ .image.pullpolicy }}"
           {{- with .ports }}
           ports:
             {{- toYaml . | nindent 12 }}
