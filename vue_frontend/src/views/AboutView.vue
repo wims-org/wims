@@ -3,6 +3,8 @@
     <h1>This is an about page</h1>
     <h2>Config</h2>
     <pre>{{ clientStore().backend_config ? JSON.stringify(clientStore().backend_config, null, 2) : 'No config available' }}</pre>
+    <h2>Selected barcode formats</h2>
+    <CameraSettings />
   </div>
 </template>
 

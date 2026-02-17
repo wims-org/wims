@@ -87,4 +87,9 @@ const setUserFromSessionStorage = () => {
   }
 }
 
-export { formatDate, getFieldModel, updateFieldModel, setReaderId, setUserFromSessionStorage  }
+const setCameraConstraintsFromSessionStorage = () => {
+  const camera_constraints = sessionStorage.getItem('camera_constraints')
+  if (camera_constraints) { clientStore().setCameraConstraints( JSON.parse(camera_constraints)) }
+}
+
+export { formatDate, getFieldModel, updateFieldModel, setReaderId, setUserFromSessionStorage, setCameraConstraintsFromSessionStorage }
