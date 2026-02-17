@@ -15,10 +15,11 @@ class ScanService {
         return ScanService.instance
     }
 
-    public async sendScanResult(result: string): Promise<void> {
+    public async sendScanResult(result: string, data: Record<string, unknown>[] | null = null): Promise<void> {
         axios.post('/scan', {
             reader_id: clientStore().getClientId, // set client_id as reader_id since the client is the reader.
             tag_id: result,
+            data: data
         }).catch((error) => {
             if (error.status === 404) {
                 console.log('New item scanned')

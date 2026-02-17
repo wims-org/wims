@@ -247,7 +247,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/healthz/ready": {
+    "/ready": {
         parameters: {
             query?: never;
             header?: never;
@@ -255,7 +255,7 @@ export interface paths {
             cookie?: never;
         };
         /** Ready */
-        get: operations["ready_healthz_ready_get"];
+        get: operations["ready_ready_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -507,6 +507,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backup/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Create Backup */
+        get: operations["create_backup_backup_create_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backup/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Backup */
+        post: operations["import_backup_backup_load_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metrics */
+        get: operations["metrics_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/completion/identification": {
         parameters: {
             query?: never;
@@ -533,6 +584,14 @@ export interface components {
          * @enum {string}
          */
         AggregatedStates: "latest" | "borrowed" | "todo" | "empty" | "name_asc" | "name_desc";
+        /** Body_import_backup_backup_load_post */
+        Body_import_backup_backup_load_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+        };
         /** CategoryReqRes */
         "CategoryReqRes-Input": {
             /** Id */
@@ -898,6 +957,10 @@ export interface components {
             reader_id: string;
             /** Tag Id */
             tag_id: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            } | string | unknown;
         };
         /** ScanResponse */
         ScanResponse: {
@@ -1684,7 +1747,7 @@ export interface operations {
             };
         };
     };
-    ready_healthz_ready_get: {
+    ready_ready_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -2315,6 +2378,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_backup_backup_create_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    import_backup_backup_load_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_backup_backup_load_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    metrics_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

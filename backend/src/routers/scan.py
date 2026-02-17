@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from dependencies.backend_service import Event, SseMessage
 from models.database import Item
@@ -9,8 +9,10 @@ router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}}
 
 
 class ScanRequest(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     reader_id: str
     tag_id: str
+    data: dict | str | any = None
 
 
 class ScanResponse(BaseModel):
@@ -21,7 +23,7 @@ class ScanResponse(BaseModel):
 
 @router.post("", response_model=ScanResponse)
 async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
-    logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}'")
+    logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}' and data '{body.data}'")
 
     await request.app.state.backend_service.append_message_to_all_queues_with_reader(
         reader=body.reader_id,

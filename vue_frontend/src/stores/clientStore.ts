@@ -5,6 +5,7 @@ import { EventAction } from '@/interfaces/EventAction'
 
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
+import type { BarcodeFormats } from '@/interfaces/reader.interface'
 
 type User = components['schemas']['User'] & { [key: string]: unknown }
 
@@ -17,29 +18,29 @@ export const clientStore = defineStore('client', {
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],
     selectedBarcodeFormats: [
-      "aztec",
-      "code_128",
-      "code_39",
-      "code_93",
-      "codabar",
-      "databar",
-      "databar_expanded",
-      "data_matrix",
-      "dx_film_edge",
-      "ean_13",
-      "ean_8",
-      "itf",
-      "maxi_code",
-      "micro_qr_code",
-      "pdf417",
-      "qr_code",
-      "rm_qr_code",
-      "upc_a",
-      "upc_e",
-      "linear_codes",
-      "matrix_codes",
-    ] as string[],
-    cameraConstraints: null as Record<string, unknown> | null
+      'aztec',
+      'code_128',
+      'code_39',
+      'code_93',
+      'codabar',
+      'databar',
+      'databar_expanded',
+      'data_matrix',
+      'dx_film_edge',
+      'ean_13',
+      'ean_8',
+      'itf',
+      'maxi_code',
+      'micro_qr_code',
+      'pdf417',
+      'qr_code',
+      'rm_qr_code',
+      'upc_a',
+      'upc_e',
+      'linear_codes',
+      'matrix_codes',
+    ] as BarcodeFormats,
+    cameraConstraints: null as Record<string, unknown> | null,
   }),
   getters: {
     getClientId(): string {
@@ -54,12 +55,12 @@ export const clientStore = defineStore('client', {
     getUser(): User | undefined {
       return this.user
     },
-    getSelectedBarcodeFormats(): string[] {
+    getSelectedBarcodeFormats(): BarcodeFormats {
       return this.selectedBarcodeFormats
     },
     getCameraConstraints(): Record<string, unknown> | null {
       return this.cameraConstraints
-    }
+    },
   },
   actions: {
     setClientId(client_id: string) {
@@ -100,7 +101,7 @@ export const clientStore = defineStore('client', {
         .subscribe(this.client_id, reader_id)
         .then(async () => {
           this.reader_id = reader_id
-          this.reader = await axios.get(`/readers/${reader_id}`).then(res => res.data)
+          this.reader = await axios.get(`/readers/${reader_id}`).then((res) => res.data)
         })
         .catch(() => {
           this.reader_id = ''
@@ -133,13 +134,13 @@ export const clientStore = defineStore('client', {
           console.error('Error fetching backend config:', error)
         })
     },
-    setSelectedBarcodeFormats(selectedBarcodeFormats: string[]) {
+    setSelectedBarcodeFormats(selectedBarcodeFormats: BarcodeFormats) {
       this.selectedBarcodeFormats = selectedBarcodeFormats
     },
     setCameraConstraints(cameraConstraints: Record<string, unknown>) {
       sessionStorage.setItem('camera_constraints', JSON.stringify(cameraConstraints))
       this.cameraConstraints = cameraConstraints
-    }
+    },
   },
 })
 if (import.meta.hot) {

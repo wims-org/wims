@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <qrcode-stream :class="loading ? 'd-none' : ''" :constraints="selectedConstraints"
+            <qrcode-stream v-if="!destroyed" :class="loading ? 'd-none' : ''" :constraints="selectedConstraints"
                 :track="trackFunctionSelected.value" :formats="selectedBarcodeFormats" @error="onError"
                 @detect="onDetect" @camera-on="onCameraReady">
                 <BButton v-if="constraintOptions.length > 1" class="camera-switch-button primary p-1" variant="success"
@@ -9,9 +9,9 @@
                     <IMaterialSymbolsCameraswitch class="cam-switch-icon" />
                 </BButton>
             </qrcode-stream>
-            <div v-if="loading">
-                <BSpinner />
-            </div>
+            <div class="loading-indicator" v-if="loading">
+               <BSpinner />
+           </div>
         </div>
         <p class="decode-result">
             Last result: <b>{{ result }}</b>
@@ -23,7 +23,7 @@
 <script setup lang="ts">
 import { QrcodeStream } from 'vue-qrcode-reader'
 
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import ScanService from '@/services/ScanService'
 
@@ -34,6 +34,7 @@ import ScanService from '@/services/ScanService'
 
 const result = ref('')
 const loading = ref(true)
+const destroyed = ref(false)
 
 // Emits
 const emit = defineEmits<{
@@ -42,8 +43,8 @@ const emit = defineEmits<{
 
 function onDetect(detectedCodes: { rawValue: string }[]) {
     console.log(detectedCodes)
-    result.value = JSON.stringify(detectedCodes.map((code) => code.rawValue))
-    ScanService.sendScanResult(result.value)
+    result.value = detectedCodes[0].rawValue
+    ScanService.sendScanResult(result.value, detectedCodes)
 
     setTimeout(() => {
         result.value = ''
@@ -94,7 +95,7 @@ async function onCameraReady() {
     // todo store camera in localstorage
     if (!(constraintOptions.value.filter(o => "" + o.constraints?.deviceId === "" + selectedConstraints.value?.deviceId).length)) {
         selectedConstraints.value = constraintOptions.value[0].constraints
-    } 
+    }
     console.log('Available video devices:', constraintOptions.value)
     error.value = ''
 }
@@ -182,6 +183,14 @@ function onError(err: Error & { name: string }) {
         error.value += err.message
     }
 }
+
+onUnmounted(() => {
+    destroyed.value = true
+    nextTick().then(() => {
+        destroyed.value = false
+        loading.value = true
+    })
+})
 
 </script>
 
