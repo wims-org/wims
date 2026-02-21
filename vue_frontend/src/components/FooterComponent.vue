@@ -1,18 +1,20 @@
 <template>
     <div class="footer">
-        <BButton class="primary p-1" variant="success" size="lg" @click="showQRReaderModal = true">
+        <BButton class="primary p-1" variant="success" size="lg" @click="showReaderModal = true">
             <IMaterialSymbolsQrCodeScanner class="qr-icon" />
         </BButton>
     </div>
-    <BModal v-if="showQRReaderModal" v-model="showQRReaderModal" title="QR Code Scanner" size="lg" hide-footer>
-        <QRReader @scan="showQRReaderModal = false" />
+    <BModal v-if="showReaderModal" v-model="showReaderModal" title="QR Code Scanner" size="lg" hide-footer>
+        
+        <NFCReader @scan="showReaderModal = false" />
+        <QRReader @scan="showReaderModal = false" />
     </BModal>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const showQRReaderModal = ref(false)
+const showReaderModal = ref(false)
 </script>
 
 <style>
