@@ -958,7 +958,7 @@ export interface components {
             /** Tag Id */
             tag_id: string;
             /** Data */
-            data: {
+            data?: {
                 [key: string]: unknown;
             } | string | unknown;
         };

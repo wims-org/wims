@@ -70,6 +70,7 @@ declare module 'vue' {
     LLMCompletion: typeof import('./src/components/LLMCompletion.vue')['default']
     LoadingField: typeof import('./src/components/fields/LoadingField.vue')['default']
     ModalField: typeof import('./src/components/fields/ModalField.vue')['default']
+    NFCReader: typeof import('./src/components/NFCReader.vue')['default']
     NumberField: typeof import('./src/components/fields/NumberField.vue')['default']
     ObjectField: typeof import('./src/components/fields/ObjectField.vue')['default']
     QRReader: typeof import('./src/components/QRReader.vue')['default']

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div>
+        <div class="camera-stream">
             <qrcode-stream v-if="!destroyed" :class="loading ? 'd-none' : ''" :constraints="selectedConstraints"
                 :track="trackFunctionSelected.value" :formats="selectedBarcodeFormats" @error="onError"
                 @detect="onDetect" @camera-on="onCameraReady">
@@ -195,6 +195,9 @@ onUnmounted(() => {
 </script>
 
 <style>
+.camera-stream {
+    aspect-ratio: 1/1;
+}
 .camera-switch-button {
     position: absolute;
     bottom: 0;
