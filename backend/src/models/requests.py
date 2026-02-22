@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from models.database import Change, Size
+from models.db import Change, Size
 
 
 class ItemRequest(BaseModel):

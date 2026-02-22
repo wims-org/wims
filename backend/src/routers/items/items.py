@@ -6,7 +6,7 @@ from loguru import logger
 import routers.items.get_items as get_items
 from database_connector import RecursiveContainerObject
 from db import db_items
-from models.database import Item
+from models.db import Item
 from models.requests import ItemBacklogRequest, ItemRequest, SearchQuery
 from routers.utils import get_bs
 

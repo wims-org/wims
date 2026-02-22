@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from loguru import logger
 from pymongo.database import Database
 
-from models.database import User
+from models.database.user import User
 
 COLLECTION_NAME = "users"
 

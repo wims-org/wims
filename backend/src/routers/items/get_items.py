@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from db import db_items
-from models.database import Item
+from models.db import Item
 from models.requests import SearchQuery
 from routers.utils import get_bs
 

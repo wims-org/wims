@@ -1,18 +1,23 @@
+from __future__ import annotations
+
 import pymongo
 from fastapi import APIRouter, HTTPException, Request, Response
 from loguru import logger
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from db import db_categories
-from models.database import Category
 from routers.utils import get_bs
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
 
-class CategoryReqRes(Category):
+class CategoryReqRes(BaseModel):
+    id: str | None = None
+    parent_id: str | None = None
+    title: str
+    description: str | None = None
     parent: CategoryReqRes | None = None
-    children: list[CategoryReqRes] = []
+    children: list[CategoryReqRes] = Field(default_factory=list)
 
 
 @router.get("", response_model=list[CategoryReqRes])

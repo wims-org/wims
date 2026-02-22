@@ -51,7 +51,7 @@ class ConfigResponseModel(pydantic.BaseModel):
 class BackendService:
     def __init__(self, db_config, config):
         self.config = config
-        self.dbc = MongoDBConnector(
+        self.dbc_legacy = MongoDBConnector(
             uri=f"mongodb://{db_config.get('host', 'localhost')}:{db_config.get('port', '27017')}",
             database=db_config.get("database", "inventory"),
         )

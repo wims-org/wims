@@ -30,6 +30,16 @@ services:
       - RUN_MODE=production
 
   db:
+    image: mariadb:latest
+    restart: unless-stopped
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    environment:
+      MARIADB_USER: root 
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: wims
+
+  db_legacy:
     image: mongodb/mongodb-community-server:latest
     restart: unless-stopped
     volumes:
@@ -39,5 +49,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
+  
+
 volumes:
+  mariadb-data:
   mongodb-data:

@@ -1,65 +1,54 @@
-from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends
+from fastapi.exceptions import HTTPException
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import db_users
-from models.database import User
-from routers.utils import get_bs
+from crud.user import EmailAlreadyExistsError, UserCRUD
+from dependencies import database
+from models.api.user import UserCreate, UserUpdate
+from models.database.user import User
 
-router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
-
-
-class UserRequest(BaseModel):
-    username: str = Field(validate_default=True, min_length=3, max_length=50)
-    tag_uuids: list[str] = Field(default_factory=list)
-    email: str | None = None
-    date_created: str | datetime = Field(default_factory=datetime.now)
+router = APIRouter(
+    prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 
 @router.post("", response_model=User)
-async def create_user(request: Request, user: UserRequest) -> Response | dict:
-    db = get_bs(request).dbc.db
-    existing_user = db_users.get_user_by_name(user.username, db)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User with this name already exists.")
-    created_user = db_users.create_user(user, db)
-    return created_user
+async def create_user(
+    user: UserCreate,
+    session: Annotated[AsyncSession, Depends(database.get_db_session)],
+) -> User:
+    try:
+        return await UserCRUD(db=session).create(user)
+    except EmailAlreadyExistsError as e:
+        logger.warning(
+            f"Attempt to create user with existing email: {user.email}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/{id}", response_model=User)
-async def get_user(request: Request, id: str) -> Response | dict:
-    db = get_bs(request).dbc.db
-    user = db_users.get_user_by_id(id, db)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return user
+async def get_user(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]) -> User:
+    return await UserCRUD(db=session).find(id)
 
 
 @router.get("", response_model=list[User])
-async def get_all_users(request: Request, term: str | None = None) -> Response | list[User]:
-    db = get_bs(request).dbc.db
-    if not term:
-        users = db_users.get_all_users(db)
-        return users
-    query = {"$or": [{"username": {"$regex": term, "$options": "i"}}, {"email": {"$regex": term, "$options": "i"}}]}
-    users = db_users.search_users(db, query)
-    return users
+async def get_all_users(
+    session: Annotated[AsyncSession, Depends(database.get_db_session)],
+) -> list[User]:
+    return await UserCRUD(db=session).find_all()
 
 
 @router.put("/{id}", response_model=User)
-async def update_user(request: Request, id: str, user: User) -> Response | dict:
-    db = get_bs(request).dbc.db
-    updated_user = db_users.update_user(id, user, db)
-    if not updated_user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return updated_user
+async def update_user(id: str,
+                      payload: UserUpdate,
+                      session: Annotated[AsyncSession, Depends(database.get_db_session)]) -> User:
+    user = await UserCRUD(db=session).find(id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return await UserCRUD(db=session).update(user, payload)
 
 
 @router.delete("/{id}")
-async def delete_user(request: Request, id: str):
-    db = get_bs(request).dbc.db
-    deleted = db_users.delete_user(id, db)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return {"detail": "User deleted successfully."}
+async def delete_user(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    return await UserCRUD(db=session).delete(id)

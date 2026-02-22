@@ -34,6 +34,7 @@ class MongoDBConnector:
             self.db = None
 
     def create(self, collection_name: str, document: dict[str, Any]) -> str | None:
+        """Inserts a document into the specified collection and returns the inserted document's ID as a string."""
         if self.db is None:
             logger.error("No database connection available for create operation.")
             return None
@@ -42,6 +43,7 @@ class MongoDBConnector:
         return str(result.inserted_id)
 
     def find_by_rfid(self, collection_name: str, rfid: str) -> dict[str, Any] | None:
+        """Finds a document in the specified collection by RFID tag and returns it as a dictionary."""
         if self.db is None:
             logger.error("No database connection available for find_by_rfid operation.")
             return None

@@ -3,7 +3,7 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from dependencies.backend_service import Event, SseMessage
-from models.database import Item
+from models.db import Item
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
 

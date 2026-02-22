@@ -33,7 +33,9 @@
         "ms-playwright.playwright",
         "github.vscode-github-actions",
         "bierner.github-markdown-preview",
-        "ms-kubernetes-tools.vscode-kubernetes-tools"
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "inferrinizzard.prettier-sql-vscode",
+        "cweijan.vscode-mysql-client2"
       ]
     }
   },

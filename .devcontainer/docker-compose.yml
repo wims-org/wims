@@ -27,6 +27,10 @@ services:
       replicas: 0
 
   db:
+    ports:
+      - 3306:3306
+
+  db_legacy:
     volumes:
       - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/a_init-mongo-db-with-items.js:ro
     ports:
