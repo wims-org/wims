@@ -1,9 +1,15 @@
-from fastapi import APIRouter, HTTPException, Request
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException
+from fastapi.params import Depends
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, ValidationError
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from crud.item import ItemCRUD
+from dependencies import database
 from dependencies.backend_service import Event, SseMessage
-from models.db import Item
+from models.database.item import Item
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
 
@@ -22,7 +28,7 @@ class ScanResponse(BaseModel):
 
 
 @router.post("", response_model=ScanResponse)
-async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
+async def scan_event(body: ScanRequest, session: Annotated[AsyncSession, Depends(database.get_db_session)]) -> ScanResponse:
     logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}' and data '{body.data}'")
 
     await request.app.state.backend_service.append_message_to_all_queues_with_reader(
@@ -33,7 +39,8 @@ async def scan_event(request: Request, body: ScanRequest) -> ScanResponse:
     )
     # Send db data to reader
     # todo don't fetch data from db twice
-    item_raw = request.app.state.backend_service.dbc.find_by_rfid("items", body.tag_id)
+    
+    item_raw = await ItemCRUD(db=session).find(body.tag_id)
     if item_raw:
         try:
             item = Item.model_validate(item_raw, strict=False, from_attributes=True)

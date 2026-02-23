@@ -10,7 +10,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from database_connector import MongoDBConnector
-from models.db import Category
+from models.database.category import Category
 
 category_import_metadata_file = "category_data.import.json"
 

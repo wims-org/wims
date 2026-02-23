@@ -8,7 +8,7 @@ from pymongo.errors import ServerSelectionTimeoutError  # Add this import
 
 
 class RecursiveContainerObject(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(orm_mode=True, arbitrary_types_allowed=True)
+    model_config = pydantic.ConfigDict(from_attributes=True, arbitrary_types_allowed=True)
 
     tag_uuid: str
     short_name: str | None = None

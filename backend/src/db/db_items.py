@@ -1,7 +1,7 @@
 from pymongo.database import Database
 
 from models.db import Item
-from models.requests import AggregatedStates, SearchQuery
+from schemas.requests import AggregatedStates, SearchQuery
 
 
 def get_items_with_search_query(query: SearchQuery, db: Database) -> list[Item]:

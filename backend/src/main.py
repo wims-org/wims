@@ -1,15 +1,19 @@
 import os
 import time
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, openapi
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from dependencies import database, settings
+from dependencies import backend_service, database, settings
 from routers import (
     completion,
+    healthz,
+    metrics,
+    scan,
+    stream,
     users,
 )
 
@@ -56,6 +60,7 @@ else:
 app = FastAPI(
     dependencies=[
         Depends(database.get_db),
+        Depends(backend_service.BackendService()),
     ],
     redirect_slashes=False,
     root_path=root_path,
@@ -65,15 +70,15 @@ app.include_router(users.router)
 #app.include_router(readers.router)
 
 #app.include_router(items.router)
-#app.include_router(stream.router)
-#app.include_router(healthz.router)
 #app.include_router(queries.router)
-#app.include_router(scan.router)
 #app.include_router(config.router)
 #app.include_router(categories.router)
 #app.include_router(backup.router)
-#app.include_router(metrics.router)
-#app.include_router(openapi.router)
+
+app.include_router(stream.router)
+app.include_router(healthz.router)
+app.include_router(scan.router)
+app.include_router(metrics.router)
 
 if settings.get_settings().features_openai_api_key:
     app.include_router(completion.router)
