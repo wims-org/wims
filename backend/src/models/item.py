@@ -1,13 +1,14 @@
 from datetime import datetime
 
 from pydantic import computed_field
-from sqlalchemy import JSON, UUID, Column
-from sqlmodel import Field, SQLModel
+from sqlalchemy import JSON, Column
+from sqlmodel import Field, Relationship, SQLModel
 
-from models.base import SQLModelBase
-from models.image import ImagePublic
-from models.url import UrlPublic
-from models.user import UserPublic
+from .base import SQLModelBase
+from .category import Category
+from .image import ImagePublic
+from .url import UrlPublic
+from .user import UserPublic
 
 
 class ItemBase(SQLModel):
@@ -27,7 +28,7 @@ class ItemBase(SQLModel):
     description: str | None = None
     min_amount: int | None = None  # Minimum amount of items, for alerts
     # custom tags for categorization
-    tags: set[str] = Field(default_factory=set, sa_column=Column(JSON))
+    tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     # Bindata image document id, <16MB, collection "images"
     price_new: int | None = None  # per item in cents when new
     price_used: int | None = None  # per item in cents, for e.g. selling
@@ -39,30 +40,36 @@ class ItemBase(SQLModel):
 
     # User Information
     author_id: int | None = Field(default=None, foreign_key="user.id")
-    borrower_id: id | None = Field(default=None, foreign_key="user.id")  # ToDo make table
+    borrower_id: int | None = Field(default=None, foreign_key="user.id")  # ToDo make table
     borrowed_at: datetime | None = None
     borrowed_until: datetime | None = None
-    owner_id: str | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
+    owner_id: int | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
 
 
 class Item(ItemBase, SQLModelBase, table=True):
     pass
 
-class ItemPublic(ItemBase):
+
+class ItemPublic(ItemBase, SQLModelBase):
     images: list[ImagePublic] = []
     container: ItemPublic | None = None
     author: UserPublic | None = None
     borrower: UserPublic | None = None
     owner: UserPublic | None = None
     urls: list[UrlPublic] = []
-    
+
     @computed_field
     def borrowed(self) -> bool:
-        return self.borrowed_by is not None
-
+        return self.borrower_id is not None
 
 class ItemCreate(ItemBase):
-    pass
+    tags: set[str] = []
+
 
 class ItemUpdate(ItemBase):
-    pass
+    tags: set[str] = []
+
+
+class ItemBacklog(ItemBase):
+    """This model is used for weaker validation in eg /backlog route"""
+    short_name : str = "New Item"

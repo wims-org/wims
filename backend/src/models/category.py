@@ -1,22 +1,27 @@
 from __future__ import annotations
 
-from models.base import PydanticModelBase, SQLModelBase
+from sqlmodel import Relationship, SQLModel
+
+from .base import SQLModelBase
 
 
-class Category(SQLModelBase, table=True):
-    __tablename__: str = "category"
+class CategoryBase(SQLModel):
     parent_id: str | None = None
     title: str
     description: str | None
+    
 
 
-class CategoryCreate(PydanticModelBase):
-    parent_id: str | None = None
-    title: str
-    description: str | None = None
+class Category(CategoryBase, SQLModelBase, table=True):
+    pass
+
+class CategoryPublic(CategoryBase):
+    pass
 
 
-class CategoryUpdate(PydanticModelBase):
-    parent_id: str | None = None
-    title: str | None = None
-    description: str | None = None
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(CategoryBase):
+    pass

@@ -1,15 +1,15 @@
-"""add user table
+"""make cat_id nullable
 
-Revision ID: 046da7d5cc95
-Revises: 
-Create Date: 2026-02-22 20:13:54.704919
+Revision ID: 48a911feaeee
+Revises: 9786fdd8b6a1
+Create Date: 2026-02-24 21:32:02.856966
 
 """
 from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
-revision: str = '046da7d5cc95'
-down_revision: str | Sequence[str] | None = None
+revision: str = '48a911feaeee'
+down_revision: str | Sequence[str] | None = '9786fdd8b6a1'
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

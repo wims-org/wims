@@ -11,7 +11,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from alembic import context
-from models.database import *  # noqa: F403, I001 
+from src.models import *  # noqa: F403, I001 
+from src.models.category import Category  # noqa: F403, I001 
+from src.models.item import Item  # noqa: F403, I001 
 
 SRC_PATH = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_PATH) not in sys.path:

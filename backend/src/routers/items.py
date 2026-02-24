@@ -1,32 +1,36 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from loguru import logger
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import col, or_, text
 
-from database_connector import RecursiveContainerObject
-from db import db_items
 from dependencies import database
-from models.item import Item, ItemCreate, ItemPublic, ItemUpdate
-from routers.utils import get_bs
-from schemas.requests import ItemBacklogRequest, ItemRequest
+from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
 
 class Query(BaseModel):
-    filters: dict[str:str] = {}
-    sort_by: str
-    sort_reverse: bool
+    term: str | None = None
+    filters: dict[str, str] = {}
+    offset: int = 0
+    limit: int = 10
+    sort_by: str | None = None
+    sort_desc: bool = False
+
+
+class ContainerObject(BaseModel):
+    item_id: int
+    short_name: str
 
 
 @router.post("", response_model=ItemPublic)
 async def create_item(item: ItemCreate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     db_item = Item.model_validate(item)
-    await session.add(db_item)
+    session.add(db_item)
     try:
         await session.commit()
     except IntegrityError as e:
@@ -35,21 +39,31 @@ async def create_item(item: ItemCreate, session: Annotated[AsyncSession, Depends
     return db_item
 
 
+@router.post("/backlog")
+async def create_backlog_item(item: ItemBacklog, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    db_item = ItemBacklog.model_validate(item)
+    session.add(db_item)
+    try:
+        await session.commit()
+    except IntegrityError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    session.refresh(db_item)
+    return db_item
+
+
 @router.get("/{id}", response_model=ItemPublic)
-async def get_item(session: Annotated[AsyncSession, Depends(database.get_db_session)], id: str, query: str|None=None):
-    if query:
-        pass # TODO
+async def get_item(session: Annotated[AsyncSession, Depends(database.get_db_session)], id: str):
     item = await session.get(Item, id)
     if not item:
-        raise HTTPException(status_code=400, detail="Item id not found")
+        raise HTTPException(status_code=404, detail="Item id not found")
     return item
 
 
 @router.get("/", response_model=list[ItemPublic])
-async def get_items(
-    session: Annotated[AsyncSession, Depends(database.get_db_session)], offset: int = 0, limit: int = 0
+async def get_all_item(
+    session: Annotated[AsyncSession, Depends(database.get_db_session)], offset: int = 0, limit: int = 10
 ):
-    return await session.exec(select(Item).offset(offset).limit(limit)).all()
+    return (await session.execute(select(Item).offset(offset).limit(limit))).scalars().all()
 
 
 @router.put("/{id}", response_model=ItemPublic)
@@ -74,109 +88,125 @@ async def delete_item(id: str, session: Annotated[AsyncSession, Depends(database
     return {"ok": True}
 
 
-### Bis hierher und nicht weiter ### TODO
-
-@router.post("/backlog", response_model=ItemPublic)
-async def post_backlog_item(
-    item: ItemBacklogRequest, session: Annotated[AsyncSession, Depends(database.get_db_session)]
-) -> Item:
-    return await ItemsService(db=session).create_backlog_item(item=item)
-
-
-@router.get("/{rfid}/containers", response_model=RecursiveContainerObject)
-async def get_item_with_containers(
-    rfid: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]
-) -> RecursiveContainerObject:
-    return await ItemsService(db=session).get_item_with_containers(rfid=rfid)
+@router.get("/{id}/containers", response_model=list[ContainerObject])
+async def get_item_with_containers(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    item = await session.get(Item, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    parents = get_item_parents(item, session)
+    return parents
 
 
-@router.get("/{rfid}/content", response_model=list[Item])
-async def get_item_content(
-    request: Request,
-    rfid: str,
-) -> list[Item]:
-    content = get_bs(request).dbc.read(collection_name="items", query={"container_tag_uuid": rfid})
-    if not content:
-        raise HTTPException(status_code=404, detail="Item content not found")
-    return content
+def get_item_parents(item: Item, session: AsyncSession, parents: list = None) -> list[ContainerObject]:
+    # Check for first iteration
+    if parents is None:
+        parents = [ContainerObject(item_id=item.id, short_name=item.short_name)]
+
+    if item.container_id is None:
+        return parents
+    parent = session.get(Item, item.container_id)
+    parents = ContainerObject(item_id=parent.id, short_name=parent.short_name) + parents
+    return get_item_parents(parent, session, parents)
 
 
-@router.post("/search", response_model=list[Item])
-async def get_item_search(request: Request, query: str) -> list[Item]:
+@router.post("/search", response_model=list[ItemPublic])
+async def get_item_search(query: Query, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     """
     Search for items based on a query object, post to allow for body.
     """
-    query = Query.model_validate(query)
-    logger.debug(f"Searching items with search query: {query}")
-    items = db_items.get_items_with_search_query(query=query, db=get_bs(request).dbc.db)
-    if not items:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return items
+    try:
+        statement = select(Item)
+        term_fields = ["short_name"]
+        # Term
+        if query.term:
+            statement = statement.where(or_(*[col(getattr(Item, key)).contains(query.term) for key in term_fields]))
 
+        # Filters
+        if query.filters:
+            statement = statement.where(or_(*[col(getattr(Item, key)).contains(term) for key, term in query.filters.items()]))
 
-@router.post("/csv-import", response_model=ItemChangedResponse)
-async def bulk_import_items(
-    request: Request,
-    items: list[ItemRequest],
-) -> ItemChangedResponse:
-    """
-    Bulk import items. Accepts a list of item dicts.
-    If an item with the same tag_uuid exists, it is updated; otherwise, it is created.
-    """
-    db = get_bs(request).dbc
-    imported = 0
-    updated = 0
-    errors = []
-    error_items = []
-    for idx, item_req in enumerate(items):
-        try:
-            # Remove None values, use defaults for missing fields
-            item_dict = {k: v for k, v in item_req.model_dump(exclude_none=True).items()}
-            item = Item.model_validate(item_dict, strict=False, from_attributes=True)
-            # Try to update existing item
-            result = db.update(
-                collection_name="items",
-                query={"tag_uuid": item.tag_uuid},
-                update_values=item.model_dump(mode="json", by_alias=True),
-            )
+        # Offset & limits
+        statement = statement.offset(query.offset).limit(query.limit)
 
-            if result:
-                updated += 1
+        # Order & sort
+        if query.sort_by:
+            if query.sort_desc:
+                statement = statement.order_by(getattr(Item, query.sort_by).desc())
             else:
-                error_items.append(item.tag_uuid)
-        except pymongo.errors.DuplicateKeyError:
-            # If not found, create new
-            db.create(
-                collection_name="items",
-                document=item.model_dump(mode="json", by_alias=True),
-            )
-            imported += 1
-        except Exception as e:
-            errors.append(f"Row {idx}: {str(e)}")
-            if tag_uuid := item_dict.get("tag_uuid"):
-                error_items.append(tag_uuid)
+                statement = statement.order_by(getattr(Item, query.sort_by))
+    except (KeyError, AttributeError) as e:
+        print(e)
+        raise HTTPException(status_code=400, detail="Your query is bad and you should feel bad!") from None
 
-    if imported == 0 and updated == 0 and not errors:
-        logger.warning(error_items)
-        raise HTTPException(
-            status_code=406,
-            detail={
-                "message": "Not Modified. No items imported or updated.",
-                "errors": errors,
-                "error_items": error_items,
-            },
-        )
-    if errors:
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "message": "Validation error: Some items are invalid. Please check your input.",
-                "errors": errors,
-                "error_items": error_items,
-            },
-        )
+    print(statement)
+    results = await session.execute(statement)
+    return results.scalars().all()
 
-    msg = f"{imported} item(s) imported, {updated} item(s) updated successfully."
-    if errors:
-        msg += f" {len(errors)} error(s): {'; '.join(errors)}"
-    return ItemChangedResponse(message=msg, errors=errors, error_items=error_items)
+
+# TODO
+# @router.post("/csv-import", response_model=ItemChangedResponse)
+# async def bulk_import_items(
+#     request: Request,
+#     items: list[ItemRequest],
+# ) -> ItemChangedResponse:
+#     """
+#     Bulk import items. Accepts a list of item dicts.
+#     If an item with the same tag_uuid exists, it is updated; otherwise, it is created.
+#     """
+#     db = get_bs(request).dbc
+#     imported = 0
+#     updated = 0
+#     errors = []
+#     error_items = []
+#     for idx, item_req in enumerate(items):
+#         try:
+#             # Remove None values, use defaults for missing fields
+#             item_dict = {k: v for k, v in item_req.model_dump(exclude_none=True).items()}
+#             item = Item.model_validate(item_dict, strict=False, from_attributes=True)
+#             # Try to update existing item
+#             result = db.update(
+#                 collection_name="items",
+#                 query={"tag_uuid": item.tag_uuid},
+#                 update_values=item.model_dump(mode="json", by_alias=True),
+#             )
+
+#             if result:
+#                 updated += 1
+#             else:
+#                 error_items.append(item.tag_uuid)
+#         except pymongo.errors.DuplicateKeyError:
+#             # If not found, create new
+#             db.create(
+#                 collection_name="items",
+#                 document=item.model_dump(mode="json", by_alias=True),
+#             )
+#             imported += 1
+#         except Exception as e:
+#             errors.append(f"Row {idx}: {str(e)}")
+#             if tag_uuid := item_dict.get("tag_uuid"):
+#                 error_items.append(tag_uuid)
+
+#     if imported == 0 and updated == 0 and not errors:
+#         logger.warning(error_items)
+#         raise HTTPException(
+#             status_code=406,
+#             detail={
+#                 "message": "Not Modified. No items imported or updated.",
+#                 "errors": errors,
+#                 "error_items": error_items,
+#             },
+#         )
+#     if errors:
+#         raise HTTPException(
+#             status_code=422,
+#             detail={
+#                 "message": "Validation error: Some items are invalid. Please check your input.",
+#                 "errors": errors,
+#                 "error_items": error_items,
+#             },
+#         )
+
+#     msg = f"{imported} item(s) imported, {updated} item(s) updated successfully."
+#     if errors:
+#         msg += f" {len(errors)} error(s): {'; '.join(errors)}"
+#     return ItemChangedResponse(message=msg, errors=errors, error_items=error_items)

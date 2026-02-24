@@ -73,24 +73,11 @@ const fetchContainerChain = async () => {
     return
   }
   try {
-    const { data } = await axios.get<ItemContainers>(`/items/${props.itemId}/containers`)
-    const flattenContainers = (item: ItemContainers | null): ContainerItem[] => {
-      const result: ContainerItem[] = []
-      while (item && item.container) {
-        item = item.container
-        if (item) {
-          result.unshift({
-            tag_uuid: item.tag_uuid,
-            short_name: item.short_name,
-          })
-        }
-      }
-      return result
-    }
-    if (!data || !data.container) {
+    const { data } = await axios.get<ItemContainers[]>(`/items/${props.itemId}/containers`)
+    if (!data) {
       containerChain.value = []
     } else {
-      containerChain.value = flattenContainers(data)
+      containerChain.value = data
     }
   } catch (err) {
     console.error('Error fetching container chain:', err)

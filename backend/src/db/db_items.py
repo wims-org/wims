@@ -1,6 +1,5 @@
-from pymongo.database import Database
-
 from models.db import Item
+from pymongo.database import Database
 from schemas.requests import AggregatedStates, SearchQuery
 
 

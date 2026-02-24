@@ -6,10 +6,9 @@ from loguru import logger
 from pydantic import BaseModel, ConfigDict, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.item import ItemCRUD
 from dependencies import database
 from dependencies.backend_service import Event, SseMessage
-from models.database.item import Item
+from models.item import Item
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
 

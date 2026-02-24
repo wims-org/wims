@@ -1,7 +1,7 @@
 from pydantic import Field
 from sqlmodel import SQLModel
 
-from models.base import SQLModelBase
+from .base import SQLModelBase
 
 
 class ImageBase(SQLModel):
