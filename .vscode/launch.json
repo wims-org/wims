@@ -19,7 +19,8 @@
       ],
       "jinja": true,
       "env": {
-        "LLM_ENVIRONMENT": "development",
+        //"LLM_ENVIRONMENT": "development",
+         "LLM_ENVIRONMENT": "production",
         "CONFIG_FILE": "${workspaceFolder}/backend/src/config.yml"
       }
     },

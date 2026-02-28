@@ -1,13 +1,12 @@
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, or_, text
+from sqlmodel import col, or_
 
-from dependencies import database
+from dependencies.database import SessionDep
 from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
@@ -28,7 +27,7 @@ class ContainerObject(BaseModel):
 
 
 @router.post("", response_model=ItemPublic)
-async def create_item(item: ItemCreate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def create_item(item: ItemCreate, session: SessionDep):
     db_item = Item.model_validate(item)
     session.add(db_item)
     try:
@@ -40,8 +39,8 @@ async def create_item(item: ItemCreate, session: Annotated[AsyncSession, Depends
 
 
 @router.post("/backlog")
-async def create_backlog_item(item: ItemBacklog, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
-    db_item = ItemBacklog.model_validate(item)
+async def create_backlog_item(item: ItemBacklog, session: SessionDep):
+    db_item = Item.model_validate(ItemBacklog.model_validate(item))
     session.add(db_item)
     try:
         await session.commit()
@@ -52,7 +51,7 @@ async def create_backlog_item(item: ItemBacklog, session: Annotated[AsyncSession
 
 
 @router.get("/{id}", response_model=ItemPublic)
-async def get_item(session: Annotated[AsyncSession, Depends(database.get_db_session)], id: str):
+async def get_item(session: SessionDep, id: str):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item id not found")
@@ -61,13 +60,13 @@ async def get_item(session: Annotated[AsyncSession, Depends(database.get_db_sess
 
 @router.get("/", response_model=list[ItemPublic])
 async def get_all_item(
-    session: Annotated[AsyncSession, Depends(database.get_db_session)], offset: int = 0, limit: int = 10
+    session: SessionDep, offset: int = 0, limit: int = 10
 ):
     return (await session.execute(select(Item).offset(offset).limit(limit))).scalars().all()
 
 
 @router.put("/{id}", response_model=ItemPublic)
-async def update_item(id: str, item: ItemUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def update_item(id: str, item: ItemUpdate, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -79,7 +78,7 @@ async def update_item(id: str, item: ItemUpdate, session: Annotated[AsyncSession
 
 
 @router.delete("/{id}")
-async def delete_item(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def delete_item(id: str, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -89,7 +88,7 @@ async def delete_item(id: str, session: Annotated[AsyncSession, Depends(database
 
 
 @router.get("/{id}/containers", response_model=list[ContainerObject])
-async def get_item_with_containers(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def get_item_with_containers(id: str, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -110,7 +109,7 @@ def get_item_parents(item: Item, session: AsyncSession, parents: list = None) ->
 
 
 @router.post("/search", response_model=list[ItemPublic])
-async def get_item_search(query: Query, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def get_item_search(query: Query, session: SessionDep):
     """
     Search for items based on a query object, post to allow for body.
     """

@@ -10,7 +10,7 @@ from dependencies import settings
 settings = settings.get_settings()
 database_uri = f"mariadb+aiomysql://{settings.database_user}:{settings.database_password}@{settings.database_host}:{settings.database_port}/{settings.database_name}"
 
-engine = create_async_engine(database_uri, future=True, echo=True)
+engine = create_async_engine(database_uri, future=True, echo=False)
 
 
 # expire_on_commit=False will prevent attributes from being expired after commit.
@@ -23,5 +23,8 @@ async def get_db_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-async def get_db(request: Request, db: Annotated[AsyncSession, Depends(get_db_session)]) -> None:
+SessionDep = Annotated[AsyncSession, Depends(get_db_session)]
+
+
+async def get_db(request: Request, db: SessionDep) -> None:
     request.state.db = db

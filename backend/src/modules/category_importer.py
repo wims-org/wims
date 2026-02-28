@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pymongo
 from loguru import logger
-from models.database.category import Category
 from pydantic import ValidationError
 
 from database_connector import MongoDBConnector

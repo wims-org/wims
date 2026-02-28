@@ -61,8 +61,7 @@ content-type: application/json
 
 {
     "tag_uuid": "123e4567-e89b-12d3-a456-426614174120",
-    "tags": ["tbd"],
-    
+    "tags": ["tbd"]    
 }
 
 ###

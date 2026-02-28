@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlmodel import Relationship, SQLModel
+from sqlmodel import SQLModel
 
 from .base import SQLModelBase
 

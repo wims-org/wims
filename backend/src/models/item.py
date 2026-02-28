@@ -2,10 +2,9 @@ from datetime import datetime
 
 from pydantic import computed_field
 from sqlalchemy import JSON, Column
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 from .base import SQLModelBase
-from .category import Category
 from .image import ImagePublic
 from .url import UrlPublic
 from .user import UserPublic

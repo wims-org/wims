@@ -1,13 +1,10 @@
-from typing import Annotated
-
 from fastapi import APIRouter, HTTPException
-from fastapi.params import Depends
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, ValidationError
-from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel, ConfigDict
+from sqlmodel import select
 
-from dependencies import database
-from dependencies.backend_service import Event, SseMessage
+from dependencies.database import SessionDep
+from dependencies.event_handler import Event, EventHandlerDep, SseMessage
 from models.item import Item
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
@@ -27,29 +24,23 @@ class ScanResponse(BaseModel):
 
 
 @router.post("", response_model=ScanResponse)
-async def scan_event(body: ScanRequest, session: Annotated[AsyncSession, Depends(database.get_db_session)]) -> ScanResponse:
+async def scan_event(body: ScanRequest, session: SessionDep, event_handler: EventHandlerDep) -> ScanResponse:
     logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}' and data '{body.data}'")
 
-    await request.app.state.backend_service.append_message_to_all_queues_with_reader(
+    await event_handler.append_message_to_all_queues_with_reader(
         reader=body.reader_id,
         message=SseMessage(
             data=SseMessage.SseMessageData(reader_id=body.reader_id, rfid=body.tag_id), event=Event.SCAN
         ),
     )
-    # Send db data to reader
-    # todo don't fetch data from db twice
-    
-    item_raw = await ItemCRUD(db=session).find(body.tag_id)
-    if item_raw:
-        try:
-            item = Item.model_validate(item_raw, strict=False, from_attributes=True)
-            location = "---"
-            if item.container:
-                location = item.container.short_name
-            return ScanResponse(msg="Found", item_name=item.short_name, item_storage_location=location)
-        except ValidationError as e:
-            logger.error(f"Error validating item: {e}")
-            raise HTTPException(status_code=400, detail="Validation error") from None
-    else:
-        # Item not found
+    item_res = await session.execute(select(Item).where(Item.tag_uuid == body.tag_id))
+    item = item_res.scalar_one_or_none()
+
+    if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+
+    return ScanResponse(
+        msg="Found",
+        item_name=item.short_name,
+        item_storage_location=item.container.short_name if item.container else "---",
+    )

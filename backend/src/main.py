@@ -7,12 +7,16 @@ from loguru import logger
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from dependencies import database, settings
+from dependencies import database, event_handler, settings
 from routers import (
     # completion,
+    config,
     healthz,
     items,
     metrics,
+    readers,
+    scan,
+    stream,
     # scan,
     # stream,
     users,
@@ -61,6 +65,7 @@ else:
 app = FastAPI(
     dependencies=[
         Depends(database.get_db),
+        Depends(event_handler.get_event_handler),
         # Depends(backend_service.BackendService()),
     ],
     redirect_slashes=False,
@@ -69,16 +74,16 @@ app = FastAPI(
 
 app.include_router(users.router)
 app.include_router(items.router)
-# app.include_router(readers.router)
+app.include_router(readers.router)
 
 # app.include_router(queries.router)
-# app.include_router(config.router)
+app.include_router(config.router)
 # app.include_router(categories.router)
 # app.include_router(backup.router)
 
-# app.include_router(stream.router)
+app.include_router(stream.router)
 app.include_router(healthz.router)
-# app.include_router(scan.router)
+app.include_router(scan.router)
 app.include_router(metrics.router)
 
 if settings.get_settings().features_openai_api_key:

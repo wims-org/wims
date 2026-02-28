@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
+from pydantic import BaseModel
 
-from dependencies.backend_service import ConfigResponseModel
-from routers.utils import get_bs
+from dependencies.settings import SettingsDep
 
 router = APIRouter(prefix="/config", tags=["config"])
 
 
+class ConfigResponseModel(BaseModel):
+    llm_enabled: bool
+
+
 @router.get("/", response_model=ConfigResponseModel)
-async def config(request: Request):
-    return get_bs(request).get_config()
+async def config(settings: SettingsDep):
+    return ConfigResponseModel(llm_enabled=bool(settings.features_openai_api_key))
