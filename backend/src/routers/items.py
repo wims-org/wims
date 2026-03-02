@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -7,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
-from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
+from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemPublicWithRefs, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
@@ -46,11 +45,11 @@ async def create_backlog_item(item: ItemBacklog, session: SessionDep):
         await session.commit()
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    session.refresh(db_item)
+    await session.refresh(db_item)
     return db_item
 
 
-@router.get("/{id}", response_model=ItemPublic)
+@router.get("/{id}", response_model=ItemPublicWithRefs)
 async def get_item(session: SessionDep, id: str):
     item = await session.get(Item, id)
     if not item:
@@ -59,21 +58,20 @@ async def get_item(session: SessionDep, id: str):
 
 
 @router.get("/", response_model=list[ItemPublic])
-async def get_all_item(
-    session: SessionDep, offset: int = 0, limit: int = 10
-):
+async def get_all_item(session: SessionDep, offset: int = 0, limit: int = 10):
     return (await session.execute(select(Item).offset(offset).limit(limit))).scalars().all()
 
 
 @router.put("/{id}", response_model=ItemPublic)
 async def update_item(id: str, item: ItemUpdate, session: SessionDep):
-    item = await session.get(Item, id)
+    db_item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    db_item = item.model_dump(exclude_unset=True)
+    update = item.model_dump(exclude_unset=True)
+    db_item.sqlmodel_update(update)
     session.add(db_item)
-    session.commit()
-    session.refresh(db_item)
+    await session.commit()
+    await session.refresh(db_item)
     return db_item
 
 
@@ -92,20 +90,20 @@ async def get_item_with_containers(id: str, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    parents = get_item_parents(item, session)
+    parents = await get_item_parents(item, session)
     return parents
 
 
-def get_item_parents(item: Item, session: AsyncSession, parents: list = None) -> list[ContainerObject]:
+async def get_item_parents(item: Item, session: AsyncSession, parents: list = None) -> list[ContainerObject]:
     # Check for first iteration
     if parents is None:
         parents = [ContainerObject(item_id=item.id, short_name=item.short_name)]
 
     if item.container_id is None:
         return parents
-    parent = session.get(Item, item.container_id)
-    parents = ContainerObject(item_id=parent.id, short_name=parent.short_name) + parents
-    return get_item_parents(parent, session, parents)
+    parent = await session.get(Item, item.container_id)
+    parents = [ContainerObject(item_id=parent.id, short_name=parent.short_name)].append(parents)
+    return await get_item_parents(parent, session, parents)
 
 
 @router.post("/search", response_model=list[ItemPublic])
@@ -122,7 +120,9 @@ async def get_item_search(query: Query, session: SessionDep):
 
         # Filters
         if query.filters:
-            statement = statement.where(or_(*[col(getattr(Item, key)).contains(term) for key, term in query.filters.items()]))
+            statement = statement.where(
+                or_(*[col(getattr(Item, key)).contains(term) for key, term in query.filters.items()])
+            )
 
         # Offset & limits
         statement = statement.offset(query.offset).limit(query.limit)

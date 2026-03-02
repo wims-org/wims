@@ -1,8 +1,9 @@
 from datetime import datetime
+from typing import Optional
 
-from pydantic import computed_field
+from pydantic import computed_field, model_serializer
 from sqlalchemy import JSON, Column
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 from .base import SQLModelBase
 from .image import ImagePublic
@@ -46,20 +47,23 @@ class ItemBase(SQLModel):
 
 
 class Item(ItemBase, SQLModelBase, table=True):
-    pass
+    container: Optional["Item"] = Relationship(sa_relationship_kwargs=dict(remote_side="Item.id"))
 
 
 class ItemPublic(ItemBase, SQLModelBase):
+    @computed_field
+    def borrowed(self) -> bool:
+        return self.borrower_id is not None
+
+
+class ItemPublicWithRefs(ItemBase, SQLModelBase):
     images: list[ImagePublic] = []
-    container: ItemPublic | None = None
     author: UserPublic | None = None
     borrower: UserPublic | None = None
     owner: UserPublic | None = None
     urls: list[UrlPublic] = []
+    container: ItemPublic | None = None
 
-    @computed_field
-    def borrowed(self) -> bool:
-        return self.borrower_id is not None
 
 class ItemCreate(ItemBase):
     tags: set[str] = []
@@ -68,7 +72,14 @@ class ItemCreate(ItemBase):
 class ItemUpdate(ItemBase):
     tags: set[str] = []
 
+    @model_serializer(mode="wrap")  # noqa: F821
+    def _serialize(self, handler):
+        d = handler(self)
+        d["tags"] = list(self.tags)
+        return d
+
 
 class ItemBacklog(ItemBase):
     """This model is used for weaker validation in eg /backlog route"""
-    short_name : str = "New Item"
+
+    short_name: str = "New Item"

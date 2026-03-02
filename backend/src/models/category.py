@@ -9,8 +9,6 @@ class CategoryBase(SQLModel):
     parent_id: str | None = None
     title: str
     description: str | None
-    
-
 
 class Category(CategoryBase, SQLModelBase, table=True):
     pass
