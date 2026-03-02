@@ -54,6 +54,7 @@ async def get_item(session: SessionDep, id: str):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item id not found")
+    await item.awaitable_attrs.container
     return item
 
 

@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import computed_field, model_serializer
 from sqlalchemy import JSON, Column
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base import SQLModelBase
@@ -46,11 +47,11 @@ class ItemBase(SQLModel):
     owner_id: int | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
 
 
-class Item(ItemBase, SQLModelBase, table=True):
+class Item(AsyncAttrs, ItemBase, SQLModelBase, table=True):
     container: Optional["Item"] = Relationship(sa_relationship_kwargs=dict(remote_side="Item.id"))
 
 
-class ItemPublic(ItemBase, SQLModelBase):
+class ItemPublic(ItemBase):
     @computed_field
     def borrowed(self) -> bool:
         return self.borrower_id is not None
