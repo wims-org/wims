@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
@@ -14,7 +16,7 @@ class ScanRequest(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     reader_id: str
     tag_id: str
-    data: dict | str | any = None
+    data: dict | str | Any = None
 
 
 class ScanResponse(BaseModel):

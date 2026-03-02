@@ -1,12 +1,17 @@
+import asyncio
+import logging
 import os
 import time
+from contextlib import asynccontextmanager
 
+import sentry_sdk
+from alembic.config import Config
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from alembic import command
 from dependencies import database, event_handler, settings
 from routers import (
     # completion,
@@ -75,6 +80,19 @@ else:
     logger.info("Started in development mode")
     root_path = "/"
 
+async def run_migrations():
+    alembic_cfg = Config("../alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", wims_config.database_uri)
+    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    logger.info("run alembic upgrade head...")
+    await run_migrations()
+    yield
+
+
 app = FastAPI(
     dependencies=[
         Depends(database.get_db),
@@ -83,6 +101,7 @@ app = FastAPI(
     ],
     redirect_slashes=False,
     root_path=root_path,
+    lifespan=lifespan,
 )
 
 app.include_router(users.router)

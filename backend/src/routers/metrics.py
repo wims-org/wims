@@ -24,7 +24,7 @@ async def metrics(
     database = session
 
     ITEM_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM item"))).scalar())
-    USER_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM users"))).scalar())
+    USER_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM user"))).scalar())
     CATEGORY_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM category"))).scalar())
     # READER_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM reader"))).scalar())
 
