@@ -22,6 +22,14 @@ from routers import (
     users,
 )
 
+wims_config = settings.get_settings()
+
+# Set log level
+logging.getLogger("uvicorn").setLevel(wims_config.log_level)
+
+# Use same logger als uvicorn
+logger = logging.getLogger("uvicorn")
+
 logger.info("Starting backend service")
 
 # Prometheus metrics
@@ -54,6 +62,11 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         REQUEST_DURATION.labels(request.method, routePath, str(response.status_code)).observe(duration)
         return response
 
+if wims_config.sentry_dsn:
+    sentry_sdk.init(
+        dsn=wims_config.sentry_dsn,
+        send_default_pii=True,
+    )
 
 if os.environ.get("RUN_MODE", "") == "production":
     logger.info("Started in production mode")

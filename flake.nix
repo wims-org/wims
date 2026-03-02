@@ -59,6 +59,7 @@
 
               # backend
               uv
+              python314
 
               # hardware
               python3Packages.pyserial

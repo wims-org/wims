@@ -7,10 +7,9 @@ from sqlalchemy.orm import sessionmaker
 
 from dependencies import settings
 
-settings = settings.get_settings()
-database_uri = f"mariadb+aiomysql://{settings.database_user}:{settings.database_password}@{settings.database_host}:{settings.database_port}/{settings.database_name}"
+wims_config = settings.get_settings()
 
-engine = create_async_engine(database_uri, future=True, echo=False)
+engine = create_async_engine(wims_config.database_uri, future=True, echo=False)
 
 
 # expire_on_commit=False will prevent attributes from being expired after commit.
