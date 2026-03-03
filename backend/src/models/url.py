@@ -15,8 +15,10 @@ class Url(UrlBase, SQLModelBase, table=True):
 class UrlPublic(UrlBase):
     pass
 
+
 class UrlCreate(UrlBase):
     pass
+
 
 class UrlUpdate(UrlBase):
     pass

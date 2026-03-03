@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
-from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemPublicWithRefs, ItemUpdate
+from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
@@ -49,12 +49,11 @@ async def create_backlog_item(item: ItemBacklog, session: SessionDep):
     return db_item
 
 
-@router.get("/{id}", response_model=ItemPublicWithRefs)
+@router.get("/{id}", response_model=ItemPublic)
 async def get_item(session: SessionDep, id: str):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item id not found")
-    await item.awaitable_attrs.container
     return item
 
 

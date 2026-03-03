@@ -7,7 +7,6 @@ from models.reader import Reader, ReaderCreate, ReaderPublic
 router = APIRouter(prefix="/readers", tags=["readers"], responses={404: {"description": "Not found"}})
 
 
-
 @router.get("", response_model=list[ReaderPublic])
 async def get_readers(session: SessionDep, offset: int = 0, limit: int = 100):
     return (await session.execute(select(Reader).offset(offset).limit(limit))).scalars().all()

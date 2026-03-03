@@ -10,8 +10,10 @@ class CategoryBase(SQLModel):
     title: str
     description: str | None
 
+
 class Category(CategoryBase, SQLModelBase, table=True):
     pass
+
 
 class CategoryPublic(CategoryBase):
     pass

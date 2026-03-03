@@ -3,13 +3,11 @@ from typing import Optional
 
 from pydantic import computed_field, model_serializer
 from sqlalchemy import JSON, Column
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base import SQLModelBase
-from .image import ImagePublic
-from .url import UrlPublic
-from .user import UserPublic
+from .category import Category
+from .user import User
 
 
 class ItemBase(SQLModel):
@@ -47,23 +45,43 @@ class ItemBase(SQLModel):
     owner_id: int | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
 
 
-class Item(AsyncAttrs, ItemBase, SQLModelBase, table=True):
-    container: Optional["Item"] = Relationship(sa_relationship_kwargs=dict(remote_side="Item.id"))
+class Item(ItemBase, SQLModelBase, table=True):
+    category: Optional["Category"] = Relationship(
+        sa_relationship_kwargs=dict(remote_side="Category.id", lazy="selectin")
+    )
+
+    # We need 'join_depth' for self referencing Relationships
+    container: Optional["Item"] = Relationship(
+        sa_relationship_kwargs=dict(remote_side="Item.id", join_depth=1, lazy="selectin", back_populates="content")
+    )
+    content: list["Item"] = Relationship(
+        sa_relationship_kwargs=dict(join_depth=1, lazy="selectin", back_populates="container")
+    )
+
+    # We need 'foreign_keys' for relationships with multiple references between the tables
+    borrower: Optional["User"] = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="Item.borrower_id", remote_side="User.id", lazy="selectin")
+    )
+    author: Optional["User"] = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="Item.author_id", remote_side="User.id", lazy="selectin")
+    )
+    owner: Optional["User"] = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="Item.owner_id", remote_side="User.id", lazy="selectin")
+    )
 
 
 class ItemPublic(ItemBase):
+    id: int
+    category: Category | None = None
+    container: Item | None = None
+    content: list[Item] | None = None
+    borrower: User | None = None
+    author: User | None = None
+    owner: User | None = None
+
     @computed_field
     def borrowed(self) -> bool:
         return self.borrower_id is not None
-
-
-class ItemPublicWithRefs(ItemBase, SQLModelBase):
-    images: list[ImagePublic] = []
-    author: UserPublic | None = None
-    borrower: UserPublic | None = None
-    owner: UserPublic | None = None
-    urls: list[UrlPublic] = []
-    container: ItemPublic | None = None
 
 
 class ItemCreate(ItemBase):
@@ -72,6 +90,8 @@ class ItemCreate(ItemBase):
 
 class ItemUpdate(ItemBase):
     tags: set[str] = []
+    short_name: str | None = None
+    tag_uuid: str | None = None
 
     @model_serializer(mode="wrap")  # noqa: F821
     def _serialize(self, handler):
