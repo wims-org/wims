@@ -7,8 +7,8 @@
     <div v-else>
       <div class="flex-row">
         <template v-if="containerChain.length > 0">
-          <template v-for="(item, index) in containerChain" :key="item.tag_uuid">
-            <router-link :to="`/items/${item.tag_uuid}`" class="pill mr-2">
+          <template v-for="(item, index) in containerChain" :key="item.id">
+            <router-link :to="`/items/${item.id}`" class="pill mr-2">
               {{ item.short_name }}
             </router-link>
             <font-awesome-icon
@@ -47,7 +47,7 @@ import type { ItemContainers } from '@/interfaces/items.interface'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 interface ContainerItem {
-  tag_uuid: string
+  id: string
   short_name: string
 }
 

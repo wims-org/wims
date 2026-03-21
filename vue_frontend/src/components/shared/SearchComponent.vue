@@ -82,7 +82,7 @@ const queries = ref<Query[]>([
   {
     _id: 'query3',
     name: 'Query 3',
-    query: { tag_uuid: '123e4567-e89b-12d3-a456-426614174000' },
+    query: { id: '123e4567-e89b-12d3-a456-426614174000' },
     description: null,
     created_at: null,
     updated_at: null,
@@ -143,6 +143,6 @@ const selectQuery = (query: Query) => {
 }
 
 const handleSelect = (item: Item) => {
-  emit('select', item.tag_uuid, searchedQuery.value || null, items.value.indexOf(item))
+  emit('select', item.id, searchedQuery.value || null, items.value.indexOf(item))
 }
 </script>

@@ -149,13 +149,13 @@ const handleSubmit = () => {
 };
 
 const handleInputClick = (key: string) => {
-  if (key === 'container_tag_uuid') {
+  if (key === 'container_id') {
     showModal.value = true;
   }
 };
 
 const handleSelect = (tag: string) => {
-  formData_org.value.container_tag_uuid = tag;
+  formData_org.value.container_id = tag;
 };
 
 const closeModal = () => {

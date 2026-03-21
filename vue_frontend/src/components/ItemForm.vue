@@ -150,14 +150,14 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
     formData.value[key] = Number(value)
   } else if (type === 'array') {
     formData.value[key] = value
-  } else if (key === 'container_tag_uuid') {
+  } else if (key === 'container_id') {
     if (typeof value === 'string' && value.trim() !== '') {
       axios
         .get<Item>(`/items/${value}`)
         .then((response) => (formData.value['container'] = response.data))
         .catch(() => {
           console.warn(`Container with UUID ${value} not found, creating new container entry`)
-          formData.value['container'] = { tag_uuid: value } as Item
+          formData.value['container'] = { id: value } as Item
         })
     } else {
       formData.value['container'] = null // Clear the field if no value

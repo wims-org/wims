@@ -47,7 +47,7 @@ export const formFields: Record<string, FormField> = {
   cost_new: { label: 'Cost New', type: 'number', disabled: false, hidden: false, details: false, required: false },
   acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
   manufacturing_date: { label: 'Manufacturing Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
-  container_tag_uuid: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
+  container_id: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
 
   container: { label: 'Container', type: 'item', disabled: true, hidden: false, details: true, required: false },
   changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: true, required: false },

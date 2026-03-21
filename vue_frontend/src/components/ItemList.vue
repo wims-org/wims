@@ -48,7 +48,7 @@
     >
       <div
         v-for="(item, i) in items"
-        :key="item.tag_uuid"
+        :key="item.id"
         :class="{
           'list-group-item list-group-item-action':
             activeViewMode === 'text' || activeViewMode === 'image-list',
@@ -63,23 +63,23 @@
         <template v-if="activeViewMode === 'image-list'">
           <ListItemComponent
             class="image-component"
-            :data-img-id="item.tag_uuid"
+            :data-img-id="item.id"
             :title="item.short_name"
             :description="item.description"
             :images="item.images"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.tag_uuid]"
+            :load-requested="loadRequested[item.id]"
           />
         </template>
 
         <template v-if="activeViewMode === 'image'">
           <ListCardComponent
             class="image-component"
-            :data-img-id="item.tag_uuid"
+            :data-img-id="item.id"
             :title="item.short_name"
             :images="item.images"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.tag_uuid]"
+            :load-requested="loadRequested[item.id]"
           />
         </template>
       </div>

@@ -186,7 +186,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
     )
   } else if (props.searchType === SearchType.ITEM) {
     return (result as Item[]).map(
-      (item) => ({ id: item.tag_uuid, display_string: item.name, select: item }) as searchResult,
+      (item) => ({ id: item.id, display_string: item.name, select: item }) as searchResult,
     )
   } else if (props.searchType === SearchType.QUERY) {
     return (result as Query[]).map(

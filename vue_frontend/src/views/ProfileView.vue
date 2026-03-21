@@ -23,7 +23,7 @@
           class="mt-3"
           name="tags"
           label="Tags"
-          :value="user?.tag_uuids ?? []"
+          :value="user?.ids ?? []"
           @update:value="updateTags"
           item-label="Tag"
         />
@@ -77,7 +77,7 @@ function updateEmail(value: string | number | null) {
 
 function updateTags(value: Array<string | number>) {
   if (!user.value) return
-  user.value.tag_uuids = value.map((v) => String(v))
+  user.value.ids = value.map((v) => String(v))
 }
 
 import { clientStore } from '@/stores/clientStore'

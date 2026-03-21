@@ -68,8 +68,8 @@
           <tbody>
             <tr
               v-for="(item, rowIdx) in items"
-              :key="item.tag_uuid || rowIdx"
-              :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }"
+              :key="item.id || rowIdx"
+              :class="{ 'item-error': item.id && errorItems.includes(item.id) }"
             >
               <td
                 v-for="col in columns"
@@ -140,11 +140,11 @@ import type { components } from '@/interfaces/api-types'
 type Item = components['schemas']['Item'] & { [key: string]: unknown }
 
 const DEFAULT_COLUMNS = [
-  'tag_uuid',
+  'id',
   'short_name',
   'amount',
   'item_type',
-  'container_tag_uuid',
+  'container_id',
   'consumable',
 ]
 
@@ -307,7 +307,7 @@ const filterErrorUUIDs = () => {
   }
 
   errorItems.value.forEach((uuid) => {
-    const idx = items.findIndex((item) => item.tag_uuid === uuid)
+    const idx = items.findIndex((item) => item.id === uuid)
     if (idx !== -1) removeRow(idx)
   })
   errorItems.value = []
@@ -317,9 +317,9 @@ const filterErrorUUIDs = () => {
 const fetchAndAddItemToTable = async (scanData: { rfid: string }) => {
   if (clientStore().expected_event_action !== EventAction.FORM_SCAN_ADD) return
   if (!scanData?.rfid) return
-  if (items.some((item) => item.tag_uuid === scanData.rfid)) return
+  if (items.some((item) => item.id === scanData.rfid)) return
   const newRow = Object.assign({}, emptyItem)
-  newRow.tag_uuid = scanData.rfid
+  newRow.id = scanData.rfid
   try {
     const { data } = await axios.get<Item>(`/items/${scanData.rfid}`)
     Object.assign(newRow, data)
@@ -386,7 +386,7 @@ const updateField = (
     items[rowIdx][col] = Number(value)
   } else if (type === 'array') {
     items[rowIdx][col] = value
-  } else if (col === 'container_tag_uuid') {
+  } else if (col === 'container_id') {
     items[rowIdx][col] = '' + value
     if (value) {
       axios

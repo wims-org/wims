@@ -135,9 +135,9 @@ watch(
   },
 )
 
-const handleSelect = (item: { tag_uuid: string }) => {
-  const tag = item.tag_uuid
-  const offset = items.value.findIndex((i) => i.tag_uuid === tag)
+const handleSelect = (item: { id: string }) => {
+  const tag = item.id
+  const offset = items.value.findIndex((i) => i.id === tag)
   console.log('Selected tag:', tag)
   router.push(
     `/items/${tag}` +

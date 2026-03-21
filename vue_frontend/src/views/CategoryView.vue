@@ -9,9 +9,9 @@
     </div>
     <CategoryTreeView :categories="category ? [category] : []" :selectable="true" :expand-all="true" />
     <ItemList :items="containers" :title="`Containers containing ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, containers_query, $event.offset)" />
+      @select="handleSelect($event.id, containers_query, $event.offset)" />
     <ItemList :items="items" :title="`Items in ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, items_query, $event.offset)" />
+      @select="handleSelect($event.id, items_query, $event.offset)" />
   </div>
 </template>
 
@@ -43,7 +43,7 @@ watch(
       await fetchCategory(newId as string).then(async () => {
         await fetchItemsByCategory(category.value?.title || '')
         await fetchContainersForItems(
-          items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
+          items.value.map((item) => item.container_id).filter((id) => id) as string[],
         )
       })
     }
@@ -75,8 +75,8 @@ const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
     })
 }
 
-const fetchContainersForItems = async (container_tag_uuids: string[]): Promise<void> => {
-  containers_query.value = { query: { tag_uuid: { $in: container_tag_uuids } } }
+const fetchContainersForItems = async (container_ids: string[]): Promise<void> => {
+  containers_query.value = { query: { id: { $in: container_ids } } }
   return axios
     .post('/items/search', containers_query.value)
     .then((response) => {
@@ -92,7 +92,7 @@ onMounted(() => {
   fetchCategory(router.currentRoute.value.params.categoryId as string).then(async () => {
     await fetchItemsByCategory(category.value?.title || '')
     await fetchContainersForItems(
-        items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
+        items.value.map((item) => item.container_id).filter((id) => id) as string[],
       )
   }).catch((error) => {
     console.error('Error fetching category on mount:', error)

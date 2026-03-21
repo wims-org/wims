@@ -16,8 +16,8 @@
       <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
         <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
           <ContainerListComponent
-            v-if="item?.tag_uuid"
-            :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
+            v-if="item?.id"
+            :itemId="typeof item?.id === 'string' ? item?.id : ''"
             @update:value="handleContainerSelect"
           />
           <button
@@ -30,7 +30,7 @@
           <ItemListContainer
             :settingsId="'item-view-container'"
             :query="{
-              query: { container_tag_uuid: itemId },
+              query: { container_id: itemId },
             }"
             @select="handleItemSelect"
             :title="`Items in ${item?.short_name}`"
@@ -50,7 +50,7 @@
             :item_new="completion"
             :newItem="newItem"
             @submit="handleFormSubmit"
-            :key="item?.tag_uuid"
+            :key="item?.id"
           />
           <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
         </BTab>
@@ -60,7 +60,7 @@
           id="objectIdentification"
           data-testid="object-identification"
         >
-          <LLMCompletion :images="item?.images" :key="item?.tag_uuid" />
+          <LLMCompletion :images="item?.images" :key="item?.id" />
         </BTab>
       </BTabs>
     </BCol>
@@ -99,10 +99,10 @@ type Item = components['schemas']['Item'] & { [key: string]: unknown }
 const route = useRoute()
 const router = useRouter()
 const itemId = ref<string>(
-  typeof route.params.tag_uuid === 'string'
-    ? route.params.tag_uuid
-    : Array.isArray(route.params.tag_uuid)
-      ? route.params.tag_uuid[0]
+  typeof route.params.id === 'string'
+    ? route.params.id
+    : Array.isArray(route.params.id)
+      ? route.params.id[0]
       : '',
 )
 const item = ref<Item>()
@@ -134,10 +134,10 @@ const fetchItem = async () => {
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       newItem.value = true
-      item.value = { tag_uuid: itemId.value } as Item
+      item.value = { id: itemId.value } as Item
       console.warn('Item not found, display empty item form')
     } else {
-      item.value = { tag_uuid: itemId.value } as Item
+      item.value = { id: itemId.value } as Item
       console.error('Error fetching item:', error)
     }
   }
@@ -160,7 +160,7 @@ const fetchPrevNextItems = async () => {
         limit: 1,
       })
       if (prevItem.data.length > 0) {
-        previousItemId.value = (prevItem.data.pop() as Item).tag_uuid
+        previousItemId.value = (prevItem.data.pop() as Item).id
       }
     }
   } catch (error) {
@@ -173,7 +173,7 @@ const fetchPrevNextItems = async () => {
       limit: 1,
     })
     if (nextItem.data.length > 0) {
-      nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
+      nextItemId.value = (nextItem.data.pop() as Item).id
     }
   } catch {
     nextItemId.value = ''
@@ -225,12 +225,12 @@ const handleCompletion = (result: { data: { response: object } }) => {
 }
 
 const handleItemSelect = (item: Item) => {
-  const tag = item.tag_uuid
+  const tag = item.id
   console.log('Selected tag:', tag)
-  const offset = items.value.findIndex((i) => i.tag_uuid === item.tag_uuid)
+  const offset = items.value.findIndex((i) => i.id === item.id)
   const query = {
     query: {
-      container_tag_uuid: itemId.value,
+      container_id: itemId.value,
     },
   }
   router.push(
@@ -242,7 +242,7 @@ const handleItemSelect = (item: Item) => {
 const handleContentSelect = async (tag: string) => {
   try {
     const selectedItem = await axios.get(`/items/${tag}`)
-    selectedItem.data['container_tag_uuid'] = itemId.value
+    selectedItem.data['container_id'] = itemId.value
     selectedItem.data['container_name'] = item.value?.short_name
 
     await axios.put(`/items/${tag}`, selectedItem.data)
@@ -254,7 +254,7 @@ const handleContentSelect = async (tag: string) => {
 
 const handleContainerSelect = (tag: string) => {
   if (!item.value) return
-  item.value.container_tag_uuid = tag
+  item.value.container_id = tag
 }
 
 const closeModal = () => {
@@ -327,7 +327,7 @@ eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
 
 // Watchers
 watch(
-  () => route.params.tag_uuid,
+  () => route.params.id,
   async (newId) => {
     if (itemId.value !== newId) {
       itemId.value = typeof newId === 'string' ? newId : ''

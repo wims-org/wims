@@ -3,7 +3,7 @@
     <div class="d-flex justify-content align-items-center p-2">
       <span :for="name">{{ label }}</span>
       <a
-        :href="`/items/${formData['tag_uuid']}`"
+        :href="`/items/${formData['id']}`"
         target="_blank"
         v-if="formData['short_name']"
       >

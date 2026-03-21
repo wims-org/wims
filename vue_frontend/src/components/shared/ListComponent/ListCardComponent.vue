@@ -22,7 +22,7 @@
       <div
         class="img-wrapper"
         :data-img-id="imageIndex"
-        ref="el => observeImage(el, item.tag_uuid)"
+        ref="el => observeImage(el, item.id)"
       >
         <div
           v-if="erroredImages[imageIndex] || !images[imageIndex] || !loadRequested"
