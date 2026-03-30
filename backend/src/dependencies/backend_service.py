@@ -30,7 +30,6 @@ class BackendService:
             logger.error(f"Error getting config key {key}, check config file and environment variables: {e}")
             self.llm_completion = None
 
-
         # Start category data import in the background, if needed
         if (cat_file := (Path(__file__).parent.parent.parent / "data" / "categories.json")).exists():
             import_thread = Thread(

@@ -40,16 +40,6 @@ class SseMessage(pydantic.BaseModel):
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
 
-class EventHandlerFactory:
-    _instance: EventHandler | None = None
-
-    @classmethod
-    def get_instance(cls) -> EventHandler:
-        if cls._instance is None:
-            cls._instance = EventHandler()
-        return cls._instance
-
-
 class EventHandler:
     """A class for handling events."""
 
@@ -144,6 +134,16 @@ class EventHandler:
                 self.__message_queues[stream_id].message_queue.append(msg)
 
 
+class EventHandlerFactory:
+    _instance: EventHandler | None = None
+
+    @classmethod
+    def get_instance(cls) -> EventHandler:
+        if cls._instance is None:
+            cls._instance = EventHandler()
+        return cls._instance
+
+
 # Dependency
 async def event_handler_dependency() -> AsyncGenerator[EventHandler]:
     async with asyncio.Lock():
@@ -153,7 +153,5 @@ async def event_handler_dependency() -> AsyncGenerator[EventHandler]:
 EventHandlerDep = Annotated[EventHandler, Depends(event_handler_dependency)]
 
 
-async def get_event_handler(
-    request: Request, event_handler: EventHandlerDep
-) -> None:
+async def get_event_handler(request: Request, event_handler: EventHandlerDep) -> None:
     return event_handler

@@ -1,13 +1,44 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import computed_field, model_serializer
+from pydantic import computed_field, field_validator, model_serializer
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base import SQLModelBase
 from .category import Category
 from .user import User
+
+
+class FileBase(SQLModel):
+    item_id: int | None = Field(default=None, foreign_key="item.id")
+    asset_path: str = Field(unique=True)
+    filename: str = Field()
+    filetype: str = Field()
+
+    @field_validator("filetype")
+    def check_known_filetypes(cls, v):
+        if v not in ["image", "manual", "driver", "firmware"]:
+            raise ValueError("Invalid file type")
+        return v
+
+
+class File(FileBase, SQLModelBase, table=True):
+    item: Optional["Item"] = Relationship(
+        sa_relationship_kwargs=dict(foreign_keys="File.item_id", remote_side="Item.id", lazy="selectin")
+    )
+
+
+class FilePublic(FileBase):
+    pass
+
+
+class FileCreate(FileBase):
+    pass
+
+
+class FileUpdate(FileBase):
+    pass
 
 
 class ItemBase(SQLModel):
@@ -28,7 +59,7 @@ class ItemBase(SQLModel):
     min_amount: int | None = None  # Minimum amount of items, for alerts
     # custom tags for categorization
     tags: list[str] = Field(default_factory=list, sa_column=Column(JSON))
-    # Bindata image document id, <16MB, collection "images"
+
     price_new: int | None = None  # per item in cents when new
     price_used: int | None = None  # per item in cents, for e.g. selling
     acquisition_date: datetime | None = None
@@ -69,6 +100,9 @@ class Item(ItemBase, SQLModelBase, table=True):
         sa_relationship_kwargs=dict(foreign_keys="Item.owner_id", remote_side="User.id", lazy="selectin")
     )
 
+    # # files
+    files: list["File"] = Relationship(sa_relationship_kwargs=dict(lazy="selectin", back_populates="item"))
+
 
 class ItemPublic(ItemBase):
     id: int
@@ -78,6 +112,8 @@ class ItemPublic(ItemBase):
     borrower: User | None = None
     author: User | None = None
     owner: User | None = None
+    images: list["File"] | None = None
+    files: list["File"] | None = None
 
     @computed_field
     def borrowed(self) -> bool:

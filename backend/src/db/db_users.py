@@ -3,9 +3,8 @@ from datetime import datetime
 import bson
 from bson.objectid import ObjectId
 from loguru import logger
-from pymongo.database import Database
-
 from models.database.user import User
+from pymongo.database import Database
 
 COLLECTION_NAME = "users"
 

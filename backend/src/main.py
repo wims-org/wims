@@ -1,21 +1,19 @@
-import asyncio
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 
 import sentry_sdk
-from alembic.config import Config
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from alembic import command
 from dependencies import database, event_handler, settings
 from routers import (
     # completion,
     config,
+    files,
     healthz,
     items,
     metrics,
@@ -67,6 +65,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         REQUEST_DURATION.labels(request.method, routePath, str(response.status_code)).observe(duration)
         return response
 
+
 if wims_config.sentry_dsn:
     sentry_sdk.init(
         dsn=wims_config.sentry_dsn,
@@ -80,16 +79,28 @@ else:
     logger.info("Started in development mode")
     root_path = "/"
 
+
 async def run_migrations():
-    alembic_cfg = Config("../alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", wims_config.database_uri)
-    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+    # TODO: Fix cyclic imports
+    # alembic_cfg = Config("../alembic.ini")
+    # alembic_cfg.set_main_option("sqlalchemy.url", wims_config.database_uri)
+    # await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+    pass
+
+
+def check_asset_path():
+    if not wims_config.asset_path.exists():
+        try:
+            wims_config.asset_path.mkdir(parents=True)
+        except (FileNotFoundError, OSError) as e:
+            raise e
 
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
     logger.info("run alembic upgrade head...")
     await run_migrations()
+    check_asset_path()
     yield
 
 
@@ -107,6 +118,7 @@ app = FastAPI(
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(readers.router)
+app.include_router(files.router)
 
 # app.include_router(queries.router)
 app.include_router(config.router)

@@ -3,6 +3,7 @@ authors = [{name = "EeveesEyes"}]
 dependencies = [
   "aiomysql>=0.3.2",
   "alembic>=1.18.4",
+  "asyncpg>=0.31.0",
   "fastapi>=0.122.0",
   "fastapi-utils>=0.8.0",
   "jsonschema>=4.25.1",

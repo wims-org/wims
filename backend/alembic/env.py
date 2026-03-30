@@ -4,6 +4,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 import sqlalchemy as sa
+import src.models.sql_root as wims_db_model  # noqa: F403, I001
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import CompileError
@@ -16,6 +17,8 @@ SRC_PATH = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
+target_metadata = wims_db_model.SqlRoot.metadata
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -24,7 +27,7 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    #fileConfig(config.config_file_name)
+    # fileConfig(config.config_file_name)
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # add your model's MetaData object here
@@ -50,6 +53,7 @@ def _render_item(type_, obj, autogen_context):
         if isinstance(obj, sa.Uuid):
             return "sa.String(length=36)"
     return False
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
@@ -6,13 +7,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    frontend_host: str  = "localhost"
+    frontend_host: str = "localhost"
     database_uri: str
     log_level: str = "WARN"
     sentry_dsn: str = ""
     features_openai_api_key: str = ""
+    asset_path: Path = "./data/assets"
 
     model_config = SettingsConfigDict(env_file=".env")
+
 
 @lru_cache
 def get_settings() -> Settings:
