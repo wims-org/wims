@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch } from 'vue'
 import { fieldTypeToComponent } from '@/utils/form.helper'
 import { formFields } from '@/interfaces/FormField.interface'
 

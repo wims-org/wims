@@ -66,9 +66,9 @@
             :data-img-id="item.id"
             :title="item.short_name"
             :description="item.description"
-            :images="item.images"
+            :images="item.images || []"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.id]"
+            :load-requested="loadRequested[''+item.id]"
           />
         </template>
 
@@ -77,9 +77,9 @@
             class="image-component"
             :data-img-id="item.id"
             :title="item.short_name"
-            :images="item.images"
+            :images="item.images || []"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.id]"
+            :load-requested="loadRequested[''+item.id]"
           />
         </template>
       </div>
@@ -94,7 +94,7 @@ import type { components } from '@/interfaces/api-types'
 import ListCardComponent from '@/components/shared/ListComponent/ListCardComponent.vue'
 import ListItemComponent from '@/components/shared/ListComponent/ListItemComponent.vue'
 
-type Item = components['schemas']['Item']
+type Item = components['schemas']['ItemPublic']
 
 // Props
 const props = defineProps({

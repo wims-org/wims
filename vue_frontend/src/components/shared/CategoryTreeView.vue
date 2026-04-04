@@ -86,7 +86,7 @@ import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-type Category = components['schemas']['CategoryReqRes']
+type Category = components['schemas']['CategoryPublic']
 
 type CategoryNode = Category & {
   _id?: string

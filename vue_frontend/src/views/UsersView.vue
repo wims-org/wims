@@ -16,7 +16,7 @@
           <span class="text-muted">{{ user.email }}</span>
         </div>
         <button @click.stop="router.push('/users/' + user._id)" class="btn btn-primary btn-sm me-2">View Profile</button>
-        <button @click.stop="deleteUser(user._id)" class="btn btn-danger btn-sm">Delete</button>
+        <button @click.stop="deleteUser(user.id)" class="btn btn-danger btn-sm">Delete</button>
       </li>
       <div v-if="users.length === 0" class="list-group-item">
         <div class="spinner-border spinner-border-sm" role="status"></div>
@@ -106,9 +106,9 @@ async function deselectUser() {
   await clientStoreInstance.unsetUser()
 }
 
-const deleteUser = async (userId: string) => {
-  await axios.delete(`/users/${userId}`)
-  users.value = users.value.filter((user) => user._id !== userId)
+const deleteUser = async (user: User) => {
+  await axios.delete(`/users/${user.id}`)
+  users.value = users.value.filter((u) => u.id !== user.id)
 }
 </script>
 <style scoped></style>

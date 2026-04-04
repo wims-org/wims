@@ -6,7 +6,7 @@
       <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
         <div v-for="(image, index) in value" :key="index" class="thumbnail-container m-2"
           @click="selector?selectImage(image):openImageModal(image)">
-          <img :src="image" class="thumbnail" alt="Image Thumbnail" />
+          <img :src="image.asset_url" class="thumbnail" alt="Image Thumbnail" />
           <button type="button" class="remove-btn" @click.stop="removeImage(index)">
             <font-awesome-icon icon="times" />
           </button>
@@ -26,7 +26,7 @@
           </button>
         </div>
       </div>
-      <ImageModal v-if="showModal && selectedImage" :image="selectedImage" @close="closeImageModal" />
+      <ImageModal v-if="showModal && selectedImage" :image="selectedImage.asset_url" @close="closeImageModal" />
     </div>
   </BContainer>
 </template>
@@ -34,6 +34,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import ImageModal from '@/components/shared/ImageModal.vue'
+import ApiService from '@/services/ApiService'
+import type { File } from '@/interfaces/file.interface'
 
 const props = defineProps({
   name: {
@@ -45,7 +47,7 @@ const props = defineProps({
     required: false,
   },
   value: {
-    type: Array as () => (string[] | null),
+    type: Array as () => (File[] | null),
     default: () => [],
   },
   disabled: {
@@ -67,41 +69,44 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string[]): void
-  (e: 'update:selectedImages', value: string[]): void
+  (e: 'update:value', value: File[]): void
+  (e: 'update:selectedImages', value: File[]): void
 }>()
 
 const cameraInput = ref<HTMLInputElement | null>(null)
 const showModal = ref(false)
-const selectedImage = ref<string | null>(null)
-const selectedImages = ref<string[]>([])
+const selectedImage = ref<File | null>(null)
+const selectedImages = ref<File[]>([])
 
 function triggerCameraInput() {
   cameraInput.value?.click()
 }
 
-function addImage(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files.length > 0) {
-    const file = input.files[0]
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        const updatedValue = [...(props.value || []), e.target.result as string] as string[]
-        emit('update:value', updatedValue)
-      }
+async function addImage(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    const formData = new FormData()
+    formData.append('file', file) 
+    try {
+      const newImage: File = await ApiService.createFile(formData)
+      const updatedValue = props.value ? [...props.value, newImage] : [newImage]
+      emit('update:value', updatedValue)
+    } catch (error) {
+      console.error('Error uploading image:', error)
+    } finally {
+      target.value = '' // Reset the input
     }
-    reader.readAsDataURL(file)
   }
 }
 
 function removeImage(index: number) {
   if (!props.value) return
-  const updatedValue = props.value.filter((_, i) => i !== index) as string[]
+  const updatedValue = props.value.filter((_, i) => i !== index) as File[]
   emit('update:value', updatedValue)
 }
 
-function openImageModal(image: string) {
+function openImageModal(image: File) {
   selectedImage.value = image
   showModal.value = true
 }
@@ -111,7 +116,7 @@ function closeImageModal() {
   selectedImage.value = null
 }
 
-function selectImage(image: string) {
+function selectImage(image: File) {
   if (selectedImages.value.includes(image)) {
     selectedImages.value = selectedImages.value.filter((img) => img !== image)
   } else {

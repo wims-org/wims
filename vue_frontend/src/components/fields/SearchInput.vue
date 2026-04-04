@@ -42,7 +42,7 @@ import { SearchType, SearchTypeEndpoint } from '@/interfaces/FormField.interface
 
 import type { components } from '@/interfaces/api-types'
 type User = components['schemas']['User'] & { [key: string]: unknown }
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
 type Category = components['schemas']['Category'] & { [key: string]: unknown }
 

@@ -33,12 +33,12 @@ export const SearchTypeEndpoint: Record<SearchType, string> = {
   [SearchType.CATEGORY]: '/categories/search/',
 }
 export const formFields: Record<string, FormField> = {
-  tag_uuid: { label: 'Item UUID', type: 'text', disabled: true, hidden: false, details: false, required: true },
+  id: { label: 'ID', type: 'text', disabled: true, hidden: false, details: false, required: false },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: false, required: false },
   images: { label: 'Images', type: 'images', disabled: false, hidden: false, details: false, required: false },
-  amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: true },
-  item_type: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: true, search_type: SearchType.CATEGORY },
+  amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: false, required: false },
+  item_type: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: false, search_type: SearchType.CATEGORY },
   tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: false },
   consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: false, required: false },
   created_at: { label: 'Created At', type: 'epoch', disabled: true, hidden: false, details: false, required: false },
@@ -48,6 +48,7 @@ export const formFields: Record<string, FormField> = {
   acquisition_date: { label: 'Acquisition Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
   manufacturing_date: { label: 'Manufacturing Date', type: 'epoch', disabled: false, hidden: false, details: false, required: false },
   container_id: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
+  tag_uuid: { label: 'RFID UUID', type: 'text', disabled: false, hidden: false, details: false, required: true },
 
   container: { label: 'Container', type: 'item', disabled: true, hidden: false, details: true, required: false },
   changes: { label: 'Changes', type: 'array', disabled: true, hidden: true, details: true, required: false },

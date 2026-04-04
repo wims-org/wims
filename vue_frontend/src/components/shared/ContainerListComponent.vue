@@ -56,7 +56,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string): void
+  (e: 'update:value', value: number): void
 }>()
 
 const loading = ref(true)
@@ -87,10 +87,10 @@ const fetchContainerChain = async () => {
   }
 }
 
-const handleContainerSelect = async (tag: string) => {
+const handleContainerSelect = async (id: number|undefined) => {
   showSearchModal.value = false
-  if (tag && tag !== '') {
-    emit('update:value', tag)
+  if (id) {
+    emit('update:value', id)
     loading.value = true
   }
 }

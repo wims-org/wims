@@ -3,6 +3,7 @@ services:
     image: nginx:alpine
     volumes:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./backend/src/data:/data
     ports:
       - 8080:80
     depends_on:
@@ -39,17 +40,6 @@ services:
       MARIADB_ROOT_PASSWORD: example
       MARIADB_DATABASE: wims
 
-  db_legacy:
-    image: mongodb/mongodb-community-server:latest
-    restart: unless-stopped
-    volumes:
-      - mongodb-data:/data/db
-      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/e_setup_database.js:ro
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-
-  
 
 volumes:
   mariadb-data:

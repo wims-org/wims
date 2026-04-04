@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
-from models.item import Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
+from models.item import File, Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
@@ -25,14 +25,37 @@ class ContainerObject(BaseModel):
     short_name: str
 
 
+async def _add_item_ids_to_files(item_id: int, item_data: ItemCreate | ItemUpdate, session: AsyncSession) -> None:
+    """Link uploaded files/images to an item by setting File.item_id."""
+    """Why is this necessary? How to implicitly link existing files to items?"""
+    payload_files = (item_data.images or []) + (item_data.files or [])
+    if not payload_files:
+        return
+
+    requested_ids = sorted({f.id for f in payload_files})
+    db_files = (await session.execute(select(File).where(File.id.in_(requested_ids)))).scalars().all()
+    db_file_by_id = {db_file.id: db_file for db_file in db_files}
+
+    missing_ids = [file_id for file_id in requested_ids if file_id not in db_file_by_id]
+    if missing_ids:
+        raise HTTPException(status_code=404, detail=f"File ids not found: {missing_ids}")
+
+    for file_id in requested_ids:
+        db_file = db_file_by_id[file_id]
+        db_file.item_id = item_id
+        session.add(db_file)
+
+
 @router.post("", response_model=ItemPublic)
 async def create_item(item: ItemCreate, session: SessionDep):
-    db_item = Item.model_validate(item)
+    db_item = Item.model_validate(item.model_dump(exclude={"images", "files"}))
     session.add(db_item)
     try:
         await session.commit()
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+    await _add_item_ids_to_files(db_item.id, item, session)
+    await session.commit()
     await session.refresh(db_item)
     return db_item
 
@@ -65,11 +88,12 @@ async def get_all_item(session: SessionDep, offset: int = 0, limit: int = 10):
 @router.put("/{id}", response_model=ItemPublic)
 async def update_item(id: str, item: ItemUpdate, session: SessionDep):
     db_item = await session.get(Item, id)
-    if not item:
+    if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    update = item.model_dump(exclude_unset=True)
+    update = item.model_dump(exclude_unset=True, exclude={"images", "files"})
     db_item.sqlmodel_update(update)
     session.add(db_item)
+    await _add_item_ids_to_files(db_item.id, item, session)
     await session.commit()
     await session.refresh(db_item)
     return db_item

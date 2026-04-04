@@ -7,13 +7,13 @@ import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import type { BarcodeFormats } from '@/interfaces/reader.interface'
 
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 export const clientStore = defineStore('client', {
   state: () => ({
     client_id: uuidv4(),
     reader_id: '',
-    reader: {} as components['schemas']['Reader'],
+    reader: {} as components['schemas']['ReaderPublic'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],
@@ -67,14 +67,14 @@ export const clientStore = defineStore('client', {
       this.client_id = client_id
     },
     setUser(userId: string) {
-      if (this.user && this.user.id === userId) {
+      if (this.user && ''+this.user.id === userId) {
         return
       }
       axios
         .get(`/users/${userId}`)
         .then((response) => {
           this.user = response.data
-          sessionStorage.setItem('user_id', userId)
+          sessionStorage.setItem('user_id', ''+userId)
           sessionStorage.setItem('user_id_time', Date.now().toString())
         })
         .catch((error) => {

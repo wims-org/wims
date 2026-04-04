@@ -4,20 +4,31 @@ from logging.config import fileConfig
 from pathlib import Path
 
 import sqlalchemy as sa
-import src.models.sql_root as wims_db_model  # noqa: F403, I001
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import CompileError
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
+# ruff: noqa: F403, I001, F401
+import src.models.base
+
+# ruff: noqa: F403, I001, F401
+import src.models.category
+
+# ruff: noqa: F403, I001, F401
+import src.models.item
+
+# ruff: noqa: F403, I001, F401
+import src.models.reader
+
+# ruff: noqa: F403, I001, F401
+import src.models.user
 from alembic import context
 
 SRC_PATH = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
-
-target_metadata = wims_db_model.SqlRoot.metadata
 
 
 # this is the Alembic Config object, which provides

@@ -74,7 +74,7 @@ import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
 import { clientStore } from '@/stores/clientStore'
 
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 
 // Props
 const props = defineProps({
@@ -97,7 +97,7 @@ const props = defineProps({
 const visibleFields = computed(() => {
   return Object.fromEntries(
     Object.entries(formFields).filter(
-      ([, field]) => !field.disabled && !field.hidden || (field.details && showDetails.value),
+      ([, field]) => !field.hidden || (field.details && showDetails.value),
     ),
   )
 })
@@ -141,6 +141,7 @@ const getFieldComponent = (type: string) => {
 }
 
 const updateFieldModel = (value: unknown, key: string, type: string) => {
+  console.log(`Updating field '${key}' with value:`, value) // Debug log
   if (value === formData.value[key]) return // No change, do nothing
   if (type === 'checkbox') {
     formData.value[key] = Boolean(value)
@@ -151,13 +152,13 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
   } else if (type === 'array') {
     formData.value[key] = value
   } else if (key === 'container_id') {
-    if (typeof value === 'string' && value.trim() !== '') {
+    if (value && !Number.isNaN(value)) {
       axios
         .get<Item>(`/items/${value}`)
         .then((response) => (formData.value['container'] = response.data))
         .catch(() => {
-          console.warn(`Container with UUID ${value} not found, creating new container entry`)
-          formData.value['container'] = { id: value } as Item
+          console.warn(`Container with ID ${value} not found, creating new container entry`)
+          formData.value['container'] = { id: +value } as Item
         })
     } else {
       formData.value['container'] = null // Clear the field if no value

@@ -136,8 +136,11 @@ import { fieldTypeToComponent } from '@/utils/form.helper'
 import { clientStore } from '@/stores/clientStore'
 import { EventAction } from '../interfaces/EventAction'
 import type { components } from '@/interfaces/api-types'
+import ApiService from '@/services/ApiService'
 
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type ScanRequest = components['schemas']['ScanRequest'] & { [key: string]: unknown }
+
 
 const DEFAULT_COLUMNS = [
   'id',
@@ -151,7 +154,7 @@ const DEFAULT_COLUMNS = [
 const columns = reactive([...DEFAULT_COLUMNS])
 const submitError = ref('')
 const submitErrorStatus = ref(null)
-const errorItems = ref<Array<string>>([])
+const errorItems = ref<Array<number>>([])
 const submitSuccess = ref(false)
 const saved_action = ref<EventAction | null>(null)
 const emptyItem: Partial<Item> = { consumable: false, amount: 1 }
@@ -314,14 +317,15 @@ const filterErrorUUIDs = () => {
   submitErrorStatus.value = null
 }
 
-const fetchAndAddItemToTable = async (scanData: { rfid: string }) => {
+const fetchAndAddItemToTable = async (scanData: ScanRequest) => {
   if (clientStore().expected_event_action !== EventAction.FORM_SCAN_ADD) return
-  if (!scanData?.rfid) return
-  if (items.some((item) => item.id === scanData.rfid)) return
+  if (!scanData?.id) return
+  if (items.some((item) => item.id === scanData.id)) return
   const newRow = Object.assign({}, emptyItem)
-  newRow.id = scanData.rfid
+  newRow.id = scanData.id
+  newRow.tag_uuid = scanData.data?.rawValue
   try {
-    const { data } = await axios.get<Item>(`/items/${scanData.rfid}`)
+    const data = await ApiService.getItem(scanData.id)
     Object.assign(newRow, data)
   } catch {
     // If not found, leave as new item
@@ -346,7 +350,7 @@ onMounted(() => {
   saved_action.value = clientStore().expected_event_action
   setColumnWidthsFromStorage()
   clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) =>
+  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: ScanRequest) =>
     fetchAndAddItemToTable(scanData),
   )
 })
@@ -387,7 +391,7 @@ const updateField = (
   } else if (type === 'array') {
     items[rowIdx][col] = value
   } else if (col === 'container_id') {
-    items[rowIdx][col] = '' + value
+    items[rowIdx][col] = +value
     if (value) {
       axios
         .get<Item>(`/items/${value}`)

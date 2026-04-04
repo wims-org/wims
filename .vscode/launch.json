@@ -1,4 +1,13 @@
 {
+  "compounds": [
+    {
+      "name": "Backend & Frontend",
+      "configurations": [
+        "backend",
+        "frontend"
+      ]
+    }
+  ],
   "configurations": [
     {
       "name": "backend",
@@ -12,7 +21,7 @@
         "--host",
         "0.0.0.0",
         "--port",
-        "5005",
+        "8000",
         "--reload",
         "--timeout-graceful-shutdown",
         "0"
@@ -45,7 +54,7 @@
       "runtimeExecutable": "npx",
       "args": [
         "openapi-typescript",
-        "http://127.0.0.1:5005/openapi.json",
+        "http://127.0.0.1:5005/api/openapi.json",
         "--output",
         "src/interfaces/api-types.ts"
       ]

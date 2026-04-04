@@ -23,11 +23,11 @@ import router from '@/router'
 import CategoryTreeView from '@/components/shared/CategoryTreeView.vue'
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 
-type Category = components['schemas']['CategoryReqRes']
+type Category = components['schemas']['CategoryPublic']
 
 const category = ref<Category | null>(null)
-const items = ref<components['schemas']['Item'][]>([])
-const containers = ref<components['schemas']['Item'][]>([])
+const items = ref<components['schemas']['ItemPublic'][]>([])
+const containers = ref<components['schemas']['ItemPublic'][]>([])
 const containers_query = ref<SearchQuery>({})
 const items_query = ref<SearchQuery>({})
 

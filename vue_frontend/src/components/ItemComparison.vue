@@ -83,8 +83,7 @@ import SearchModal from '@/components/shared/SearchModal.vue';
 import type { PropType } from 'vue';
 import type { components } from '@/interfaces/api-types';
 import { useThemeStore } from '@/stores/themeStore';
-import { not } from '@vuelidate/validators';
-type Item = components['schemas']['Item'] & { [key: string]: unknown };
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown };
 
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.theme === 'dark')
@@ -154,8 +153,8 @@ const handleInputClick = (key: string) => {
   }
 };
 
-const handleSelect = (tag: string) => {
-  formData_org.value.container_id = tag;
+const handleSelect = (id: number|undefined) => {
+  formData_org.value.container_id = id;
 };
 
 const closeModal = () => {

@@ -21,7 +21,7 @@ import { watch } from 'vue'
 const router = useRouter()
 
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 
 // Props
 const props = defineProps({
@@ -135,12 +135,12 @@ watch(
   },
 )
 
-const handleSelect = (item: { id: string }) => {
-  const tag = item.id
-  const offset = items.value.findIndex((i) => i.id === tag)
-  console.log('Selected tag:', tag)
+const handleSelect = (item: { id: number }) => {
+  const id = item.id
+  const offset = items.value.findIndex((i) => i.id === id)
+  console.log('Selected tag:', id)
   router.push(
-    `/items/${tag}` +
+    `/items/${id}` +
     (searchQuery.value
       ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
       : ''),

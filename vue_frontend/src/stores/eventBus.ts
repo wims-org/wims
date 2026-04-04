@@ -1,13 +1,13 @@
 import type { EventAction } from '@/interfaces/EventAction';
 import mitt from 'mitt'
-
+import type { components } from '@/interfaces/api-types';
 type Events = {
-  [EventAction.REDIRECT]: { rfid: string; reader_id: string }
-  [EventAction.FORM_SCAN_ADD]: { rfid: string; reader_id: string }
-  [EventAction.CONTAINER_SCAN]: { rfid: string; reader_id: string }
+  [EventAction.REDIRECT]: components['schemas']['ScanRequest']
+  [EventAction.FORM_SCAN_ADD]: components['schemas']['ScanRequest']
+  [EventAction.CONTAINER_SCAN]: components['schemas']['ScanRequest']
   [EventAction.ALIVE]: { reader_id: string }
   [EventAction.COMPLETION]: { data: { response: object } }
-  [EventAction.ERROR]:  { rfid: string; reader_id: string, data: { message: string } }
+  [EventAction.ERROR]: { id: string; reader_id: string, data: { message: string } }
 }
 
 const eventBus = mitt<Events>()

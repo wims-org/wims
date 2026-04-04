@@ -35,7 +35,7 @@
         >
           Update User
         </BButton>
-        <span class="ms-2">since: {{ formatDate(user?.date_created) }}</span>
+        <span class="ms-2">since: {{ formatDate(user?.created_at) }}</span>
       </BFormGroup>
     </BForm>
     <hr />
@@ -44,7 +44,7 @@
         <BButton v-if="clientStoreInstance.user" variant="secondary" class="me-2" @click="logout">
           Logout
         </BButton>
-        <BButton v-else variant="primary" class="me-2" @click="selectUser(user?._id ?? '')">
+        <BButton v-else variant="primary" class="me-2" @click="selectUser(user?.id ?? undefined)">
           Select this user
         </BButton>
         <BButton variant="danger" @click="deleteUser"> Delete this user </BButton>
@@ -57,7 +57,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
 import { useRouter } from 'vue-router'
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 const router = useRouter()
 const blockSubmission = ref(false)
@@ -112,7 +112,7 @@ const submitUser = async () => {
     })
 }
 
-async function selectUser(userId: string) {
+async function selectUser(userId: number) {
   await clientStoreInstance.setUser(userId)
 }
 

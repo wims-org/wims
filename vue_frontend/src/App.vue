@@ -31,7 +31,11 @@ onMounted(async () => {
 
   // Handle scan event from event bus
   eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
-    router.push('/items/' + data.rfid)
+    if (data.id) {
+      router.push('/items/' + data.id)
+    } else {
+      router.push('/items/new?' + data.data?.format + '=' + data.data?.rawValue)
+    }
   })
 
   clientStore().fetchBackendConfig()
@@ -56,7 +60,7 @@ watch(
 .content {
   flex-grow: 1;
   margin: 1.5rem auto;
-  padding: 0 0.5rem ;
+  padding: 0 0.5rem;
   max-width: var(--content-max-width) !important;
 }
 

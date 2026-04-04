@@ -30,7 +30,7 @@ class Event(enum.Enum):
 class SseMessage(pydantic.BaseModel):
     class SseMessageData(pydantic.BaseModel):
         reader_id: str | None = None
-        rfid: str | None = None  # Todo rename RFID to tag id
+        id: int | None = None
         data: dict | None = None
         stream_id: str | None = None
 

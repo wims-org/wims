@@ -68,7 +68,7 @@ import ItemList from '@/components/ItemList.vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
 
 const searchQuery = ref('')

@@ -21,7 +21,7 @@ async def create_file(
     file: UploadFile, session: Annotated[AsyncSession, Depends(database.get_db_session)], settings: SettingsDep
 ):
     data = file.file.read()
-    asset_path = md5(data).hexdigest()
+    asset_path = md5(data).hexdigest() + "." + file.filename.split(".")[-1]
     asset_path: Path = settings.asset_path / asset_path
     asset_path.write_bytes(data)
 

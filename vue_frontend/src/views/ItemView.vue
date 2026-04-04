@@ -1,11 +1,9 @@
 <template>
   <BContainer fluid class="d-flex row" data-testid="item-view">
     <BCol class="col-1 p-0 text-end">
-      <router-link
-        v-show="previousItemId"
+      <router-link v-show="previousItemId"
         :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
-        class="text-decoration-none arrow-button"
-      >
+        class="text-decoration-none arrow-button">
         <IFaArrowLeft />
       </router-link>
     </BCol>
@@ -15,61 +13,33 @@
       <h1 class="m-4">{{ item?.short_name }}</h1>
       <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
         <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
-          <ContainerListComponent
-            v-if="item?.id"
-            :itemId="typeof item?.id === 'string' ? item?.id : ''"
-            @update:value="handleContainerSelect"
-          />
-          <button
-            @click="() => (showModal = true)"
-            class="btn btn-primary my-3"
-            data-testid="add-content-button"
-          >
+          <ContainerListComponent v-if="item?.id" :itemId="typeof item?.id === 'string' ? item?.id : ''"
+            @update:value="handleContainerSelect" />
+          <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
             Add content now
           </button>
-          <ItemListContainer
-            :settingsId="'item-view-container'"
-            :query="{
-              query: { container_id: itemId },
-            }"
-            @select="handleItemSelect"
-            :title="`Items in ${item?.short_name}`"
-          />
+          <ItemListContainer :settingsId="'item-view-container'" :query="{
+            query: { container_id: itemId },
+          }" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
         </BTab>
         <BTab title="Item Data" id="itemData" data-testid="item-data">
-          <button
-            v-if="completion"
-            @click="() => (isComparing = !isComparing)"
-            class="btn btn-secondary mb-3"
-          >
+          <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
             Toggle Comparison
           </button>
-          <ItemCompare
-            v-if="isComparing && completion && item"
-            :item_org="item"
-            :item_new="completion"
-            :newItem="newItem"
-            @submit="handleFormSubmit"
-            :key="item?.id"
-          />
+          <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
+            :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
           <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
         </BTab>
-        <BTab
-          v-if="clientStore.backend_config?.llm_enabled"
-          title="Object Identification"
-          id="objectIdentification"
-          data-testid="object-identification"
-        >
-          <LLMCompletion :images="item?.images" :key="item?.id" />
+        <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
+          data-testid="object-identification">
+          <LLMCompletion :images="item?.images || []" :key="item?.id" />
         </BTab>
       </BTabs>
     </BCol>
     <BCol class="col-1 p-0">
-      <router-link
-        v-show="nextItemId"
+      <router-link v-show="nextItemId"
         :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
-        class="text-decoration-none arrow-button"
-      >
+        class="text-decoration-none arrow-button">
         <IFaArrowRight />
       </router-link>
     </BCol>
@@ -91,21 +61,18 @@ import ItemForm from '../components/ItemForm.vue'
 import ItemCompare from '../components/ItemComparison.vue'
 import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
+import ApiService from '@/services/ApiService'
 
 type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
+
 
 // Reactive State
 const route = useRoute()
 const router = useRouter()
-const itemId = ref<string>(
-  typeof route.params.id === 'string'
-    ? route.params.id
-    : Array.isArray(route.params.id)
-      ? route.params.id[0]
-      : '',
-)
-const item = ref<Item>()
+const itemId = ref<number | undefined>(typeof route.params.id === 'string' ? +route.params.id : undefined)
+const item = ref<Item>({} as Item)
 const newItem = ref(false)
 const isComparing = ref(false)
 const completion = ref<Item>()
@@ -114,8 +81,8 @@ const saveSuccess = ref('')
 const items = ref<Item[]>([])
 const showModal = ref(false)
 const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
-const previousItemId = ref<string>('')
-const nextItemId = ref<string>('')
+const previousItemId = ref<number | undefined>(undefined)
+const nextItemId = ref<number | undefined>(undefined)
 const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
@@ -126,15 +93,15 @@ const clientStore = useClientStore()
 // Methods
 const fetchItem = async () => {
   try {
-    const response = await axios.get(`/items/${itemId.value}`)
-    console.log('Fetched item:', response.data)
-    item.value = response.data
+    const data = await ApiService.getItem(itemId.value as number)
+    console.log('Fetched item:', data)
+    item.value = data
     newItem.value = false
     isComparing.value = false
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       newItem.value = true
-      item.value = { id: itemId.value } as Item
+      item.value = {} as Item
       console.warn('Item not found, display empty item form')
     } else {
       item.value = { id: itemId.value } as Item
@@ -148,8 +115,8 @@ const fetchItem = async () => {
 }
 
 const fetchPrevNextItems = async () => {
-  previousItemId.value = ''
-  nextItemId.value = ''
+  previousItemId.value = undefined
+  nextItemId.value = undefined
   if (!query_param.value) return
   const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
   try {
@@ -176,7 +143,7 @@ const fetchPrevNextItems = async () => {
       nextItemId.value = (nextItem.data.pop() as Item).id
     }
   } catch {
-    nextItemId.value = ''
+    nextItemId.value = undefined
   }
 }
 
@@ -185,14 +152,17 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
   try {
     isComparing.value = false
     const requestData = buildItemRequest(formData)
+    console.log('Request data:', requestData)
     if (newItem.value) {
-      await axios.post('/items', requestData)
+      await ApiService.createItem(requestData as Item).then(res =>
+        router.push(`/items/${res.data.id}`)
+      )
       saveSuccess.value = 'Item created successfully'
       setTimeout(() => {
         saveSuccess.value = ''
       }, 5000)
     } else {
-      await axios.put(`/items/${itemId.value}`, requestData)
+      await ApiService.updateItem(itemId.value as number, requestData as ItemUpdate)
       saveSuccess.value = 'Item updated successfully'
       setTimeout(() => {
         saveSuccess.value = ''
@@ -210,7 +180,6 @@ const buildItemRequest = (formData: Record<string, unknown>): Record<string, unk
   // Transform the formData into the format expected by the API
   return {
     ...formData,
-    owner: null,
   }
 }
 
@@ -225,8 +194,8 @@ const handleCompletion = (result: { data: { response: object } }) => {
 }
 
 const handleItemSelect = (item: Item) => {
-  const tag = item.id
-  console.log('Selected tag:', tag)
+  const id = item.id
+  console.log('Selected item with id:', id)
   const offset = items.value.findIndex((i) => i.id === item.id)
   const query = {
     query: {
@@ -234,25 +203,28 @@ const handleItemSelect = (item: Item) => {
     },
   }
   router.push(
-    `/items/${tag}` +
-      (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    `/items/${id}` +
+    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
   )
 }
 
-const handleContentSelect = async (tag: string) => {
+const handleContentSelect = async (id: number | undefined) => {
+  if (!id) {
+    return;
+  }
   try {
-    const selectedItem = await axios.get(`/items/${tag}`)
-    selectedItem.data['container_id'] = itemId.value
-    selectedItem.data['container_name'] = item.value?.short_name
+    const selectedItem = await ApiService.getItem(id)
+    selectedItem['container_id'] = itemId.value
+    selectedItem['container_name'] = item.value?.short_name
 
-    await axios.put(`/items/${tag}`, selectedItem.data)
+    await ApiService.updateItem(id, selectedItem)
   } catch (error) {
     saveError.value = 'Could not save changes. Please try again.'
     console.error(error)
-  } 
+  }
 }
 
-const handleContainerSelect = (tag: string) => {
+const handleContainerSelect = (tag: number) => {
   if (!item.value) return
   item.value.container_id = tag
 }
@@ -279,15 +251,22 @@ const handle_item_next = () => {
 }
 
 // Lifecycle Hooks
-onMounted(fetchItem)
 onMounted(() => {
+  if (route.params.id !== "new") {
+    fetchItem()
+  } else {
+    newItem.value = true;
+  }
   query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
+  item.value.tag_uuid = route.query.rawValue as string || null
+
+
   if (query_param.value) {
     fetchPrevNextItems()
   } else {
-    previousItemId.value = ''
-    nextItemId.value = ''
+    previousItemId.value = undefined
+    nextItemId.value = undefined
   }
   // Keyboard navigation: left/right arrows navigate prev/next item.
   const onKeyDown = (e: KeyboardEvent) => {
@@ -328,17 +307,23 @@ eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
 // Watchers
 watch(
   () => route.params.id,
-  async (newId) => {
-    if (itemId.value !== newId) {
-      itemId.value = typeof newId === 'string' ? newId : ''
+  async (_newId) => {
+    if (_newId === 'new') {
+      newItem.value = true
+      itemId.value = undefined
+    }
+    if (!Number.isNaN(_newId) && itemId.value !== Number(_newId)) {
+      const newId = Number(_newId)
+      itemId.value = newId
       items.value = []
-      item.value = undefined
+      item.value = {} as Item
       completion.value = undefined
       newItem.value = false
       isComparing.value = false
       await fetchItem()
       await fetchPrevNextItems()
     }
+    items.value = []
   },
 )
 
@@ -351,8 +336,22 @@ watch(
       await fetchPrevNextItems()
     } else {
       query_param.value = ''
-      previousItemId.value = ''
-      nextItemId.value = ''
+      previousItemId.value = undefined
+      nextItemId.value = undefined
+    }
+  },
+)
+
+watch(
+  () => [route.query.rawValue, route.query.format],
+  async ([newRawValue, newFormat]) => {
+    console.log('new values ', newRawValue)
+    if (item.value !== undefined && newRawValue && (typeof newRawValue === 'string' || typeof newRawValue === 'number')) {
+      item.value.tag_uuid = newRawValue
+    } else {
+      query_param.value = ''
+      previousItemId.value = undefined
+      nextItemId.value = undefined
     }
   },
 )
@@ -379,6 +378,7 @@ watch(
   top: 45vh;
   font-size: 1.2rem;
   transform: translateX(-50%);
+
   &:hover {
     background-color: unset;
   }

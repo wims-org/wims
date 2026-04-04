@@ -56,8 +56,11 @@
 // Item component for displaying a single item in a list with a picture slider and title.
 // Props definition containing pictures array and title string. Emit event on item click.
 import { ref } from 'vue'
+import type { components } from '@/interfaces/api-types.ts'
+type FilePublic = components['schemas']['FilePublic']
+
 const props = defineProps<{
-  images: string[]
+  images: FilePublic[]
   title: string
   imageSize?: number
   loadRequested?: boolean

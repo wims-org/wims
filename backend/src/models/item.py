@@ -30,7 +30,7 @@ class File(FileBase, SQLModelBase, table=True):
 
 
 class FilePublic(FileBase):
-    pass
+    id: int
 
 
 class FileCreate(FileBase):
@@ -101,19 +101,20 @@ class Item(ItemBase, SQLModelBase, table=True):
     )
 
     # # files
-    files: list["File"] = Relationship(sa_relationship_kwargs=dict(lazy="selectin", back_populates="item"))
+    files: list["File"] = Relationship(
+        sa_relationship_kwargs=dict(lazy="selectin", back_populates="item", remote_side="File.item_id")
+    )
 
 
 class ItemPublic(ItemBase):
     id: int
-    category: Category | None = None
+    category: Category | None = None  # Todo account for new Categories by allowing string?
     container: Item | None = None
     content: list[Item] | None = None
     borrower: User | None = None
     author: User | None = None
-    owner: User | None = None
-    images: list["File"] | None = None
-    files: list["File"] | None = None
+    owner: User | None = None  # Todo account for new users by allowing string?
+    files: list[FilePublic] | None = None
 
     @computed_field
     def borrowed(self) -> bool:
@@ -122,12 +123,16 @@ class ItemPublic(ItemBase):
 
 class ItemCreate(ItemBase):
     tags: set[str] = []
+    images: list["FilePublic"] | None = None
+    files: list["FilePublic"] | None = None
 
 
 class ItemUpdate(ItemBase):
     tags: set[str] = []
     short_name: str | None = None
     tag_uuid: str | None = None
+    images: list["FilePublic"] | None = None
+    files: list["FilePublic"] | None = None
 
     @model_serializer(mode="wrap")  # noqa: F821
     def _serialize(self, handler):

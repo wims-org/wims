@@ -1,4 +1,4 @@
-from typing import Any
+import enum
 
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -12,11 +12,21 @@ from models.item import Item
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
 
 
+class CodeFormat(enum.Enum):
+    DATA_MATRIX = "data_matrix"
+
+
+class ScanRequestData(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    rawValue: str | None
+    format: CodeFormat | str | None
+
+
 class ScanRequest(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     reader_id: str
-    tag_id: str
-    data: dict | str | Any = None
+    id: int
+    data: ScanRequestData | None = None  # includes data about the processed qr/barcode type and camera
 
 
 class ScanResponse(BaseModel):
@@ -27,12 +37,17 @@ class ScanResponse(BaseModel):
 
 @router.post("", response_model=ScanResponse)
 async def scan_event(body: ScanRequest, session: SessionDep, event_handler: EventHandlerDep) -> ScanResponse:
-    logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.tag_id}' and data '{body.data}'")
+    logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.id}' and data '{body.data}'")
 
     await event_handler.append_message_to_all_queues_with_reader(
         reader=body.reader_id,
         message=SseMessage(
-            data=SseMessage.SseMessageData(reader_id=body.reader_id, rfid=body.tag_id), event=Event.SCAN
+            data=SseMessage.SseMessageData(
+                reader_id=body.reader_id,
+                id=body.id,
+                data=ScanRequestData(rawValue=body.data.get("rawValue"), format=body.data.get("format")),
+            ),
+            event=Event.SCAN,
         ),
     )
     item_res = await session.execute(select(Item).where(Item.tag_uuid == body.tag_id))

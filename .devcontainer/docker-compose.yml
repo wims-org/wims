@@ -1,7 +1,7 @@
 services:
   devcontainer:
     #image: "mcr.microsoft.com/vscode/devcontainers/python:3.12-bookworm"
-    build: 
+    build:
       dockerfile: .devcontainer/Dockerfile
     command: sleep infinity
     network_mode: host
@@ -10,10 +10,13 @@ services:
 
   proxy:
     profiles:
-      - skip
-    deploy:
-      replicas: 0
-  
+      - "" # run a proxy in dev to serve images from /data
+    depends_on: !reset []
+    volumes:
+      - ./.devcontainer/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./backend/src/data:/data
+    network_mode: host
+
   frontend:
     profiles:
       - skip
@@ -29,26 +32,3 @@ services:
   db:
     ports:
       - 3306:3306
-
-  db_legacy:
-    volumes:
-      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/a_init-mongo-db-with-items.js:ro
-    ports:
-      - 27017:27017
-
-  mongo-express:
-    image: mongo-express
-    restart: unless-stopped
-    ports:
-      - 8081:8081
-    depends_on:
-      - db
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=db
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=example
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=admin
