@@ -37,7 +37,7 @@
 
         <img
           v-else
-          :src="images[imageIndex]"
+          :src="images[imageIndex].asset_url"
           class="thumbnail real-image"
           :class="{
             'img-hidden': erroredImages[imageIndex],
@@ -56,11 +56,10 @@
 // Item component for displaying a single item in a list with a picture slider and title.
 // Props definition containing pictures array and title string. Emit event on item click.
 import { ref } from 'vue'
-import type { components } from '@/interfaces/api-types.ts'
-type FilePublic = components['schemas']['FilePublic']
+import type { File } from '@/interfaces/file.interface'
 
 const props = defineProps<{
-  images: FilePublic[]
+  images: File[]
   title: string
   imageSize?: number
   loadRequested?: boolean

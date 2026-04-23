@@ -13,15 +13,16 @@
 <script setup lang="ts">
 import { onMounted, ref, type PropType } from 'vue'
 import { vInfiniteScroll } from '@vueuse/components'
-import axios from 'axios'
 import ItemList from '@/components/ItemList.vue'
 import type { components } from '@/interfaces/api-types'
 import { useRouter } from 'vue-router'
 import { watch } from 'vue'
+import ApiService from '@/services/ApiService'
+import { preloadItemView } from '@/router'
 const router = useRouter()
 
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
-type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type Query = components['schemas']['Query'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic']
 
 // Props
 const props = defineProps({
@@ -41,7 +42,7 @@ const props = defineProps({
     default: 3,
   },
   query: {
-    type: Object as PropType<SearchQuery>,
+    type: Object as PropType<Query>,
     default: null,
   },
   batchSize: {
@@ -55,7 +56,7 @@ const props = defineProps({
 })
 
 const items = ref<Item[]>([])
-const searchQuery = ref<SearchQuery | null>(props.query)
+const searchQuery = ref<Query | null>(props.query)
 const currentRoute = ref<string>(router.currentRoute.value.fullPath as string)
 
 const loading = ref(false)
@@ -70,6 +71,15 @@ watch(router.currentRoute, async () => {
 })
 
 onMounted(async () => {
+  if (typeof window !== 'undefined') {
+    // Warm up the ItemView route chunk so the first item click is fast.
+    window.setTimeout(() => {
+      preloadItemView().catch((err) => {
+        console.debug('ItemView prefetch skipped:', err)
+      })
+    }, 0)
+  }
+
   activeViewMode.value =
     (localStorage.getItem('home.itemListViewMode') as
       | 'text'
@@ -85,15 +95,13 @@ const fetchBatch = async (offset: number) => {
   try {
     console.debug('Fetching items with query:', searchQuery.value, 'offset:', offset)
     searchQuery.value = {
-      states: ['latest'],
       ...props.query,
       limit: batchSize.value,
       offset: offset,
     }
-    const response = await axios.post('/items/search', searchQuery.value)
-    console.log('Fetched items batch with names:', response.data.map((item: Item) => item.short_name))
-    const data = Array.isArray(response.data) ? response.data : []
-    items.value = items.value.concat(data)
+
+    const data = await ApiService.searchItems(searchQuery.value)
+    items.value.push(...data)
     canLoadMore.value = data.length === batchSize.value
     return true
   } catch (err) {
@@ -136,6 +144,7 @@ watch(
 )
 
 const handleSelect = (item: { id: number }) => {
+  const time_start = performance.now()
   const id = item.id
   const offset = items.value.findIndex((i) => i.id === id)
   console.log('Selected tag:', id)
@@ -144,6 +153,11 @@ const handleSelect = (item: { id: number }) => {
     (searchQuery.value
       ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
       : ''),
-  )
+  ).then(() => {
+    const time_end = performance.now()
+    console.log('Navigation successful, time taken:', time_end - time_start, 'ms')
+  }).catch((err) => {
+    console.error('Navigation error:', err)
+  })
 }
 </script>

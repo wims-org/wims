@@ -19,7 +19,7 @@
             Add content now
           </button>
           <ItemListContainer :settingsId="'item-view-container'" :query="{
-            query: { container_id: itemId },
+            filters: { container_id: itemId },
           }" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
         </BTab>
         <BTab title="Item Data" id="itemData" data-testid="item-data">
@@ -43,12 +43,12 @@
         <IFaArrowRight />
       </router-link>
     </BCol>
-    <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
+    <SearchModal v-if="showModal" :show="showModal" @close="closeModal" @select="handleContentSelect" />
   </BContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { defineAsyncComponent, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import eventBus from '../stores/eventBus'
@@ -56,16 +56,19 @@ import { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
 import type { components } from '@/interfaces/api-types'
-import LLMCompletion from '@/components/LLMCompletion.vue'
-import ItemForm from '../components/ItemForm.vue'
-import ItemCompare from '../components/ItemComparison.vue'
-import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
-import SearchModal from '@/components/shared/SearchModal.vue'
 import ApiService from '@/services/ApiService'
 
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
-type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
-type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
+const LLMCompletion = defineAsyncComponent(() => import('@/components/LLMCompletion.vue'))
+const ItemForm = defineAsyncComponent(() => import('../components/ItemForm.vue'))
+const ItemCompare = defineAsyncComponent(() => import('../components/ItemComparison.vue'))
+const ContainerListComponent = defineAsyncComponent(
+  () => import('@/components/shared/ContainerListComponent.vue'),
+)
+const SearchModal = defineAsyncComponent(() => import('@/components/shared/SearchModal.vue'))
+
+type SearchQuery = components['schemas']['Query']
+type Item = components['schemas']['ItemPublic']
+type ItemUpdate = components['schemas']['ItemUpdate']
 
 
 // Reactive State
@@ -119,31 +122,31 @@ const fetchPrevNextItems = async () => {
   nextItemId.value = undefined
   if (!query_param.value) return
   const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
-  try {
-    if (offset.value > 0) {
-      const prevItem = await axios.post('/items/search', {
-        ...parsedQuery,
-        offset: offset.value - 1,
-        limit: 1,
-      })
-      if (prevItem.data.length > 0) {
-        previousItemId.value = (prevItem.data.pop() as Item).id
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching previous items:', error)
-  }
-  try {
-    const nextItem = await axios.post('/items/search', {
+
+  const prevRequest = offset.value > 0 ? axios
+    .post('/items/search', {
+      ...parsedQuery,
+      offset: offset.value - 1,
+      limit: 1,
+    })
+    .catch(() => null)
+    : Promise.resolve(null)
+
+  const nextRequest = axios
+    .post('/items/search', {
       ...parsedQuery,
       offset: offset.value + 1,
       limit: 1,
     })
-    if (nextItem.data.length > 0) {
-      nextItemId.value = (nextItem.data.pop() as Item).id
-    }
-  } catch {
-    nextItemId.value = undefined
+    .catch(() => null)
+
+  const [prevItem, nextItem] = await Promise.all([prevRequest, nextRequest])
+
+  if (prevItem?.data?.length) {
+    previousItemId.value = (prevItem.data.pop() as Item).id
+  }
+  if (nextItem?.data?.length) {
+    nextItemId.value = (nextItem.data.pop() as Item).id
   }
 }
 
@@ -198,7 +201,7 @@ const handleItemSelect = (item: Item) => {
   console.log('Selected item with id:', id)
   const offset = items.value.findIndex((i) => i.id === item.id)
   const query = {
-    query: {
+    filters: {
       container_id: itemId.value,
     },
   }
@@ -214,10 +217,10 @@ const handleContentSelect = async (id: number | undefined) => {
   }
   try {
     const selectedItem = await ApiService.getItem(id)
-    selectedItem['container_id'] = itemId.value
-    selectedItem['container_name'] = item.value?.short_name
+    selectedItem.container_id = itemId.value
+    selectedItem.container_name = item.value?.short_name
 
-    await ApiService.updateItem(id, selectedItem)
+    await ApiService.updateItem(id, selectedItem as ItemUpdate)
   } catch (error) {
     saveError.value = 'Could not save changes. Please try again.'
     console.error(error)

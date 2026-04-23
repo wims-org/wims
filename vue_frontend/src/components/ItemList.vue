@@ -90,11 +90,10 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted, onMounted } from 'vue'
 import type { PropType } from 'vue'
-import type { components } from '@/interfaces/api-types'
 import ListCardComponent from '@/components/shared/ListComponent/ListCardComponent.vue'
 import ListItemComponent from '@/components/shared/ListComponent/ListItemComponent.vue'
 
-type Item = components['schemas']['ItemPublic']
+import type { Item } from '@/interfaces/items.interface'
 
 // Props
 const props = defineProps({

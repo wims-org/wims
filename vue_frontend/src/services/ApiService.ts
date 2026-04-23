@@ -1,11 +1,11 @@
-import { clientStore } from '@/stores/clientStore'
 import axios from 'axios'
 
 import type { File } from '@/interfaces/file.interface'
 import type { Item } from '@/interfaces/items.interface'
 import type { components } from '@/interfaces/api-types'
 
-type ItemPublic = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+
+type Query = components['schemas']['Query'] & { [key: string]: unknown }
 type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
 
 class ApiService {
@@ -59,6 +59,19 @@ class ApiService {
         }
     }
 
+    public async searchItems(searchQuery: Query): Promise<Item[]> {
+        try {
+            return axios.post('/items/search', searchQuery).then((response) => {
+                const items: Item[] = response.data
+                items.forEach((item) => this.addBaseUrlAndSplitByFileType(item))
+                return items
+            })
+        } catch (error) {
+            console.error('Error searching items:', error)
+            throw error
+        }
+    }
+
     public async createItem(itemData: Item): Promise<Item> {
         try {
             return axios.post<Item>('/items', itemData).then((response) => {
@@ -75,7 +88,6 @@ class ApiService {
     public async updateItem(itemId: number, item: ItemUpdate): Promise<void> {
         //        for (const fileArray of ['files', 'images']) { if (Array.isArray(item[fileArray]) && item[fileArray].length) { this.removeBaseUrlFromFilePaths(item[fileArray] as File[]) } }
         try {
-
             console.log('Updating item with ID:', itemId, 'and data:', item)
             await axios.put(`/items/${itemId}`, item)
         } catch (error) {
