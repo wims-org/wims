@@ -24,7 +24,12 @@ import src.models.reader
 
 # ruff: noqa: F403, I001, F401
 import src.models.user
+
+from src.dependencies.settings import get_settings
+
 from alembic import context
+
+wims_config = get_settings()
 
 SRC_PATH = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_PATH) not in sys.path:
@@ -84,7 +89,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = wims_config.database_uri
     context.configure(
         url=url,
         target_metadata=target_metadata,
