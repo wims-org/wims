@@ -1,16 +1,16 @@
 name: Playwright Tests
 on:
-  push:
-    branches:
-      - main
-      - dev
-  pull_request:
-    branches:
-      - main
-      - dev
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - dev
   
 jobs:
-  if: false  # temporaily disable tests
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
