@@ -24,6 +24,10 @@ async def read_reader(session: SessionDep, reader_id: str):
 @router.post("", response_model=ReaderPublic)
 async def create_reader(session: SessionDep, reader: ReaderCreate):
     db_reader = Reader.model_validate(reader)
+    reader = await session.execute(select(Reader).where(Reader.reader_id == db_reader.reader_id))
+    reader = reader.scalar_one_or_none()
+    if reader:
+        return reader
     session.add(db_reader)
     await session.commit()
     await session.refresh(db_reader)
