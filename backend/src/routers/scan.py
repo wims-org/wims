@@ -1,4 +1,5 @@
 import enum
+from typing import Annotated
 
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -16,17 +17,12 @@ class CodeFormat(enum.Enum):
     DATA_MATRIX = "data_matrix"
 
 
-class ScanRequestData(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    rawValue: str | None
-    format: CodeFormat | str | None
-
-
 class ScanRequest(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     reader_id: str
-    id: int
-    data: ScanRequestData | None = None  # includes data about the processed qr/barcode type and camera
+    tag_value: str
+    tag_format: CodeFormat | str | None = None
+    model_config: Annotated[ConfigDict(arbitrary_types_allowed=True), None]
 
 
 class ScanResponse(BaseModel):
@@ -37,20 +33,23 @@ class ScanResponse(BaseModel):
 
 @router.post("", response_model=ScanResponse)
 async def scan_event(body: ScanRequest, session: SessionDep, event_handler: EventHandlerDep) -> ScanResponse:
-    logger.debug(f"Scan event from '{body.reader_id}' with tag '{body.id}' and data '{body.data}'")
+    logger.debug(
+        f"Scan event from '{body.reader_id}' for '{body.tag_value}' ({body.tag_format}, {body.model_config})"
+    )
 
     await event_handler.append_message_to_all_queues_with_reader(
         reader=body.reader_id,
         message=SseMessage(
             data=SseMessage.SseMessageData(
                 reader_id=body.reader_id,
-                id=body.id,
-                data=ScanRequestData(rawValue=body.data.get("rawValue"), format=body.data.get("format")),
+                id=body.tag_value,
+                tag_format=body.tag_format,
+                data=body.model_config,
             ),
             event=Event.SCAN,
         ),
     )
-    item_res = await session.execute(select(Item).where(Item.tag_uuid == body.tag_id))
+    item_res = await session.execute(select(Item).where(Item.tag_uuid == body.tag_value))
     item = item_res.scalar_one_or_none()
 
     if not item:

@@ -30,7 +30,8 @@ class Event(enum.Enum):
 class SseMessage(pydantic.BaseModel):
     class SseMessageData(pydantic.BaseModel):
         reader_id: str | None = None
-        id: int | None = None
+        id: str | None = None
+        tag_format: str | None = None
         data: dict | None = None
         stream_id: str | None = None
 
