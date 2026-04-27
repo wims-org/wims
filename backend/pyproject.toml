@@ -45,7 +45,6 @@ line-length = 120
 [tool.ruff.lint]
 select = ["E", "F", "SIM", "I", "UP", "B"]
 
-
 [tool.alembic]
 
 # path to migration scripts.
@@ -64,7 +63,7 @@ script_location = "%(here)s/alembic"
 
 # additional paths to be prepended to sys.path. defaults to the current working directory.
 prepend_sys_path = [
-    "."
+  ".",
 ]
 
 # timezone to use when rendering the date within the migration file
@@ -95,7 +94,6 @@ prepend_sys_path = [
 #    "%(here)s/foo/bar"
 # ]
 
-
 # set to 'true' to search source files recursively
 # in each "version_locations" directory
 # new in Alembic version 1.10
@@ -107,10 +105,10 @@ prepend_sys_path = [
 
 [[tool.alembic.post_write_hooks]]
 # lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
-name = "ruff"
-type = "module"
 module = "ruff"
+name = "ruff"
 options = "check --fix REVISION_SCRIPT_FILENAME"
+type = "module"
 #
 # [[tool.alembic.post_write_hooks]]
 # Alternatively, use the exec runner to execute a binary found on your PATH
@@ -118,4 +116,3 @@ options = "check --fix REVISION_SCRIPT_FILENAME"
 # type = "exec"
 # executable = "ruff"
 # options = "check --fix REVISION_SCRIPT_FILENAME"
-

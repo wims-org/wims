@@ -10,21 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import routers
 from dependencies import database, event_handler, settings
-from routers import (
-    # completion,
-    config,
-    files,
-    healthz,
-    items,
-    metrics,
-    readers,
-    scan,
-    stream,
-    # scan,
-    # stream,
-    users,
-)
 
 wims_config = settings.get_settings()
 
@@ -81,14 +68,6 @@ else:
     root_path = "/"
 
 
-async def run_migrations():
-    # TODO: Fix cyclic imports
-    # alembic_cfg = Config("../alembic.ini")
-    # alembic_cfg.set_main_option("sqlalchemy.url", wims_config.database_uri)
-    # await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
-    pass
-
-
 def check_asset_path():
     if not wims_config.asset_path.exists():
         try:
@@ -100,7 +79,6 @@ def check_asset_path():
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
     logger.info("run alembic upgrade head...")
-    await run_migrations()
     check_asset_path()
     yield
 
@@ -119,20 +97,20 @@ app = FastAPI(
 # Serve static files from the ./data/ directory
 app.mount("/data", StaticFiles(directory="."))
 
-app.include_router(users.router)
-app.include_router(items.router)
-app.include_router(readers.router)
-app.include_router(files.router)
+app.include_router(routers.users.router)
+app.include_router(routers.items.router)
+app.include_router(routers.readers.router)
+app.include_router(routers.files.router)
 
 # app.include_router(queries.router)
-app.include_router(config.router)
+app.include_router(routers.config.router)
 # app.include_router(categories.router)
 # app.include_router(backup.router)
 
-app.include_router(stream.router)
-app.include_router(healthz.router)
-app.include_router(scan.router)
-app.include_router(metrics.router)
+app.include_router(routers.stream.router)
+app.include_router(routers.healthz.router)
+app.include_router(routers.scan.router)
+app.include_router(routers.metrics.router)
 
 if settings.get_settings().features_openai_api_key:
     # app.include_router(completion.router)

@@ -122,7 +122,7 @@ async def delete_item(id: str, session: SessionDep):
 
 @router.get("/{id}/containers", response_model=list[ContainerObject])
 async def get_item_with_containers(id: str, session: SessionDep):
-    # recursive query to get all parent containers of an item, starting from the item itself, 
+    # recursive query to get all parent containers of an item, starting from the item itself,
     # and return a list of ContainerObjects with item_id and short_name
     item = await session.get(Item, id)
     if not item:

@@ -33,9 +33,7 @@ class ScanResponse(BaseModel):
 
 @router.post("", response_model=ScanResponse)
 async def scan_event(body: ScanRequest, session: SessionDep, event_handler: EventHandlerDep) -> ScanResponse:
-    logger.debug(
-        f"Scan event from '{body.reader_id}' for '{body.tag_value}' ({body.tag_format}, {body.model_config})"
-    )
+    logger.debug(f"Scan event from '{body.reader_id}' for '{body.tag_value}' ({body.tag_format}, {body.model_config})")
 
     await event_handler.append_message_to_all_queues_with_reader(
         reader=body.reader_id,
