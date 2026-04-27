@@ -10,9 +10,12 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY uv.lock pyproject.toml ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-install-project --frozen --no-dev
+    uv sync --frozen --no-dev
 
-COPY . .
+COPY src/ src/
+COPY alembic/ alembic/
+COPY alembic.ini .
+COPY run.sh .
 
 FROM python:3.14-slim AS runtime
 
@@ -27,5 +30,5 @@ COPY --from=build --chown=appuser:appgroup /app .
 
 USER appuser
 
-WORKDIR /app/src
-ENTRYPOINT ["run.sh"]
+WORKDIR /app
+ENTRYPOINT ["./run.sh"]
