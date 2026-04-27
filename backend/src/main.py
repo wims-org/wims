@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import Counter, Histogram, disable_created_metrics
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -114,6 +115,9 @@ app = FastAPI(
     root_path=root_path,
     lifespan=lifespan,
 )
+
+# Serve static files from the ./data/ directory
+app.mount("/data", StaticFiles(directory="."))
 
 app.include_router(users.router)
 app.include_router(items.router)
