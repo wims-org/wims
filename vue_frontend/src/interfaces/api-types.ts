@@ -739,7 +739,7 @@ export interface components {
              * @default {}
              */
             filters: {
-                [key: string]: string;
+                [key: string]: string | number;
             };
             /**
              * Offset

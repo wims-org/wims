@@ -83,10 +83,12 @@ class Item(ItemBase, SQLModelBase, table=True):
 
     # We need 'join_depth' for self referencing Relationships
     container: Optional["Item"] = Relationship(
-        sa_relationship_kwargs=dict(remote_side="Item.id", join_depth=1, lazy="selectin", back_populates="content")
+        sa_relationship_kwargs=dict(
+            remote_side="Item.id", join_depth=1, lazy="selectin", back_populates="content", post_update=True
+        )
     )
     content: list["Item"] = Relationship(
-        sa_relationship_kwargs=dict(join_depth=1, lazy="selectin", back_populates="container")
+        sa_relationship_kwargs=dict(join_depth=1, lazy="selectin", back_populates="container", post_update=True)
     )
 
     # We need 'foreign_keys' for relationships with multiple references between the tables

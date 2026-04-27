@@ -8,6 +8,7 @@ import type { components } from '@/interfaces/api-types'
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
 type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
 
+type ItemContainer = components["schemas"]["ContainerObject"]
 class ApiService {
     private static instance: ApiService
 
@@ -114,6 +115,16 @@ class ApiService {
             throw error
         }
     }
+
+    public async getItemContainers(itemId: number): Promise<ItemContainer[]> {
+        try {
+            return axios.get<ItemContainer[]>(`/items/${itemId}/containers`).then((response) => response.data)
+        } catch (error) {
+            console.error('Error fetching item containers:', error)
+            throw error
+        }
+    }
+
 }
 
 export default ApiService.getInstance()

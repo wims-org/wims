@@ -13,14 +13,13 @@
       <h1 class="m-4">{{ item?.short_name }}</h1>
       <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
         <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
-          <ContainerListComponent v-if="item?.id" :itemId="typeof item?.id === 'string' ? item?.id : ''"
-            @update:value="handleContainerSelect" />
+          <ContainerListComponent v-if="item?.id" :itemId="'' + item?.id" @update:value="handleContainerSelect" />
           <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
             Add content now
           </button>
-          <ItemListContainer :settingsId="'item-view-container'" :query="{
-            filters: { container_id: itemId },
-          }" @select="handleItemSelect" :title="`Items in ${item?.short_name}`" />
+          <ItemListContainer v-if="item?.id" :settingsId="'item-view-container'"
+            :query="{ filters: { container_id: itemId }}" @select="handleItemSelect"
+            :title="`Items in ${item?.short_name}`" />
         </BTab>
         <BTab title="Item Data" id="itemData" data-testid="item-data">
           <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
@@ -158,7 +157,7 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     console.log('Request data:', requestData)
     if (newItem.value) {
       await ApiService.createItem(requestData as Item).then(res =>
-        router.push(`/items/${res.data.id}`)
+        router.push(`/items/${res.id}`)
       )
       saveSuccess.value = 'Item created successfully'
       setTimeout(() => {

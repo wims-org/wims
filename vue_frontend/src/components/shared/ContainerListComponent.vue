@@ -7,8 +7,8 @@
     <div v-else>
       <div class="flex-row">
         <template v-if="containerChain.length > 0">
-          <template v-for="(item, index) in containerChain" :key="item.id">
-            <router-link :to="`/items/${item.id}`" class="pill mr-2">
+          <template v-for="(item, index) in containerChain" :key="item.item_id">
+            <router-link :to="`/items/${item.item_id}`" class="pill mr-2">
               {{ item.short_name }}
             </router-link>
             <font-awesome-icon
@@ -43,14 +43,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
-import type { ItemContainers } from '@/interfaces/items.interface'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
-interface ContainerItem {
-  id: string
-  short_name: string
-}
-
+import type { components } from '@/interfaces/api-types'
+type ItemContainer = components["schemas"]["ContainerObject"]
 const props = defineProps<{
   itemId: string | null
 }>()
@@ -60,7 +56,7 @@ const emit = defineEmits<{
 }>()
 
 const loading = ref(true)
-const containerChain = ref<ContainerItem[]>([])
+const containerChain = ref<ItemContainer[]>([])
 const error = ref<string | null>(null)
 const showSearchModal = ref(false)
 
@@ -73,7 +69,7 @@ const fetchContainerChain = async () => {
     return
   }
   try {
-    const { data } = await axios.get<ItemContainers[]>(`/items/${props.itemId}/containers`)
+    const { data } = await axios.get<ItemContainer[]>(`/items/${props.itemId}/containers`)
     if (!data) {
       containerChain.value = []
     } else {

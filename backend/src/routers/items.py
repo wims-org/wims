@@ -13,7 +13,7 @@ router = APIRouter(prefix="/items", tags=["items"], responses={404: {"descriptio
 
 class Query(BaseModel):
     term: str | None = None
-    filters: dict[str, str] = {}
+    filters: dict[str, str | int] = {}
     offset: int = 0
     limit: int = 10
     sort_by: str | None = None
@@ -90,8 +90,19 @@ async def update_item(id: str, item: ItemUpdate, session: SessionDep):
     db_item = await session.get(Item, id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    update = item.model_dump(exclude_unset=True, exclude={"images", "files"})
+    update = item.model_dump(exclude={"images", "files"})
     db_item.sqlmodel_update(update)
+    if db_item.container_id:
+        if db_item.id is db_item.container_id:
+            raise HTTPException(status_code=400, detail="Circular Dependency: Self-reference!")
+        parents = await get_item_parents(db_item, session)
+        parent_ids = [p.item_id for p in parents]
+        if db_item.id in parent_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Circular Dependency: {parents[parent_ids.index(db_item.id) + 1].short_name} "
+                "stored in {db_item.short_name}",
+            )
     session.add(db_item)
     await _add_item_ids_to_files(db_item.id, item, session)
     await session.commit()
@@ -111,22 +122,23 @@ async def delete_item(id: str, session: SessionDep):
 
 @router.get("/{id}/containers", response_model=list[ContainerObject])
 async def get_item_with_containers(id: str, session: SessionDep):
+    # recursive query to get all parent containers of an item, starting from the item itself, 
+    # and return a list of ContainerObjects with item_id and short_name
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    parents = await get_item_parents(item, session)
-    return parents
+    return await get_item_parents(item, session, parents=[ContainerObject(item_id=item.id, short_name=item.short_name)])
 
 
 async def get_item_parents(item: Item, session: AsyncSession, parents: list = None) -> list[ContainerObject]:
-    # Check for first iteration
     if parents is None:
-        parents = [ContainerObject(item_id=item.id, short_name=item.short_name)]
-
+        parents = []
     if item.container_id is None:
         return parents
     parent = await session.get(Item, item.container_id)
-    parents = [ContainerObject(item_id=parent.id, short_name=parent.short_name)].append(parents)
+    if parent.id in [p.item_id for p in parents]:
+        return parents
+    parents = [ContainerObject(item_id=parent.id, short_name=parent.short_name)] + parents
     return await get_item_parents(parent, session, parents)
 
 
