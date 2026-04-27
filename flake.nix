@@ -60,6 +60,7 @@
               # backend
               uv
               python314
+              mariadb.client
 
               # hardware
               python3Packages.pyserial
