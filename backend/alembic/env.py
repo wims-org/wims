@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.exc import CompileError
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 
 # ruff: noqa: F403, I001, F401
@@ -121,11 +121,7 @@ async def run_async_migrations() -> None:
 
     """
 
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_async_engine(wims_config.database_uri, future=True, echo=False)
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
