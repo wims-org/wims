@@ -18,7 +18,7 @@ class ScanService {
     public async sendScanResult(result: string, data: Record<string, unknown>[] | null = null): Promise<void> {
         axios.post('/scan', {
             reader_id: clientStore().getClientId, // set client_id as reader_id since the client is the reader.
-            tag_id: result,
+            code: result,
             data: data
         }).catch((error) => {
             if (error.status === 404) {

@@ -8,32 +8,35 @@
       </router-link>
     </BCol>
     <BCol>
-      <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
-      <div v-if="saveSuccess" class="sticky-note sticky-note-success">{{ saveSuccess }}</div>
-      <h1 class="m-4">{{ item?.short_name }}</h1>
-      <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
-        <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
-          <ContainerListComponent v-if="item?.id" :itemId="'' + item?.id" @update:value="handleContainerSelect" />
-          <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
-            Add content now
-          </button>
-          <ItemListContainer v-if="item?.id" :settingsId="'item-view-container'"
-            :query="{ filters: { container_id: itemId }}" @select="handleItemSelect"
-            :title="`Items in ${item?.short_name}`" />
-        </BTab>
-        <BTab title="Item Data" id="itemData" data-testid="item-data">
-          <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
-            Toggle Comparison
-          </button>
-          <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
-            :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
-          <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
-        </BTab>
-        <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
-          data-testid="object-identification">
-          <LLMCompletion :images="item?.images || []" :key="item?.id" />
-        </BTab>
-      </BTabs>
+      <div v-if="errorMessage" class="sticky-note sticky-note-error">{{ errorMessage }}</div>
+      <div v-if="successMessage" class="sticky-note sticky-note-success">{{ successMessage }}</div>
+      <template v-if="!itemNotFound">
+        <h1 class="m-4">{{ item?.short_name }}</h1>
+        <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
+          <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
+            <ContainerListComponent v-if="item?.id" :itemId="'' + item?.id" @update:value="handleContainerSelect" />
+            <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
+              Add content now
+            </button>
+            <ItemListContainer v-if="item?.id" :settingsId="'item-view-container'"
+              :query="{ filters: { container_id: itemId }}" @select="handleItemSelect"
+              :title="`Items in ${item?.short_name}`" />
+          </BTab>
+          <BTab title="Item Data" id="itemData" data-testid="item-data">
+            <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
+              Toggle Comparison
+            </button>
+            <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
+              :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
+            <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
+          </BTab>
+          <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
+            data-testid="object-identification">
+            <LLMCompletion :images="item?.images || []" :key="item?.id" />
+          </BTab>
+        </BTabs>
+      </template>
+      <ItemError v-else />
     </BCol>
     <BCol class="col-1 p-0">
       <router-link v-show="nextItemId"
@@ -64,10 +67,30 @@ const ContainerListComponent = defineAsyncComponent(
   () => import('@/components/shared/ContainerListComponent.vue'),
 )
 const SearchModal = defineAsyncComponent(() => import('@/components/shared/SearchModal.vue'))
+const ItemError = defineAsyncComponent(() => import('@/components/ItemError.vue'))
 
 type SearchQuery = components['schemas']['Query']
 type Item = components['schemas']['ItemPublic']
 type ItemUpdate = components['schemas']['ItemUpdate']
+
+
+/*
+Use Cases:
+1. When navigating to /items/new, the component should display an empty form for creating a new item. 
+   If query parameters for code_format and code_value are provided, they should pre-fill the corresponding fields in the form.
+2. When navigating to /items/:id, the component should fetch and display the item data for the given id.
+3. If the item is not found (404) and there are paramters for code_format and code_value, it should display an empty form with a message indicating that the item was not found, allowing the user to create a new item like 2.
+4. If the item is not found (404) and there are no parameters for code_format and code_value, it should display a new component "ItemError" with a button to navigate to items/new
+
+Component Lifecycle and Logic:
+
+- On mount, the component checks if the route parameter 'id' is 'new' to determine if it's creating a new item or editing an existing one.
+  It then fetches the item data if it's an existing item, and sets up the query parameters for navigation.
+- The component listens to events from the event bus, particularly for completion results and redirects, to update the view accordingly.
+- The component provides methods to handle form submission for creating/updating items, selecting items from the container tree, 
+  and navigating to previous/next items based on search queries.
+- The component uses watchers to react to changes in route parameters and query parameters to fetch data and update the view as needed.   
+*/
 
 
 // Reactive State
@@ -78,8 +101,8 @@ const item = ref<Item>({} as Item)
 const newItem = ref(false)
 const isComparing = ref(false)
 const completion = ref<Item>()
-const saveError = ref('')
-const saveSuccess = ref('')
+const errorMessage = ref('')
+const successMessage = ref('')
 const items = ref<Item[]>([])
 const showModal = ref(false)
 const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
@@ -88,23 +111,40 @@ const nextItemId = ref<number | undefined>(undefined)
 const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
+const itemNotFound = ref(false)
 
 // Stores
 const clientStore = useClientStore()
 
 // Methods
+const applyQueryParamsToItem = () => {
+  const code = route.query.code as string | undefined
+  if (code && item.value) {
+    item.value.code = code
+  }
+}
+
 const fetchItem = async () => {
+  const hasCodeParams = !!(route.query.code)
   try {
     const data = await ApiService.getItem(itemId.value as number)
-    console.log('Fetched item:', data)
     item.value = data
     newItem.value = false
     isComparing.value = false
+    itemNotFound.value = false
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
-      newItem.value = true
-      item.value = {} as Item
-      console.warn('Item not found, display empty item form')
+      if (hasCodeParams) {
+        // Case 3: item not found but code params present → pre-filled new item form
+        newItem.value = true
+        item.value = {} as Item
+        applyQueryParamsToItem()
+        errorMessage.value = 'Item not found. You can create a new item below.'
+        isComparing.value = false
+      } else {
+        // Case 4: item not found, no code params → show error component
+        itemNotFound.value = true
+      }
     } else {
       item.value = { id: itemId.value } as Item
       console.error('Error fetching item:', error)
@@ -150,7 +190,7 @@ const fetchPrevNextItems = async () => {
 }
 
 const handleFormSubmit = async (formData: Record<string, unknown>) => {
-  saveError.value = ''
+  errorMessage.value = ''
   try {
     isComparing.value = false
     const requestData = buildItemRequest(formData)
@@ -159,20 +199,20 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
       await ApiService.createItem(requestData as Item).then(res =>
         router.push(`/items/${res.id}`)
       )
-      saveSuccess.value = 'Item created successfully'
+      successMessage.value = 'Item created successfully'
       setTimeout(() => {
-        saveSuccess.value = ''
+        successMessage.value = ''
       }, 5000)
     } else {
       await ApiService.updateItem(itemId.value as number, requestData as ItemUpdate)
-      saveSuccess.value = 'Item updated successfully'
+      successMessage.value = 'Item updated successfully'
       setTimeout(() => {
-        saveSuccess.value = ''
+        successMessage.value = ''
       }, 5000)
     }
     fetchItem()
   } catch (error) {
-    saveError.value = 'Could not save changes. Please try again.'
+    errorMessage.value = 'Could not save changes. Please try again.'
     console.error('Error submitting form:', error)
   }
   tabCheck.value++
@@ -221,7 +261,7 @@ const handleContentSelect = async (id: number | undefined) => {
 
     await ApiService.updateItem(id, selectedItem as ItemUpdate)
   } catch (error) {
-    saveError.value = 'Could not save changes. Please try again.'
+    errorMessage.value = 'Could not save changes. Please try again.'
     console.error(error)
   }
 }
@@ -254,21 +294,20 @@ const handle_item_next = () => {
 
 // Lifecycle Hooks
 onMounted(() => {
-  if (route.params.id !== "new") {
-    fetchItem()
-  } else {
-    newItem.value = true;
-  }
   query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
-  item.value.tag_uuid = route.query.rawValue as string || null
 
+  if (route.params.id === 'new') {
+    // Case 1: new item form, optionally pre-filled from query params
+    newItem.value = true
+    applyQueryParamsToItem()
+  } else {
+    // Cases 2, 3, 4: fetch existing item (handles 404 scenarios internally)
+    fetchItem()
+  }
 
   if (query_param.value) {
     fetchPrevNextItems()
-  } else {
-    previousItemId.value = undefined
-    nextItemId.value = undefined
   }
   // Keyboard navigation: left/right arrows navigate prev/next item.
   const onKeyDown = (e: KeyboardEvent) => {
@@ -310,14 +349,21 @@ eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
 watch(
   () => route.params.id,
   async (_newId) => {
+    itemNotFound.value = false
+    errorMessage.value = ''
+
+    items.value = []
     if (_newId === 'new') {
       newItem.value = true
       itemId.value = undefined
+      item.value = {} as Item
+      completion.value = undefined
+      isComparing.value = false
+      applyQueryParamsToItem()
+      return
     }
     if (!Number.isNaN(_newId) && itemId.value !== Number(_newId)) {
-      const newId = Number(_newId)
-      itemId.value = newId
-      items.value = []
+      itemId.value = Number(_newId)
       item.value = {} as Item
       completion.value = undefined
       newItem.value = false
@@ -325,7 +371,6 @@ watch(
       await fetchItem()
       await fetchPrevNextItems()
     }
-    items.value = []
   },
 )
 
@@ -349,7 +394,7 @@ watch(
   async ([newRawValue, newFormat]) => {
     console.log('new values ', newRawValue)
     if (item.value !== undefined && newRawValue && (typeof newRawValue === 'string' || typeof newRawValue === 'number')) {
-      item.value.tag_uuid = newRawValue
+      item.value.code = newRawValue
     } else {
       query_param.value = ''
       previousItemId.value = undefined

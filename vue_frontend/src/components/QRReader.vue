@@ -38,7 +38,7 @@ const destroyed = ref(false)
 
 // Emits
 const emit = defineEmits<{
-    (event: 'scan', tag_id: string): void
+    (event: 'scan', code: string): void
 }>()
 
 function onDetect(detectedCodes: { rawValue: string }[]) {

@@ -2,9 +2,10 @@ import type { EventAction } from '@/interfaces/EventAction';
 import mitt from 'mitt'
 import type { components } from '@/interfaces/api-types';
 type Events = {
-  [EventAction.REDIRECT]: components['schemas']['ScanRequest']
-  [EventAction.FORM_SCAN_ADD]: components['schemas']['ScanRequest']
-  [EventAction.CONTAINER_SCAN]: components['schemas']['ScanRequest']
+  [EventAction.REDIRECT]: components['schemas']['SseEvent']['data']
+  [EventAction.NEW_ITEM]: components['schemas']['SseEvent']['data']
+  [EventAction.FORM_SCAN_ADD]: components['schemas']['SseEvent']['data']
+  [EventAction.CONTAINER_SCAN]: components['schemas']['SseEvent']['data']
   [EventAction.ALIVE]: { reader_id: string }
   [EventAction.COMPLETION]: { data: { response: object } }
   [EventAction.ERROR]: { id: string; reader_id: string, data: { message: string } }

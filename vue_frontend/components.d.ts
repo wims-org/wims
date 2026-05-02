@@ -60,6 +60,7 @@ declare module 'vue' {
     IMaterialSymbolsQrCodeScanner: typeof import('~icons/material-symbols/qr-code-scanner')['default']
     IMaterialSymbolsSunny: typeof import('~icons/material-symbols/sunny')['default']
     ItemComparison: typeof import('./src/components/ItemComparison.vue')['default']
+    ItemError: typeof import('./src/components/ItemError.vue')['default']
     ItemField: typeof import('./src/components/fields/ItemField.vue')['default']
     ItemForm: typeof import('./src/components/ItemForm.vue')['default']
     ItemList: typeof import('./src/components/ItemList.vue')['default']

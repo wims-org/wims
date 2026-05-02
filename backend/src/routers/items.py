@@ -186,7 +186,7 @@ async def get_item_search(query: Query, session: SessionDep):
 # ) -> ItemChangedResponse:
 #     """
 #     Bulk import items. Accepts a list of item dicts.
-#     If an item with the same tag_uuid exists, it is updated; otherwise, it is created.
+#     If an item with the same code exists, it is updated; otherwise, it is created.
 #     """
 #     db = get_bs(request).dbc
 #     imported = 0
@@ -201,14 +201,14 @@ async def get_item_search(query: Query, session: SessionDep):
 #             # Try to update existing item
 #             result = db.update(
 #                 collection_name="items",
-#                 query={"tag_uuid": item.tag_uuid},
+#                 query={"code": item.code},
 #                 update_values=item.model_dump(mode="json", by_alias=True),
 #             )
 
 #             if result:
 #                 updated += 1
 #             else:
-#                 error_items.append(item.tag_uuid)
+#                 error_items.append(item.code)
 #         except pymongo.errors.DuplicateKeyError:
 #             # If not found, create new
 #             db.create(
@@ -218,8 +218,8 @@ async def get_item_search(query: Query, session: SessionDep):
 #             imported += 1
 #         except Exception as e:
 #             errors.append(f"Row {idx}: {str(e)}")
-#             if tag_uuid := item_dict.get("tag_uuid"):
-#                 error_items.append(tag_uuid)
+#             if code := item_dict.get("code"):
+#                 error_items.append(code)
 
 #     if imported == 0 and updated == 0 and not errors:
 #         logger.warning(error_items)

@@ -8,7 +8,7 @@ import pydantic
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
-from dependencies.backend_service import Event, SseMessage
+from dependencies.backend_service import Event, SseEvent
 from routers.utils import get_bs
 
 router = APIRouter(prefix="/completion", tags=["completion"], responses={404: {"description": "Not found"}})
@@ -105,8 +105,8 @@ async def identification(
             ):
                 raise EmptyResponseException()
         except (openai.APIConnectionError, EmptyResponseException, Exception) as e:
-            sse_message = SseMessage(
-                data=SseMessage.SseMessageData(
+            sse_message = SseEvent(
+                data=SseEvent.SseEventData(
                     data={"message": str(e)}, reader_id=client_id, rfid="", duration=time.time() - start_time
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
@@ -120,8 +120,8 @@ async def identification(
         result = json.loads(chatgpt_response.choices.pop(0).message.content)
         if imageUrls:
             result.setdefault("images", []).extend(imageUrls)
-        sse_message = SseMessage(
-            data=SseMessage.SseMessageData(
+        sse_message = SseEvent(
+            data=SseEvent.SseEventData(
                 reader_id=client_id,
                 data={
                     "response": {

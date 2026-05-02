@@ -139,7 +139,7 @@ import type { components } from '@/interfaces/api-types'
 import ApiService from '@/services/ApiService'
 
 type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
-type ScanRequest = components['schemas']['ScanRequest'] & { [key: string]: unknown }
+type ScanEvent = components['schemas']['SseEvent']['data']
 
 
 const DEFAULT_COLUMNS = [
@@ -317,13 +317,13 @@ const filterErrorUUIDs = () => {
   submitErrorStatus.value = null
 }
 
-const fetchAndAddItemToTable = async (scanData: ScanRequest) => {
+const fetchAndAddItemToTable = async (scanData: ScanEvent) => {
   if (clientStore().expected_event_action !== EventAction.FORM_SCAN_ADD) return
   if (!scanData?.id) return
   if (items.some((item) => item.id === scanData.id)) return
   const newRow = Object.assign({}, emptyItem)
   newRow.id = scanData.id
-  newRow.tag_uuid = scanData.data?.rawValue
+  newRow.code = scanData.code_value
   try {
     const data = await ApiService.getItem(scanData.id)
     Object.assign(newRow, data)
@@ -350,7 +350,7 @@ onMounted(() => {
   saved_action.value = clientStore().expected_event_action
   setColumnWidthsFromStorage()
   clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: ScanRequest) =>
+  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: ScanEvent) =>
     fetchAndAddItemToTable(scanData),
   )
 })

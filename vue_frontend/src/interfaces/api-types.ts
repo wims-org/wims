@@ -378,7 +378,7 @@ export interface components {
          * CodeFormat
          * @enum {string}
          */
-        CodeFormat: "data_matrix";
+        CodeFormat: "data_matrix" | "aztec" | "code_128" | "code_39" | "code_93" | "codabar" | "databar" | "databar_expanded" | "dx_film_edge" | "ean_13" | "ean_8" | "itf" | "maxi_code" | "micro_qr_code" | "pdf417" | "qr_code" | "rm_qr_code" | "upc_a" | "upc_e" | "linear_codes" | "matrix_codes" | "unknown" | "uuid";
         /** ConfigResponseModel */
         ConfigResponseModel: {
             /** Llm Enabled */
@@ -391,6 +391,11 @@ export interface components {
             /** Short Name */
             short_name: string;
         };
+        /**
+         * Event
+         * @enum {string}
+         */
+        Event: "SCAN" | "SCAN_NEW" | "COMPLETION" | "ALIVE" | "ERROR";
         /** FilePublic */
         FilePublic: {
             /** Item Id */
@@ -443,8 +448,8 @@ export interface components {
              * @default false
              */
             is_container: boolean;
-            /** Tag Uuid */
-            tag_uuid: string | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -502,8 +507,8 @@ export interface components {
              * @default false
              */
             is_container: boolean;
-            /** Tag Uuid */
-            tag_uuid: string | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -555,8 +560,8 @@ export interface components {
              * @default false
              */
             is_container: boolean;
-            /** Tag Uuid */
-            tag_uuid: string | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -615,8 +620,8 @@ export interface components {
              * @default false
              */
             is_container: boolean;
-            /** Tag Uuid */
-            tag_uuid: string | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -681,8 +686,8 @@ export interface components {
              * @default false
              */
             is_container: boolean;
-            /** Tag Uuid */
-            tag_uuid?: string | null;
+            /** Code */
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -790,15 +795,11 @@ export interface components {
             /** Reader Id */
             reader_id: string;
             /** Id */
-            id: number;
-            data?: components["schemas"]["ScanRequestData"] | null;
-        };
-        /** ScanRequestData */
-        ScanRequestData: {
-            /** Rawvalue */
-            rawValue: string | null;
-            /** Format */
-            format: components["schemas"]["CodeFormat"] | string | null;
+            id?: string | number | null;
+            /** Code Value */
+            code_value?: string | null;
+            /** @default unknown */
+            code_format: components["schemas"]["CodeFormat"] | null;
         };
         /** ScanResponse */
         ScanResponse: {
@@ -808,6 +809,40 @@ export interface components {
             item_name: string;
             /** Item Storage Location */
             item_storage_location: string;
+        };
+        /** SseEvent */
+        SseEvent: {
+            event: components["schemas"]["Event"];
+            /** Data */
+            data: components["schemas"]["SseEventData"] | {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * @default 04b43301-3f02-437a-8cee-89098552fe45
+             */
+            id: string;
+            /**
+             * Retry
+             * @default 15000
+             */
+            retry: number;
+        };
+        /** SseEventData */
+        SseEventData: {
+            /** Reader Id */
+            reader_id?: string | null;
+            /** Id */
+            id?: string | number | null;
+            /** Code Value */
+            code_value?: string | null;
+            code_format?: components["schemas"]["CodeFormat"] | null;
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /** Stream Id */
+            stream_id?: string | null;
         };
         /** StreamRequestData */
         StreamRequestData: {
@@ -1790,7 +1825,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SseEvent"];
+                    /** SseEvent */
+                    "text/event-stream": unknown;
                 };
             };
             /** @description Not found */

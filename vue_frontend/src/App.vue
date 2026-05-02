@@ -34,8 +34,11 @@ onMounted(async () => {
     if (data.id) {
       router.push('/items/' + data.id)
     } else {
-      router.push('/items/new?' + data.data?.format + '=' + data.data?.rawValue)
+      router.push('/items/new?' + data.code_format + '=' + data.code_value)
     }
+  })
+  eventBus.on(EventAction.NEW_ITEM, (data: Events[EventAction.NEW_ITEM]) => {
+    router.push('/items/new?code=' + data.code_value) //data.code_format + '=' + data.code_value
   })
 
   clientStore().fetchBackendConfig()

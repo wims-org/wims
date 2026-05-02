@@ -22,21 +22,54 @@ class MessageQueue(pydantic.BaseModel):
 
 class Event(enum.Enum):
     SCAN = "SCAN"
+    SCAN_NEW = "SCAN_NEW"
     COMPLETION = "COMPLETION"
     ALIVE = "ALIVE"
     ERROR = "ERROR"
 
 
-class SseMessage(pydantic.BaseModel):
-    class SseMessageData(pydantic.BaseModel):
-        reader_id: str | None = None
-        id: str | None = None
-        tag_format: str | None = None
-        data: dict | None = None
-        stream_id: str | None = None
+class CodeFormat(enum.Enum):
+    # All bar code formats supported by the frontend library
+    # https://www.npmjs.com/package/vue-qrcode-reader
+    # https://en.wikipedia.org/wiki/Barcode#Types_of_barcodes
+    DATA_MATRIX = "data_matrix"  # https://en.wikipedia.org/wiki/Data_Matrix
+    AZTEC = "aztec"  # https://en.wikipedia.org/wiki/Aztec_Code
+    CODE_128 = "code_128"  # https://en.wikipedia.org/wiki/Code_128
+    CODE_39 = "code_39"  # https://en.wikipedia.org/wiki/Code_39
+    CODE_93 = "code_93"  # https://en.wikipedia.org/wiki/Code_93
+    CODABAR = "codabar"  # https://en.wikipedia.org/wiki/Codabar
+    DATABAR = "databar"  # https://en.wikipedia.org/wiki/GS1_DataBar
+    DATABAR_EXPANDED = "databar_expanded"  # https://en.wikipedia.org/wiki/GS1_DataBar -> Expanded
+    DX_FILM_EDGE = "dx_film_edge"  # https://en.wikipedia.org/wiki/Barcode#Film_edge_barcode
+    EAN_13 = "ean_13"  # https://en.wikipedia.org/wiki/International_Article_Number_(EAN)
+    EAN_8 = "ean_8"  # https://en.wikipedia.org/wiki/EAN-8
+    ITF = "itf"  # https://en.wikipedia.org/wiki/Interleaved_2_of_5
+    MAXI_CODE = "maxi_code"  # https://en.wikipedia.org/wiki/MaxiCode
+    MICRO_QR_CODE = "micro_qr_code"  # https://en.wikipedia.org/wiki/QR_code#micro
+    PDF417 = "pdf417"  # https://en.wikipedia.org/wiki/PDF417
+    QR_CODE = "qr_code"  # https://en.wikipedia.org/wiki/QR_code
+    RM_QR_CODE = "rm_qr_code"  # https://en.wikipedia.org/wiki/RMQR_Code
+    UPC_A = "upc_a"  # https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-A
+    UPC_E = "upc_e"  # https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-E
+    LINEAR_CODES = "linear_codes"  # https://en.wikipedia.org/wiki/Linear_barcode
+    MATRIX_CODES = "matrix_codes"  # https://en.wikipedia.org/wiki/Matrix_barcode
+    UNKNOWN = "unknown"
+    # All other formats:
+    UUID = "uuid"  # for nfc tags
 
+
+class SseEventData(pydantic.BaseModel):
+    reader_id: str | None = None
+    id: str | int | None = None
+    code_value: str | None = None
+    code_format: CodeFormat | None = None
+    data: dict | None = None
+    stream_id: str | None = None
+
+
+class SseEvent(pydantic.BaseModel):
     event: Event
-    data: SseMessageData | dict
+    data: SseEventData | dict
     id: str = str(uuid.uuid4())
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
@@ -50,10 +83,8 @@ class EventHandler:
         asyncio.create_task(self.push_heartbeats())
 
     async def push_heartbeats(self):
-        message = SseMessage(
-            data=SseMessage.SseMessageData(reader_id=None, data={"message": "connection alive"}).model_dump(
-                mode="json"
-            ),
+        message = SseEvent(
+            data=SseEvent.SseEventData(reader_id=None, data={"message": "connection alive"}).model_dump(mode="json"),
             event=Event.ALIVE,
         )
         while True:
@@ -68,7 +99,7 @@ class EventHandler:
         async with self._queues_lock:
             return self.__message_queues.get(stream_id).message_queue if stream_id in self.__message_queues else []
 
-    async def pop_first_message_from_queue(self, stream_id: str) -> SseMessage | None:
+    async def pop_first_message_from_queue(self, stream_id: str) -> SseEvent | None:
         async with self._queues_lock:
             if stream_id in self.__message_queues and self.__message_queues.get(stream_id).message_queue:
                 res = self.__message_queues.get(stream_id).message_queue.pop(0)
@@ -107,7 +138,7 @@ class EventHandler:
             if stream_id in self.__message_queues:
                 del self.__message_queues[stream_id]
 
-    async def append_message_to_all_queues_with_reader(self, reader: str, message: SseMessage):
+    async def append_message_to_all_queues_with_reader(self, reader: str, message: SseEvent):
         async with self._queues_lock:
             for stream_id in self.__message_queues:
                 if reader in self.__message_queues[stream_id].subscriptions:
@@ -116,7 +147,7 @@ class EventHandler:
                         msg["data"]["stream_id"] = str(stream_id)
                     self.__message_queues[stream_id].message_queue.append(msg)
 
-    async def append_message_to_all_queues(self, message: SseMessage):
+    async def append_message_to_all_queues(self, message: SseEvent):
         async with self._queues_lock:
             for stream_id in list(self.__message_queues.keys()):
                 if len(self.__message_queues[stream_id].message_queue) >= 10:
@@ -127,7 +158,7 @@ class EventHandler:
                 msg["data"]["subscriptions"] = list(self.__message_queues[stream_id].subscriptions)
                 self.__message_queues[stream_id].message_queue.append(msg)
 
-    async def append_message_to_queue(self, stream_id: str, message: SseMessage):
+    async def append_message_to_queue(self, stream_id: str, message: SseEvent):
         async with self._queues_lock:
             if stream_id in self.__message_queues:
                 msg = message.model_dump(mode="json")

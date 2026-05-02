@@ -1,3 +1,4 @@
+import pathlib
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     features_openai_api_key: str = ""
     asset_path: Path = "./data/assets"
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=pathlib.Path(__file__).parent.parent / ".env")
 
 
 @lru_cache

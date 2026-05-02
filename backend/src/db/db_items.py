@@ -7,7 +7,7 @@ def get_items_with_search_query(query: SearchQuery, db: Database) -> list[Item]:
     """Builds a MongoDB query from a SearchQuery object and returns matching items."""
     term_query = {
         "$or": [
-            {"tag_uuid": {"$regex": query.term, "$options": "i"}},
+            {"code": {"$regex": query.term, "$options": "i"}},
             {"short_name": {"$regex": query.term, "$options": "i"}},
             {"description": {"$regex": query.term, "$options": "i"}},
             {"item_type": {"$regex": query.term, "$options": "i"}},

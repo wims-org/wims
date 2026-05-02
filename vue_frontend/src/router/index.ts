@@ -35,6 +35,11 @@ const router = createRouter({
       component: () => import('../views/SearchView.vue'),
     },
     {
+      path: '/items/new',
+      name: 'newItem',
+      component: () => import('../views/ItemView.vue'),
+    },
+    {
       path: '/readers',
       name: 'readers',
       // route level code-splitting
