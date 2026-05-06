@@ -62,6 +62,7 @@ async def message_stream(
 
 @router.post("/subscription")
 async def add_subscription(stream_data: StreamRequestData, event_handler: EventHandlerDep):
+    
     if not await event_handler.has_stream_id(stream_data.stream_id):
         raise HTTPException(status_code=404, detail={"error": "Stream ID does not exist"})
     if not stream_data.reader_id:

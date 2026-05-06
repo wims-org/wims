@@ -84,7 +84,7 @@ class EventHandler:
 
     async def push_heartbeats(self):
         message = SseEvent(
-            data=SseEvent.SseEventData(reader_id=None, data={"message": "connection alive"}).model_dump(mode="json"),
+            data=SseEventData(reader_id=None, data={"message": "connection alive"}).model_dump(mode="json"),
             event=Event.ALIVE,
         )
         while True:

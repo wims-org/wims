@@ -80,6 +80,7 @@ def check_asset_path():
 async def lifespan(app_: FastAPI):
     logger.info("run alembic upgrade head...")
     check_asset_path()
+    event_handler.EventHandlerFactory.get_instance()
     yield
 
 
