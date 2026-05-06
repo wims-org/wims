@@ -26,6 +26,9 @@ import { QrcodeStream } from 'vue-qrcode-reader'
 import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { clientStore } from '@/stores/clientStore'
 import ScanService from '@/services/ScanService'
+import type { components } from '@/interfaces/api-types'
+
+type CodeFormat = components["schemas"]["CodeFormat"]
 
 
 /*** This is mostly the example code of the demo https://gruhn.github.io/vue-qrcode-reader/demos/FullDemo.html ***/
@@ -41,10 +44,20 @@ const emit = defineEmits<{
     (event: 'scan', code: string): void
 }>()
 
-function onDetect(detectedCodes: { rawValue: string }[]) {
+function onDetect(detectedCodes: { rawValue: string, format: CodeFormat }[]) {
     console.log(detectedCodes)
-    result.value = detectedCodes[0].rawValue
-    ScanService.sendScanResult(result.value, detectedCodes)
+    const detectedCode = detectedCodes.pop()
+    if (!detectedCode) {
+        throw new Error('No code detected')
+    }
+    result.value = detectedCode?.rawValue
+    ScanService.sendScanResult({
+        reader_id: clientStore().getClientId, // set client_id as reader_id since the client is the reader.
+        code_value: result.value,
+        code_format: detectedCode?.format 
+    }).catch((error) => {
+        console.error('Error sending scan result:', error)
+    })
 
     setTimeout(() => {
         result.value = ''

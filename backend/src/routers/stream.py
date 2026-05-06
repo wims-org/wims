@@ -44,7 +44,7 @@ async def message_stream(
                 if await event_handler.message_length(stream_id):
                     message = await event_handler.pop_first_message_from_queue(stream_id)
                     if message["event"] != Event.ALIVE.value:
-                        logger.debug(f"Sending message: {stream_id} {str(message)[:100]}")
+                        logger.debug(f"Sending message: {stream_id} {str(message)}")#[:150]}")
                     message["data"] = json.dumps(message["data"])
                     yield message
                 await asyncio.sleep(MESSAGE_STREAM_DELAY)

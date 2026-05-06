@@ -1,5 +1,8 @@
-import { clientStore } from "@/stores/clientStore"
+import type { components } from "@/interfaces/api-types"
 import axios from "axios"
+
+type ScanRequest = components['schemas']['ScanRequest']
+type ScanResponse = components['schemas']['ScanResponse']
 
 class ScanService {
     private static instance: ScanService
@@ -15,11 +18,11 @@ class ScanService {
         return ScanService.instance
     }
 
-    public async sendScanResult(result: string, data: Record<string, unknown>[] | null = null): Promise<void> {
-        axios.post('/scan', {
-            reader_id: clientStore().getClientId, // set client_id as reader_id since the client is the reader.
-            code: result,
-            data: data
+    public async sendScanResult(data: ScanRequest): Promise<ScanResponse | void> {
+        console.log('Sending scan result:', data)
+        axios.post('/scan', data).then(response => {
+            console.log('Received scan result:', response.data)
+            return response.data as ScanResponse
         }).catch((error) => {
             if (error.status === 404) {
                 console.log('New item scanned')

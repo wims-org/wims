@@ -42,7 +42,7 @@ async def scan_event(body: ScanRequest, session: SessionDep, event_handler: Even
         f"Scan event from '{body.reader_id}' for '{body.code_value}' ({body.code_format}, {body.model_config})"
     )
     
-    item_res = await session.execute(select(Item).where(Item.code == (body.code_value or body.id)))
+    item_res = await session.execute(select(Item).where(Item.code == body.code_value))
     item = item_res.scalars().first()
 
     await event_handler.append_message_to_all_queues_with_reader(
@@ -51,7 +51,7 @@ async def scan_event(body: ScanRequest, session: SessionDep, event_handler: Even
             data=SseEventData(
                 reader_id=body.reader_id,
                 id=item.id if item else None,
-                code_value=body.code_value or body.id, # temp, remove id
+                code_value=body.code_value, # temp, remove id
                 code_format=body.code_format,
                 data=body.model_config,
             ),
