@@ -1,0 +1,528 @@
+{
+  "items": [
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174000",
+      "short_name": "Hammer",
+      "amount": 10,
+      "item_type": "tool",
+      "consumable": false,
+      "created_at": "2023-10-01T12:00:00Z",
+      "created_by": "user1",
+      "changes": [
+        {
+          "user": "user2",
+          "timestamp": 1672531200,
+          "diff_from_prev_version": {
+            "cost_new": 20.0,
+            "vendors": [
+              "Vendor1"
+            ]
+          }
+        },
+        {
+          "user": "user1",
+          "timestamp": 1672551200,
+          "diff_from_prev_version": {
+            "amount": 5,
+            "description": "some tool, not sure"
+          }
+        }
+      ],
+      "ai_generated": [
+        "tag1",
+        "tag2"
+      ],
+      "description": "A heavy-duty hammer",
+      "min_amount": 2,
+      "tags": [
+        "hardware",
+        "tool"
+      ],
+      "cost_new": 25.0,
+      "acquisition_date": 1672531200,
+      "cost_used": 15.0,
+      "manufacturer": "ToolCorp",
+      "model_number": "TC-HAMMER-01",
+      "manufacturing_date": 1672531200,
+      "upc": "123456789012",
+      "asin": "B000123456",
+      "serial_number": "SN1234567890",
+      "vendors": [
+        "Vendor1",
+        "Vendor2"
+      ],
+      "shop_url": [
+        "http://shop1.com",
+        "http://shop2.com"
+      ],
+      "size": {
+        "length": 300,
+        "width": 100,
+        "height": 50
+      },
+      "documentation": [
+        "http://docs.toolcorp.com/hammer"
+      ],
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "current_location": "Warehouse A",
+      "borrowed_by": "user4",
+      "borrowed_at": 1672800000,
+      "borrowed_until": 1675401600,
+      "owner": "user1",
+      "related_items": [
+        {
+          "related_tags": [
+            "123e4567-e89b-12d3-a456-426614174001"
+          ],
+          "tag": [
+            "tool"
+          ],
+          "description": "Related to Screwdriver Set"
+        }
+      ],
+      "code": null
+    },
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174001",
+      "short_name": "Screwdriver Set",
+      "amount": 50,
+      "item_type": "tool",
+      "consumable": false,
+      "created_at": "2023-10-02T12:00:00Z",
+      "created_by": "user2",
+      "changes": [],
+      "ai_generated": [],
+      "description": "A set of precision screwdrivers",
+      "min_amount": 5,
+      "tags": [
+        "hardware",
+        "tool"
+      ],
+      "cost_new": 40.0,
+      "acquisition_date": 1672617600,
+      "cost_used": 25.0,
+      "manufacturer": "ToolCorp",
+      "model_number": "TC-SCREW-SET-01",
+      "manufacturing_date": 1672617600,
+      "upc": "123456789013",
+      "asin": "B000123457",
+      "serial_number": "SN1234567891",
+      "vendors": [
+        "Vendor3",
+        "Vendor4"
+      ],
+      "shop_url": [
+        "http://shop3.com",
+        "http://shop4.com"
+      ],
+      "size": {
+        "length": 200,
+        "width": 50,
+        "height": 50
+      },
+      "documentation": [
+        "http://docs.toolcorp.com/screwdriver-set"
+      ],
+      "container_tag_uuid": null,
+      "current_location": "Warehouse B",
+      "borrowed_by": null,
+      "borrowed_at": null,
+      "borrowed_until": null,
+      "owner": "user2",
+      "related_items": [
+        {
+          "related_tags": [
+            "123e4567-e89b-12d3-a456-426614174000"
+          ],
+          "tag": [
+            "tool"
+          ],
+          "description": "Related to Hammer"
+        }
+      ],
+      "code": null
+    },
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174002",
+      "short_name": "Drill",
+      "amount": 20,
+      "item_type": "tool",
+      "consumable": false,
+      "created_at": "2023-10-03T12:00:00Z",
+      "created_by": "user3",
+      "changes": [
+        {
+          "user": "user2",
+          "timestamp": 1672793002,
+          "diff_from_prev_version": {
+            "borrowed_by": "user6",
+            "borrowed_at": 1672793002,
+            "borrowed_until": 1672853002
+          }
+        },
+        {
+          "user": "user6",
+          "timestamp": 1672855002,
+          "diff_from_prev_version": {
+            "borrowed_by": "user6",
+            "borrowed_at": null,
+            "borrowed_until": null
+          }
+        }
+      ],
+      "ai_generated": [
+        "tag4",
+        "tag5"
+      ],
+      "description": "A cordless drill",
+      "min_amount": 3,
+      "tags": [
+        "hardware",
+        "tool"
+      ],
+      "cost_new": 100.0,
+      "acquisition_date": 1672704000,
+      "cost_used": 70.0,
+      "manufacturer": "ToolCorp",
+      "model_number": "TC-DRILL-01",
+      "manufacturing_date": 1672704000,
+      "upc": "123456789014",
+      "asin": "B000123458",
+      "serial_number": "SN1234567892",
+      "vendors": [
+        "Vendor5",
+        "Vendor6"
+      ],
+      "shop_url": [
+        "http://shop5.com",
+        "http://shop6.com"
+      ],
+      "size": {
+        "length": 250,
+        "width": 80,
+        "height": 70
+      },
+      "documentation": [
+        "http://docs.toolcorp.com/drill"
+      ],
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174005",
+      "current_location": "Warehouse C",
+      "borrowed_by": "user6",
+      "borrowed_at": 1672800002,
+      "borrowed_until": 1675401602,
+      "owner": "user3",
+      "related_items": [
+        {
+          "related_tags": [
+            "123e4567-e89b-12d3-a456-426614174000"
+          ],
+          "tag": [
+            "tool"
+          ],
+          "description": "Related to Hammer"
+        }
+      ],
+      "code": null
+    },
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "short_name": "Eurobox 3",
+      "amount": 1,
+      "item_type": "eurobox",
+      "consumable": false,
+      "created_at": "2023-10-04T12:00:00Z",
+      "created_by": "user4",
+      "changes": [],
+      "ai_generated": [],
+      "description": "A large eurobox",
+      "min_amount": 1,
+      "tags": [
+        "container",
+        "eurobox"
+      ],
+      "cost_new": 50.0,
+      "acquisition_date": 1672793002,
+      "cost_used": 30.0,
+      "manufacturer": "EuroboxCorp",
+      "model_number": "EB-3",
+      "manufacturing_date": 1672793002,
+      "upc": "123456789015",
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    },
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "short_name": "Shelf",
+      "amount": 1,
+      "item_type": "shelf",
+      "consumable": true,
+      "created_at": "2025-05-18T18:53:46.989135",
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174004",
+      "code": null
+    },
+    {
+      "tag_uuid": "123e4567-e89b-12d3-a456-426614174004",
+      "short_name": "Space 1",
+      "amount": 1,
+      "item_type": "room",
+      "consumable": false,
+      "created_at": "2025-05-18T18:55:43.532825",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000001",
+      "short_name": "Raspberry Pi 4 Model B (4GB)",
+      "amount": 3,
+      "item_type": "electronics",
+      "consumable": false,
+      "description": "Single-board computer, 4GB RAM",
+      "tags": [
+        "electronics",
+        "sbc",
+        "raspberry-pi"
+      ],
+      "manufacturer": "Raspberry Pi Foundation",
+      "model_number": "SC0194",
+      "cost_new": 55.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000002",
+      "short_name": "USB-C Cable 1m",
+      "amount": 12,
+      "item_type": "cable",
+      "consumable": false,
+      "description": "USB-C to USB-C, 60W, braided",
+      "min_amount": 3,
+      "tags": [
+        "cable",
+        "usb-c"
+      ],
+      "cost_new": 8.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000003",
+      "short_name": "Soldering Iron Hakko FX-888D",
+      "amount": 2,
+      "item_type": "tool",
+      "consumable": false,
+      "description": "Digital soldering station, 70W",
+      "tags": [
+        "tool",
+        "soldering",
+        "electronics"
+      ],
+      "manufacturer": "Hakko",
+      "model_number": "FX-888D",
+      "cost_new": 110.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000004",
+      "short_name": "Solder Wire 0.5mm 100g",
+      "amount": 4,
+      "item_type": "consumable",
+      "consumable": true,
+      "description": "Lead-free solder, Sn99.3 Cu0.7, 100g spool",
+      "min_amount": 1,
+      "tags": [
+        "consumable",
+        "soldering"
+      ],
+      "cost_new": 12.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000005",
+      "short_name": "Multimeter Fluke 117",
+      "amount": 1,
+      "item_type": "tool",
+      "consumable": false,
+      "description": "True-RMS digital multimeter",
+      "tags": [
+        "tool",
+        "measurement",
+        "electronics"
+      ],
+      "manufacturer": "Fluke",
+      "model_number": "117",
+      "cost_new": 175.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000006",
+      "short_name": "Jumper Wires Assortment",
+      "amount": 200,
+      "item_type": "electronics",
+      "consumable": false,
+      "description": "M-M, M-F, F-F 10cm/20cm mixed, 200 pcs",
+      "min_amount": 30,
+      "tags": [
+        "electronics",
+        "prototyping"
+      ],
+      "cost_new": 6.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000007",
+      "short_name": "Angle Grinder 125mm",
+      "amount": 1,
+      "item_type": "tool",
+      "consumable": false,
+      "description": "850W corded angle grinder",
+      "tags": [
+        "tool",
+        "power-tool"
+      ],
+      "manufacturer": "Bosch",
+      "model_number": "GWS 850 C",
+      "cost_new": 65.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000008",
+      "short_name": "WD-40 400ml",
+      "amount": 2,
+      "item_type": "consumable",
+      "consumable": true,
+      "description": "Multi-use product, 400ml spray can",
+      "min_amount": 1,
+      "tags": [
+        "consumable",
+        "maintenance"
+      ],
+      "cost_new": 7.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000009",
+      "short_name": "M3 Hex Bolt Set",
+      "amount": 500,
+      "item_type": "fastener",
+      "consumable": true,
+      "description": "M3 stainless steel hex bolts, assorted lengths 6-30mm",
+      "min_amount": 50,
+      "tags": [
+        "fastener",
+        "hardware",
+        "m3"
+      ],
+      "cost_new": 15.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000010",
+      "short_name": "Label Maker Brother PT-D210",
+      "amount": 1,
+      "item_type": "tool",
+      "consumable": false,
+      "description": "Handheld label maker, TZe tape",
+      "tags": [
+        "tool",
+        "organization"
+      ],
+      "manufacturer": "Brother",
+      "model_number": "PT-D210",
+      "cost_new": 30.0,
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000011",
+      "short_name": "TZe-231 Label Tape (3 pack)",
+      "amount": 3,
+      "item_type": "consumable",
+      "consumable": true,
+      "description": "12mm white TZe tape for Brother label makers",
+      "min_amount": 1,
+      "tags": [
+        "consumable",
+        "organization"
+      ],
+      "cost_new": 18.0,
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000012",
+      "short_name": "NodeMCU ESP8266",
+      "amount": 8,
+      "item_type": "electronics",
+      "consumable": false,
+      "description": "ESP8266 development board with USB",
+      "tags": [
+        "electronics",
+        "iot",
+        "microcontroller"
+      ],
+      "cost_new": 4.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000013",
+      "short_name": "Safety Glasses",
+      "amount": 4,
+      "item_type": "safety",
+      "consumable": false,
+      "description": "Clear polycarbonate safety glasses, EN166",
+      "tags": [
+        "safety",
+        "ppe"
+      ],
+      "cost_new": 5.0,
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000014",
+      "short_name": "Isopropyl Alcohol 99.9% 1L",
+      "amount": 1,
+      "item_type": "consumable",
+      "consumable": true,
+      "description": "IPA for electronics cleaning",
+      "min_amount": 1,
+      "tags": [
+        "consumable",
+        "cleaning",
+        "electronics"
+      ],
+      "cost_new": 9.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174003",
+      "code": null
+    },
+    {
+      "tag_uuid": "aabbccdd-0001-0000-0000-000000000015",
+      "short_name": "Heat Gun 2000W",
+      "amount": 1,
+      "item_type": "tool",
+      "consumable": false,
+      "description": "Variable temperature heat gun, 50-650\u00b0C",
+      "tags": [
+        "tool",
+        "power-tool"
+      ],
+      "cost_new": 35.0,
+      "container_tag_uuid": "123e4567-e89b-12d3-a456-426614174006",
+      "code": null
+    }
+  ],
+  "readers": [
+    {
+      "reader_id": "04-04-46-42-CD-66-81",
+      "reader_name": "Reader1"
+    },
+    {
+      "reader_id": "04-04-46-42-CD-66-82",
+      "reader_name": "Reader2"
+    }
+  ]
+}
