@@ -34,7 +34,6 @@
         Submit
       </button>
     </div>
-    <h1 class="mb-4">{{ item?.short_name }}</h1>
     <BForm v-if="item && formData" @submit.prevent="handleSubmit" @keydown="preventEnterKey">
       <component
         v-for="(field, key, fieldIndex) in visibleFields"

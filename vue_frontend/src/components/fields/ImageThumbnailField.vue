@@ -18,14 +18,13 @@
           <font-awesome-icon icon="camera" size="xl" />
           <p>No images</p>
         </div>
-        <div class="add-image-container m-2" v-if="!disabled">
-          <input ref="cameraInput" type="file" class="d-none" accept="image/*" capture="environment"
+        <div class="add-image-container m-2 position-relative" v-if="!disabled">
+          <button type="button" class="btn btn-primary add-image-btn">+</button>
+          <input type="file" class="file-input-overlay" accept="image/*" capture="environment"
             @change="addImage" />
-          <button type="button" class="btn btn-primary add-image-btn" @click="triggerCameraInput">
-            +
-          </button>
         </div>
       </div>
+      <div v-if="uploadError" class="text-danger small mt-1 w-100">{{ uploadError }}</div>
       <ImageModal v-if="showModal && selectedImage" :image="selectedImage.asset_url" @close="closeImageModal" />
     </div>
   </BContainer>
@@ -73,30 +72,43 @@ const emit = defineEmits<{
   (e: 'update:selectedImages', value: File[]): void
 }>()
 
-const cameraInput = ref<HTMLInputElement | null>(null)
 const showModal = ref(false)
 const selectedImage = ref<File | null>(null)
 const selectedImages = ref<File[]>([])
+const uploadError = ref('')
 
-function triggerCameraInput() {
-  cameraInput.value?.click()
+async function compressImage(file: globalThis.File, maxWidth = 1920, quality = 0.82): Promise<globalThis.File> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxWidth / bitmap.width)
+  const canvas = document.createElement('canvas')
+  canvas.width = bitmap.width * scale
+  canvas.height = bitmap.height * scale
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob ? new globalThis.File([blob], file.name, { type: 'image/jpeg' }) : file),
+      'image/jpeg', quality,
+    )
+  })
 }
 
 async function addImage(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  if (file) {
-    const formData = new FormData()
-    formData.append('file', file) 
-    try {
-      const newImage: File = await ApiService.createFile(formData)
-      const updatedValue = props.value ? [...props.value, newImage] : [newImage]
-      emit('update:value', updatedValue)
-    } catch (error) {
-      console.error('Error uploading image:', error)
-    } finally {
-      target.value = '' // Reset the input
-    }
+  if (!file) return
+  const compressed = await compressImage(file)
+  const formData = new FormData()
+  formData.append('file', compressed, file.name)
+  uploadError.value = ''
+  try {
+    const newImage: File = await ApiService.createFile(formData)
+    const updatedValue = props.value ? [...props.value, newImage] : [newImage]
+    emit('update:value', updatedValue)
+  } catch (error) {
+    console.error('Error uploading image:', error)
+    uploadError.value = 'Upload failed. Please try again.'
+  } finally {
+    target.value = ''
   }
 }
 
@@ -174,6 +186,16 @@ remove-btn:hover {
   justify-content: center;
   align-items: center;
   padding: 0;
+}
+
+.file-input-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .borderless label {

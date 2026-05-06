@@ -1,17 +1,20 @@
 <template>
-  <BContainer fluid class="d-flex row" data-testid="item-view">
-    <BCol class="col-1 p-0 text-end">
-      <router-link v-show="previousItemId"
-        :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
-        class="text-decoration-none arrow-button">
-        <IFaArrowLeft />
-      </router-link>
-    </BCol>
-    <BCol>
+  <BContainer fluid data-testid="item-view">
+    <router-link v-show="previousItemId"
+      :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
+      class="text-decoration-none arrow-button arrow-button-prev">
+      <IFaArrowLeft />
+    </router-link>
+    <router-link v-show="nextItemId"
+      :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
+      class="text-decoration-none arrow-button arrow-button-next">
+      <IFaArrowRight />
+    </router-link>
+    <BCol class="p-0">
       <div v-if="errorMessage" class="sticky-note sticky-note-error">{{ errorMessage }}</div>
       <div v-if="successMessage" class="sticky-note sticky-note-success">{{ successMessage }}</div>
       <template v-if="!itemNotFound">
-        <h1 class="m-4">{{ item?.short_name }}</h1>
+        <h1>{{ item?.short_name }}</h1>
         <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
           <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
             <ContainerListComponent v-if="item?.id" :itemId="'' + item?.id" @update:value="handleContainerSelect" />
@@ -19,7 +22,7 @@
               Add content now
             </button>
             <ItemListContainer v-if="item?.id" :settingsId="'item-view-container'"
-              :query="{ filters: { container_id: itemId }}" @select="handleItemSelect"
+              :query="{ filters: { container_id: itemId } }" @select="handleItemSelect"
               :title="`Items in ${item?.short_name}`" />
           </BTab>
           <BTab title="Item Data" id="itemData" data-testid="item-data">
@@ -37,13 +40,6 @@
         </BTabs>
       </template>
       <ItemError v-else />
-    </BCol>
-    <BCol class="col-1 p-0">
-      <router-link v-show="nextItemId"
-        :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
-        class="text-decoration-none arrow-button">
-        <IFaArrowRight />
-      </router-link>
     </BCol>
     <SearchModal v-if="showModal" :show="showModal" @close="closeModal" @select="handleContentSelect" />
   </BContainer>
@@ -421,13 +417,22 @@ watch(
 
 <style scoped>
 .arrow-button {
+  font-size: 1.5rem;
   position: fixed;
-  top: 45vh;
-  font-size: 1.2rem;
-  transform: translateX(-50%);
+  bottom: 1.5rem;
+  z-index: 50;
+  padding: 0.5rem;
 
   &:hover {
     background-color: unset;
   }
+}
+
+.arrow-button-prev {
+  left: calc(50% - 2.5rem);
+}
+
+.arrow-button-next {
+  left: calc(50% + 0.5rem);
 }
 </style>

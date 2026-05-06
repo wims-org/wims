@@ -26,7 +26,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     integrations: [
       Sentry.browserTracingIntegration({ router }),
     ],
-    environment: "dev or prod"
+    environment: import.meta.env.MODE
   })
 }
 

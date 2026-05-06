@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import Counter, Histogram, disable_created_metrics
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 
 import routers
@@ -58,6 +59,8 @@ if wims_config.sentry_dsn:
     sentry_sdk.init(
         dsn=wims_config.sentry_dsn,
         send_default_pii=True,
+        integrations=[FastApiIntegration()],
+        environment=os.environ.get("RUN_MODE", "development"),
     )
 
 if os.environ.get("RUN_MODE", "") == "production":

@@ -62,8 +62,8 @@ watch(
 
 .content {
   flex-grow: 1;
-  margin: 1.5rem auto;
-  padding: 0 0.5rem;
+  margin: 1rem auto;
+  padding: 0 0.5rem !important;
   max-width: var(--content-max-width) !important;
 }
 
@@ -71,6 +71,7 @@ watch(
   .content {
     max-width: var(--content-max-width-small) !important;
     margin: 0.5rem 0.5rem !important;
+    padding: 0 0.5rem !important;
   }
 }
 </style>
