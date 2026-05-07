@@ -8,35 +8,30 @@
       "version": "0.1.0",
       "required": [
         "short_name",
-        "item_type",
         "consumable",
         "description",
         "tags",
-        "cost_new",
-        "cost_used",
+        "price_new",
+        "price_used",
         "manufacturer",
         "model_number",
-        "upc",
-        "asin",
-        "serial_number",
-        "vendors",
-        "shop_url",
-        "documentation"
+        "serial_number"
       ],
       "properties": {
-        "upc": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Universal Product Code"
+        "short_name": {
+          "type": "string",
+          "description": "Short name of the item"
         },
-        "asin": {
+        "consumable": {
+          "type": "boolean",
+          "description": "Indicates if the item is consumable"
+        },
+        "description": {
           "type": [
             "string",
             "null"
           ],
-          "description": "Amazon Standard Identification Number"
+          "description": "Concise description of the item and general use"
         },
         "tags": {
           "type": "array",
@@ -45,52 +40,19 @@
           },
           "description": "Custom tags for categorization"
         },
-        "vendors": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of vendors"
-        },
-        "cost_new": {
+        "price_new": {
           "type": [
-            "number",
+            "integer",
             "null"
           ],
-          "description": "Cost per item in Euros when bought new"
+          "description": "Price per item in cents when bought new"
         },
-        "shop_url": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of URLs to shops"
-        },
-        "cost_used": {
+        "price_used": {
           "type": [
-            "number",
+            "integer",
             "null"
           ],
-          "description": "Cost per item in Euros, for e.g. selling"
-        },
-        "item_type": {
-          "type": "string",
-          "description": "Item type"
-        },
-        "consumable": {
-          "type": "boolean",
-          "description": "Indicates if the item is consumable"
-        },
-        "short_name": {
-          "type": "string",
-          "description": "Short name of the item"
-        },
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Concise description of the item and general use"
+          "description": "Price per item in cents, for e.g. selling"
         },
         "manufacturer": {
           "type": [
@@ -105,13 +67,6 @@
             "null"
           ],
           "description": "Model number of the item"
-        },
-        "documentation": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "URL to documentation or more text"
         },
         "serial_number": {
           "type": [

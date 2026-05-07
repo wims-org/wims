@@ -8,8 +8,8 @@ import pydantic
 from fastapi import APIRouter, HTTPException, Request, UploadFile
 from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice, CompletionUsage
 
-from dependencies.backend_service import Event, SseEvent
-from routers.utils import get_bs
+from dependencies.event_handler import Event, EventHandlerDep, SseEvent, SseEventData
+from dependencies.llm import LLMDep
 
 router = APIRouter(prefix="/completion", tags=["completion"], responses={404: {"description": "Not found"}})
 
@@ -28,9 +28,7 @@ class IdentificationRequest(pydantic.BaseModel):
 
 
 @router.post("/identification")
-async def identification(
-    request: Request,
-):
+async def identification(request: Request, event_handler: EventHandlerDep, llm_dep: LLMDep):
     try:
         # Parse JSON data from the request body
         body = await request.json()
@@ -96,7 +94,7 @@ async def identification(
                 )
                 raise MockResponseException("Development mode: Mock response used for testing")
 
-            chatgpt_response = get_bs(request).llm_completion.identify_object(query, imageUrls)
+            chatgpt_response = llm_dep.identify_object(query, imageUrls)
             if (
                 not chatgpt_response
                 or not chatgpt_response.choices
@@ -106,12 +104,12 @@ async def identification(
                 raise EmptyResponseException()
         except (openai.APIConnectionError, EmptyResponseException, Exception) as e:
             sse_message = SseEvent(
-                data=SseEvent.SseEventData(
+                data=SseEventData(
                     data={"message": str(e)}, reader_id=client_id, rfid="", duration=time.time() - start_time
                 ).model_dump(mode="json"),
                 event=Event.ERROR,
             )
-            await get_bs(request).append_message_to_queue(client_id, sse_message)
+            await event_handler.append_message_to_queue(client_id, sse_message)
             return
         except MockResponseException as e:
             print(e)
@@ -121,7 +119,7 @@ async def identification(
         if imageUrls:
             result.setdefault("images", []).extend(imageUrls)
         sse_message = SseEvent(
-            data=SseEvent.SseEventData(
+            data=SseEventData(
                 reader_id=client_id,
                 data={
                     "response": {
@@ -133,7 +131,7 @@ async def identification(
             ).model_dump(mode="json"),
             event=Event.COMPLETION,
         )
-        await get_bs(request).append_message_to_queue(client_id, sse_message)
+        await event_handler.append_message_to_queue(client_id, sse_message)
 
     asyncio.create_task(start_identification(time.time(), imageUrls))
     return {"message": "Identification process started"}
