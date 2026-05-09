@@ -341,6 +341,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/completion/identification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Identification */
+        post: operations["identification_completion_identification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -443,11 +460,6 @@ export interface components {
             short_name: string;
             /** Container Id */
             container_id?: number | null;
-            /**
-             * Is Container
-             * @default false
-             */
-            is_container: boolean;
             /** Code */
             code: string | null;
             /** Amount */
@@ -502,11 +514,6 @@ export interface components {
             short_name: string;
             /** Container Id */
             container_id?: number | null;
-            /**
-             * Is Container
-             * @default false
-             */
-            is_container: boolean;
             /** Code */
             code: string | null;
             /** Amount */
@@ -555,11 +562,6 @@ export interface components {
             short_name: string;
             /** Container Id */
             container_id?: number | null;
-            /**
-             * Is Container
-             * @default false
-             */
-            is_container: boolean;
             /** Code */
             code: string | null;
             /** Amount */
@@ -615,11 +617,6 @@ export interface components {
             short_name: string;
             /** Container Id */
             container_id?: number | null;
-            /**
-             * Is Container
-             * @default false
-             */
-            is_container: boolean;
             /** Code */
             code: string | null;
             /** Amount */
@@ -674,6 +671,8 @@ export interface components {
             files?: components["schemas"]["FilePublic"][] | null;
             /** Borrowed */
             readonly borrowed: boolean;
+            /** Is Container */
+            readonly is_container: boolean;
         };
         /** ItemUpdate */
         ItemUpdate: {
@@ -681,11 +680,6 @@ export interface components {
             short_name?: string | null;
             /** Container Id */
             container_id?: number | null;
-            /**
-             * Is Container
-             * @default false
-             */
-            is_container: boolean;
             /** Code */
             code?: string | null;
             /** Amount */
@@ -819,7 +813,7 @@ export interface components {
             };
             /**
              * Id
-             * @default de3cb273-0839-42e4-9968-24b664e2cf21
+             * @default 161c0bf7-59cc-4b68-ab28-129c17268407
              */
             id: string;
             /**
@@ -880,7 +874,7 @@ export interface components {
         /** UserPublic */
         UserPublic: {
             /** Id */
-            id?: number | null;
+            id?: number;
             /**
              * Created At
              * Format: date-time
@@ -2025,6 +2019,33 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+        };
+    };
+    identification_completion_identification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

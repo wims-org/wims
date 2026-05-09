@@ -40,7 +40,7 @@ export const formFields: Record<string, FormField> = {
   item_type: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: false, search_type: SearchType.CATEGORY },
   tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: false },
   container_id: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
-  code: { label: 'RFID UUID', type: 'text', disabled: false, hidden: false, details: false, required: true },
+  code: { label: 'Code (Barcode/RFID/Other)', type: 'text', disabled: false, hidden: false, details: false, required: false },
   // Details:
   amount: { label: 'Amount', type: 'number', disabled: false, hidden: false, details: true, required: false },
   consumable: { label: 'Consumable', type: 'checkbox', disabled: false, hidden: false, details: true, required: false },

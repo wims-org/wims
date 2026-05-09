@@ -13,7 +13,7 @@ class User(UserBase, SQLModelBase, table=True):
 
 
 class UserPublic(UserBase, SQLModelBase):
-    pass
+    id: int
 
 
 class UserCreate(UserBase):

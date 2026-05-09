@@ -66,8 +66,8 @@ export const clientStore = defineStore('client', {
     setClientId(client_id: string) {
       this.client_id = client_id
     },
-    setUser(userId: string) {
-      if (this.user && ''+this.user.id === userId) {
+    setUser(userId: number) {
+      if (this.user && this.user.id === userId) {
         return
       }
       axios

@@ -57,6 +57,7 @@ async def message_stream(
     await event_handler.add_subscription(stream_id, stream_id)
     if reader_id:
         await event_handler.add_subscription(stream_id, reader_id)
+    await event_handler.append_message_to_queue(stream_id, event_handler.get_alive_message())
     return EventSourceResponse(content=event_generator(), media_type="text/event-stream")
 
 

@@ -7,6 +7,7 @@ import type { components } from '@/interfaces/api-types'
 
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
 type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
+type UserCreate = components['schemas']['UserCreate'] & { [key: string]: unknown }
 
 type ItemContainer = components["schemas"]["ContainerObject"]
 class ApiService {
@@ -124,7 +125,6 @@ class ApiService {
             throw error
         }
     }
-
 }
 
 export default ApiService.getInstance()

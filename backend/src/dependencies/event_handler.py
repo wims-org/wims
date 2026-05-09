@@ -82,13 +82,15 @@ class EventHandler:
         self.__message_queues: dict[str, MessageQueue] = {}
         asyncio.create_task(self.push_heartbeats())
 
-    async def push_heartbeats(self):
-        message = SseEvent(
+    def get_alive_message(self) -> SseEvent:
+        return SseEvent(
             data=SseEventData(reader_id=None, data={"message": "connection alive"}).model_dump(mode="json"),
             event=Event.ALIVE,
         )
+
+    async def push_heartbeats(self):
         while True:
-            await self.append_message_to_all_queues(message=message)
+            await self.append_message_to_all_queues(message=self.get_alive_message())
             await asyncio.sleep(5)
 
     async def has_stream_id(self, stream_id: str) -> bool:

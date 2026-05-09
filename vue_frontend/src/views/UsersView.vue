@@ -5,17 +5,17 @@
       <li
         v-for="user in users"
         data-testid="user-item"
-        :key="user._id"
-        @click="user._id === clientStoreInstance?.user?._id ? deselectUser() : selectUser(user._id)"
+        :key="user.id"
+        @click="user.id === clientStoreInstance?.user?.id ? deselectUser() : selectUser(user.id)"
         class="list-group-item d-flex justify-content-between align-items-center"
-        :class="{ active: user?._id === (clientStoreInstance?.user?._id ?? '') }"
+        :class="{ active: user?.id === (clientStoreInstance?.user?.id ?? '') }"
       >
         <div class="flex-grow-1">
           {{ user.username }}
           <br />
           <span class="text-muted">{{ user.email }}</span>
         </div>
-        <button @click.stop="router.push('/users/' + user._id)" class="btn btn-primary btn-sm me-2">View Profile</button>
+        <button @click.stop="router.push('/users/' + user.id)" class="btn btn-primary btn-sm me-2">View Profile</button>
         <button @click.stop="deleteUser(user.id)" class="btn btn-danger btn-sm">Delete</button>
       </li>
       <div v-if="users.length === 0" class="list-group-item">
@@ -61,13 +61,13 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic']
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const users = ref<User[]>([])
 const blockSubmission = ref(false)
-const newUser = ref<components['schemas']['UserRequest']>({
+const newUser = ref<components['schemas']['UserPublic']>({
   username: '',
   email: '',
 })
@@ -98,7 +98,7 @@ const submitUser = async () => {
     })
 }
 
-async function selectUser(userId: string) {
+async function selectUser(userId: number) {
   await clientStoreInstance.setUser(userId)
 }
 
