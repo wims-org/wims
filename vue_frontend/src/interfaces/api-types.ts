@@ -540,6 +540,14 @@ export interface components {
             /** Filetype */
             filetype: string;
         };
+        /** Filter */
+        Filter: {
+            /** Field */
+            field: string;
+            qualifier: components["schemas"]["Qualifier"];
+            /** Value */
+            value: string | number | (string | number)[];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -832,17 +840,20 @@ export interface components {
             /** Files */
             files?: components["schemas"]["FilePublic"][] | null;
         };
+        /**
+         * Qualifier
+         * @enum {string}
+         */
+        Qualifier: "in" | "not_in" | "eq" | "not_eq" | "gt" | "lt";
         /** Query */
         Query: {
             /** Term */
             term?: string | null;
             /**
              * Filters
-             * @default {}
+             * @default []
              */
-            filters: {
-                [key: string]: string | number;
-            };
+            filters: components["schemas"]["Filter"][];
             /**
              * Offset
              * @default 0
@@ -916,7 +927,7 @@ export interface components {
             };
             /**
              * Id
-             * @default 71636a64-69f4-453f-a5e0-d26b36ff9652
+             * @default 23410159-cd07-4000-86b9-4be9f96b51a1
              */
             id: string;
             /**

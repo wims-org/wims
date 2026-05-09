@@ -62,14 +62,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, defineEmits } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import axios from 'axios'
 import ItemList from '@/components/ItemList.vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'
 type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
+type SearchQuery = components['schemas']['Query'] 
 
 const searchQuery = ref('')
 const searchedQuery = ref<Record<string, unknown>>({})
@@ -79,13 +79,15 @@ const isEditing = ref(false)
 let debounceTimeout: ReturnType<typeof setTimeout>
 const selectedSavedQuery = ref<Query | null>(null)
 const queries = ref<Query[]>([
-  {
-    _id: 'query3',
-    name: 'Query 3',
-    query: { id: '123e4567-e89b-12d3-a456-426614174000' },
+  { _id: '1',
+    name: 'Tools',
+    query: { filters: [{ field: 'category_id', qualifier: 'in', value: [1] }] },
     description: null,
-    created_at: null,
-    updated_at: null,
+  },
+  { _id: '2',
+    name: 'Tools by title',
+    query: { filters: [{ field: 'category.title', qualifier: 'in', value: ['Tools'] }] },
+    description: null,
   },
 ])
 
@@ -105,7 +107,7 @@ const fetchSearchTerm = async (term: string) => {
 }
 
 const fetchSearchQuery = async (query: SearchQuery) => {
-  await axios.post('/items/search', { query }).then((response) => {
+  await axios.post('/items/search', query ).then((response) => {
     items.value = response.data
     noResults.value = items.value.length === 0
   })

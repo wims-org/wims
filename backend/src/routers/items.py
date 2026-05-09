@@ -1,3 +1,5 @@
+import enum
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -6,14 +8,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
+from models.category import Category
 from models.item import File, Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
+
+RELATION_MAP: dict[str, type] = {
+    "category": Category,
+}
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
 
+class Qualifier(enum.Enum):
+    IN = "in"
+    NOT_IN = "not_in"
+    EQUALS = "eq"
+    NOT_EQUALS = "not_eq"
+    GREATER_THAN = "gt"
+    LESS_THAN = "lt"
+
+
+class Filter(BaseModel):
+    field: str
+    qualifier: Qualifier
+    value: str | int | list[str | int]
+
+
 class Query(BaseModel):
     term: str | None = None
-    filters: dict[str, str | int] = {}
+    filters: list[Filter] = []
     offset: int = 0
     limit: int = 10
     sort_by: str | None = None
@@ -155,10 +177,34 @@ async def get_item_search(query: Query, session: SessionDep):
             statement = statement.where(or_(*[col(getattr(Item, key)).contains(query.term) for key in term_fields]))
 
         # Filters
-        if query.filters:
-            statement = statement.where(
-                or_(*[col(getattr(Item, key)).contains(term) for key, term in query.filters.items()])
-            )
+        for filter in query.filters:
+            if "." in filter.field:
+                relation_name, field_name = filter.field.split(".", 1)
+                if relation_name not in RELATION_MAP:
+                    raise HTTPException(status_code=400, detail=f"Invalid filter relation: {relation_name}")
+                related_model = RELATION_MAP[relation_name]
+                if not hasattr(related_model, field_name):
+                    raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
+                statement = statement.join(related_model)
+                column = getattr(related_model, field_name)
+            else:
+                if filter.field not in Item.model_fields:
+                    raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
+                column = getattr(Item, filter.field)
+
+            match filter.qualifier:
+                case Qualifier.EQUALS:
+                    statement = statement.where(column == filter.value)
+                case Qualifier.NOT_EQUALS:
+                    statement = statement.where(column != filter.value)
+                case Qualifier.IN:
+                    statement = statement.where(column.in_(filter.value))
+                case Qualifier.NOT_IN:
+                    statement = statement.where(~column.in_(filter.value))
+                case Qualifier.GREATER_THAN:
+                    statement = statement.where(column > filter.value)
+                case Qualifier.LESS_THAN:
+                    statement = statement.where(column < filter.value)
 
         # Offset & limits
         statement = statement.offset(query.offset).limit(query.limit)

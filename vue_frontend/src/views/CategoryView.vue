@@ -21,7 +21,7 @@ import { onMounted, ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import router from '@/router'
 import CategoryTreeView from '@/components/shared/CategoryTreeView.vue'
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
+type SearchQuery = components['schemas']['Query'] & { [key: string]: unknown }
 
 type Category = components['schemas']['CategoryPublic']
 
@@ -41,7 +41,7 @@ watch(
       items.value = []
       category.value = null
       await fetchCategory(+newId as number).then(async () => {
-        await fetchItemsByCategory(category.value?.title || '')
+        await fetchItemsByCategory(category.value)
         await fetchContainersForItems(
           items.value.map((item) => item.container_id).filter((id) => id) as number[],
         )
@@ -61,8 +61,8 @@ const fetchCategory = async (id: number): Promise<void> => {
     })
 }
 
-const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
-  items_query.value = { query: { item_type: { $regex: `^${categoryTitle}$`, $options: 'i' } } }
+const fetchItemsByCategory = async (category: Category): Promise<void> => {
+  items_query.value = { filters: [{ field: 'category_id', qualifier: 'eq', value: category.id }] }
   return axios
     .post('/items/search', items_query.value)
     .then((response) => {
@@ -75,7 +75,7 @@ const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
 }
 
 const fetchContainersForItems = async (container_ids: number[]): Promise<void> => {
-  containers_query.value = { query: { id: { $in: container_ids } } }
+  containers_query.value = { filters: [{ field: 'id', qualifier: 'in', value: container_ids }] }
   return axios
     .post('/items/search', containers_query.value)
     .then((response) => {
@@ -88,11 +88,11 @@ const fetchContainersForItems = async (container_ids: number[]): Promise<void> =
 }
 
 onMounted(() => {
-  fetchCategory(router.currentRoute.value.params.categoryId).then(async () => {
-    await fetchItemsByCategory(category.value?.title || '')
+  fetchCategory(+router.currentRoute.value.params.categoryId).then(async () => {
+    await fetchItemsByCategory(category.value as Category)
     await fetchContainersForItems(
-        items.value.map((item) => item.container_id).filter((id) => id) ,
-      )
+      items.value.map((item) => item.container_id).filter((id) => id) as number[]
+    )
   }).catch((error) => {
     console.error('Error fetching category on mount:', error)
   })

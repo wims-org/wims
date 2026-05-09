@@ -2,7 +2,7 @@
   <div>
     <h1>Categories</h1>
 
-    <CategoryTreeView :categories="categories" :selectable="true" @add-child="fetchCategories" />
+    <CategoryTreeView :categories="categories" :selectable="true" @add-child="fetchCategories" :show-actions="true" />
   </div>
 </template>
 

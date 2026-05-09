@@ -59,13 +59,13 @@
       </li>
     </ul>
 
-    <div v-if="formKey !== 0 && !parent" class="row text-center mt-3 gap-2 justify-content-center">
+    <div v-if="formKey !== 0 && !parent && showActions" class="row text-center mt-3 gap-2 justify-content-center">
       <button class="btn btn-sm btn-outline-primary rounded mx-auto add-category-button" type="button"
         @click.stop="formKey = 0" title="Add Category">
         +
       </button>
     </div>
-    <div v-if="formKey === 0" class="add-form">
+    <div v-if="formKey === 0 && showActions" class="add-form">
       <form class="d-flex gap-2" @submit.prevent="submitAddChild(parent || null)">
         <input v-model="newChildTitle" type="text" class="form-control form-control-sm"
           placeholder="New root category title" required />
@@ -99,6 +99,7 @@ const props = defineProps<{
   expandedCategories?: Set<number>
   selectable?: boolean
   parent?: CategoryNode
+  showActions?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -114,6 +115,7 @@ const newChildTitle = ref<string>('')
 
 const saveError = ref<string>('')
 const saveSuccess = ref<string>('')
+const showActions = ref<boolean>(props.showActions ?? true)
 
 watch(
   () => props.categories,
