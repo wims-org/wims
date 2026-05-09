@@ -40,21 +40,20 @@ watch(
       containers.value = []
       items.value = []
       category.value = null
-      await fetchCategory(newId as string).then(async () => {
+      await fetchCategory(+newId as number).then(async () => {
         await fetchItemsByCategory(category.value?.title || '')
         await fetchContainersForItems(
-          items.value.map((item) => item.container_id).filter((id) => id) as string[],
+          items.value.map((item) => item.container_id).filter((id) => id) as number[],
         )
       })
     }
   },
 )
 
-const fetchCategory = async (id: string): Promise<void> => {
+const fetchCategory = async (id: number): Promise<void> => {
   return axios
-    .get('/categories/' + id + '/tree')
+    .get(`/categories/${id}`)
     .then((response) => {
-      console.log('Category fetched:', response.data)
       category.value = response.data
     })
     .catch((error) => {
@@ -75,7 +74,7 @@ const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
     })
 }
 
-const fetchContainersForItems = async (container_ids: string[]): Promise<void> => {
+const fetchContainersForItems = async (container_ids: number[]): Promise<void> => {
   containers_query.value = { query: { id: { $in: container_ids } } }
   return axios
     .post('/items/search', containers_query.value)
@@ -89,20 +88,20 @@ const fetchContainersForItems = async (container_ids: string[]): Promise<void> =
 }
 
 onMounted(() => {
-  fetchCategory(router.currentRoute.value.params.categoryId as string).then(async () => {
+  fetchCategory(router.currentRoute.value.params.categoryId).then(async () => {
     await fetchItemsByCategory(category.value?.title || '')
     await fetchContainersForItems(
-        items.value.map((item) => item.container_id).filter((id) => id) as string[],
+        items.value.map((item) => item.container_id).filter((id) => id) ,
       )
   }).catch((error) => {
     console.error('Error fetching category on mount:', error)
   })
 })
 
-const handleSelect = (tag: string, query: SearchQuery | null, offset: number | null) => {
-  console.log('Selected tag:', tag)
+const handleSelect = (id: number, query: SearchQuery | null, offset: number | null) => {
+  console.log('Selected id:', id)
   router.push(
-    `/items/${tag}` +
+    `/items/${id}` +
     (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
   )
 }

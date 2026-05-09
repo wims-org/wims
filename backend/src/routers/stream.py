@@ -17,10 +17,11 @@ class StreamRequestData(BaseModel):
     stream_id: str
     reader_id: str | None = None
 
+
 @router.get(
     "",
     response_model=SseEvent,
-    # ToDo: SseEvent is not marked as "text/event-stream" in the OpenAPI schema, 
+    # ToDo: SseEvent is not marked as "text/event-stream" in the OpenAPI schema,
     # but at least included as a type. fine for now
     responses={
         200: {"content": {"text/event-stream": SseEvent.model_json_schema()}},
@@ -44,7 +45,7 @@ async def message_stream(
                 if await event_handler.message_length(stream_id):
                     message = await event_handler.pop_first_message_from_queue(stream_id)
                     if message["event"] != Event.ALIVE.value:
-                        logger.debug(f"Sending message: {stream_id} {str(message)}")#[:150]}")
+                        logger.debug(f"Sending message: {stream_id} {str(message)}")  # [:150]}")
                     message["data"] = json.dumps(message["data"])
                     yield message
                 await asyncio.sleep(MESSAGE_STREAM_DELAY)
@@ -63,7 +64,6 @@ async def message_stream(
 
 @router.post("/subscription")
 async def add_subscription(stream_data: StreamRequestData, event_handler: EventHandlerDep):
-    
     if not await event_handler.has_stream_id(stream_data.stream_id):
         raise HTTPException(status_code=404, detail={"error": "Stream ID does not exist"})
     if not stream_data.reader_id:

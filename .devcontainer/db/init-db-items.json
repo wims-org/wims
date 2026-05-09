@@ -1,4 +1,61 @@
 {
+  "categories": [
+    {
+      "title": "Tools",
+      "description": "Hand tools, power tools, and measuring instruments"
+    },
+    {
+      "title": "Hand Tools",
+      "description": "Non-powered hand tools such as hammers, screwdrivers, and wrenches",
+      "parent_title": "Tools"
+    },
+    {
+      "title": "Power Tools",
+      "description": "Electrically powered tools such as drills and grinders",
+      "parent_title": "Tools"
+    },
+    {
+      "title": "Measurement",
+      "description": "Measurement and testing equipment",
+      "parent_title": "Tools"
+    },
+    {
+      "title": "Electronics",
+      "description": "Electronic components, development boards, and cables"
+    },
+    {
+      "title": "Microcontrollers & SBCs",
+      "description": "Single-board computers and microcontroller development boards",
+      "parent_title": "Electronics"
+    },
+    {
+      "title": "Cables & Connectors",
+      "description": "Cables, connectors, and wiring accessories",
+      "parent_title": "Electronics"
+    },
+    {
+      "title": "Consumables",
+      "description": "Items that are used up and need to be restocked"
+    },
+    {
+      "title": "Soldering Supplies",
+      "description": "Solder wire, flux, and related consumables",
+      "parent_title": "Consumables"
+    },
+    {
+      "title": "Fasteners",
+      "description": "Screws, bolts, nuts, and other fastening hardware",
+      "parent_title": "Consumables"
+    },
+    {
+      "title": "Containers",
+      "description": "Storage containers, shelves, and organisational units"
+    },
+    {
+      "title": "Safety",
+      "description": "Personal protective equipment and safety items"
+    }
+  ],
   "items": [
     {
       "tag_uuid": "123e4567-e89b-12d3-a456-426614174000",

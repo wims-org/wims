@@ -41,10 +41,10 @@ import axios from 'axios'
 import { SearchType, SearchTypeEndpoint } from '@/interfaces/FormField.interface'
 
 import type { components } from '@/interfaces/api-types'
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
-type Category = components['schemas']['Category'] & { [key: string]: unknown }
+type Category = components['schemas']['CategoryPublic'] & { [key: string]: unknown }
 
 const props = defineProps({
   searchType: {
@@ -169,7 +169,7 @@ const clearSearch = () => {
 }
 
 interface searchResult {
-  id: string
+  id: number
   display_string: string
   select: User | Item | Query | string
 }
@@ -179,9 +179,9 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
   if (props.searchType === SearchType.USER) {
     options.push(
       ...(result as User[]).map((user) => ({
-        id: user._id,
+        id: user.id,
         display_string: user.username + (user.email ? ` <${user.email}>` : ''),
-        select: user._id,
+        select: user.id,
       })),
     )
   } else if (props.searchType === SearchType.ITEM) {
@@ -196,7 +196,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
     return (result as Category[]).map(
       (category) =>
         ({
-          id: category._id,
+          id: category.id,
           display_string: category.title,
           select: category.title,
         }) as searchResult,

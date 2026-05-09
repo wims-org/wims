@@ -11,7 +11,7 @@ import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import type { components } from '@/interfaces/api-types'
 
-type Categories = components['schemas']['CategoryReqRes'][]
+type Categories = components['schemas']['CategoryPublic'][]
 
 const categories = ref<Categories>([])
 

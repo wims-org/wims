@@ -1,111 +1,74 @@
 from __future__ import annotations
 
-import pymongo
-from fastapi import APIRouter, HTTPException, Request, Response
-from loguru import logger
-from pydantic import BaseModel, Field, ValidationError
+from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
-from db import db_categories
-from routers.utils import get_bs
+from dependencies.database import SessionDep
+from models.category import Category, CategoryCreate, CategoryPublic, CategoryUpdate
 
-router = APIRouter(prefix="/categories", tags=["categories"])
-
-
-class CategoryReqRes(BaseModel):
-    id: str | None = None
-    parent_id: str | None = None
-    title: str
-    description: str | None = None
-    parent: CategoryReqRes | None = None
-    children: list[CategoryReqRes] = Field(default_factory=list)
+router = APIRouter(prefix="/categories", tags=["categories"], responses={404: {"description": "Not found"}})
 
 
-@router.get("", response_model=list[CategoryReqRes])
-async def get_categories(request: Request, offset: int = 0, limit: int = 100) -> Response | dict:
-    db = get_bs(request).dbc.db
-    existing = db_categories.get_categories(db, offset=offset, limit=limit)
-    if not existing:
-        raise HTTPException(status_code=404, detail="No categories found.")
-    return existing
-
-
-@router.get("/tree", response_model=list[CategoryReqRes])
-async def get_all_categories_tree(request: Request) -> list[CategoryReqRes] | Response:
-    logger.debug("Fetching all root categories for category tree")
-    root_categories = db_categories.get_root_categories(get_bs(request).dbc.db, collection_name="categories")
-    if not root_categories:
-        raise HTTPException(status_code=404, detail="No category tree found.")
-    for root_category in root_categories:
-        tree = db_categories.get_category_tree_down(
-            get_bs(request).dbc.db, collection_name="categories", id=root_category["_id"]
-        )
-        if tree:
-            root_category.setdefault("children", tree["children"] or [])
+@router.post("", response_model=CategoryPublic)
+async def create_category(category: CategoryCreate, session: SessionDep):
+    db_category = Category.model_validate(category)
+    session.add(db_category)
     try:
-        return root_categories
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
+        await session.commit()
+    except IntegrityError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    await session.refresh(db_category)
+    return db_category
 
 
-@router.get("/search/", response_model=list[CategoryReqRes])
-async def search_categories(request: Request, term: str) -> Response | dict:
-    logger.debug(f"Searching categories with title query: {term}")
-    db = get_bs(request).dbc.db
-    categories = db_categories.find_categories_by_title(db, title_query=term)
-    if not categories:
-        raise HTTPException(status_code=404, detail="No categories found.")
-    try:
-        return [CategoryReqRes.model_validate(cat) for cat in categories]
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
+@router.get("", response_model=list[CategoryPublic])
+async def get_all_categories(session: SessionDep, offset: int = 0, limit: int = 100):
+    return (await session.execute(select(Category).offset(offset).limit(limit))).scalars().all()
 
 
-@router.get("/{id}", response_model=CategoryReqRes)
-async def get_category(request: Request, id: str | int) -> Response | dict:
-    db = get_bs(request).dbc.db
-    category = db_categories.get_category_with_parents_and_children(db, id)
+@router.get("/tree", response_model=list[CategoryPublic])
+async def get_category_tree(session: SessionDep):
+    return (await session.execute(select(Category).where(Category.parent_id.is_(None)))).scalars().all()
+
+
+@router.get("/{id}/tree", response_model=list[CategoryPublic])
+async def get_category_tree_from_id(id: int, session: SessionDep):
+    # return the tree of the given category starting from the respective root category (parent_id = None)
+    category = await session.get(Category, id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found.")
-    try:
-        return CategoryReqRes.model_validate(category)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
-
-
-@router.get("/{id}/tree", response_model=CategoryReqRes)
-async def get_category_tree(request: Request, id: str) -> CategoryReqRes:
-    db = get_bs(request).dbc.db
-    category = db_categories.get_category_with_parents_and_children(db, id)
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found.")
-    doc_id = category.get("_id")
-    tree = db_categories.get_category_tree_down(db, collection_name="categories", id=doc_id)
-    if tree:
-        category.update({"children": tree.get("children", [])})
+        raise HTTPException(status_code=404, detail="Category not found")
+    # find the upper-most parent category
+    while category.parent_id is not None:
+        category = await session.get(Category, category.parent_id)
     return category
 
 
-@router.get("/{id}/branch", response_model=CategoryReqRes)
-async def get_category_branch(request: Request, id: str) -> Response | dict:
-    logger.debug(f"Fetching category tree for id: {id}")
-    category = db_categories.get_category_tree_up(get_bs(request).dbc.db, collection_name="categories", id=id)
+@router.get("/{id}", response_model=CategoryPublic)
+async def get_category(id: int, session: SessionDep):
+    category = await session.get(Category, id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found.")
+        raise HTTPException(status_code=404, detail="Category not found")
     return category
 
 
-@router.post("/", response_model=CategoryReqRes)
-async def create_category(request: Request, category: CategoryReqRes) -> CategoryReqRes:
-    db = get_bs(request).dbc.db
-    category_dict = category.model_dump(exclude_unset=True, exclude={"children", "parent"})
-    try:
-        result = db["categories"].insert_one(category_dict)
-    except pymongo.errors.DuplicateKeyError:
-        raise HTTPException(status_code=400, detail="Category with this ID or name already exists.") from None
-    created_category = db["categories"].find_one({"_id": result.inserted_id})
-    if not created_category:
-        raise HTTPException(status_code=500, detail="Failed to create category.")
-    try:
-        return CategoryReqRes.model_validate(created_category)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail="Invalid category data.") from e
+@router.put("/{id}", response_model=CategoryPublic)
+async def update_category(id: int, category: CategoryUpdate, session: SessionDep):
+    db_category = await session.get(Category, id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    db_category.sqlmodel_update(category.model_dump(exclude_unset=True))
+    session.add(db_category)
+    await session.commit()
+    await session.refresh(db_category)
+    return db_category
+
+
+@router.delete("/{id}")
+async def delete_category(id: int, session: SessionDep):
+    category = await session.get(Category, id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    await session.delete(category)
+    await session.commit()
+    return {"ok": True}

@@ -4,6 +4,22 @@ import requests
 with open("init-db-items.json", "r") as file:
     init_data = json.load(file)
 
+    # Insert categories, resolving parent_title -> parent_id
+    title_to_id: dict[str, int] = {}
+    for category in init_data.get("categories", []):
+        payload = {k: v for k, v in category.items() if k != "parent_title"}
+        if parent_title := category.get("parent_title"):
+            payload["parent_id"] = title_to_id.get(parent_title)
+        response = requests.post("http://localhost:8000/categories", json=payload)
+        if response.status_code == 200:
+            created = response.json()
+            title_to_id[category["title"]] = created["id"]
+            print(f"Successfully inserted category: {category['title']}")
+        else:
+            print(
+                f"Failed to insert category: {category['title']}. Status code: {response.status_code}, Response: {response.text}"
+            )
+
     for item in init_data.get("items", []):
         response = requests.post("http://localhost:8000/items", json=item)
         if response.status_code == 200:

@@ -106,10 +106,10 @@ app.include_router(routers.users.router)
 app.include_router(routers.items.router)
 app.include_router(routers.readers.router)
 app.include_router(routers.files.router)
+app.include_router(routers.categories.router)
 
 # app.include_router(queries.router)
 app.include_router(routers.config.router)
-# app.include_router(categories.router)
 # app.include_router(backup.router)
 
 app.include_router(routers.stream.router)

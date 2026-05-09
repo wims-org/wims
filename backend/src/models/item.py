@@ -47,7 +47,7 @@ class ItemBase(SQLModel):
     container_id: int | None = Field(default=None, foreign_key="item.id")
 
     # UUID of the RFID tag, unique
-    code: str | None = Field(unique=True, index=True) # ToDo multiple codes/code formats per item
+    code: str | None = Field(unique=True, index=True)  # ToDo multiple codes/code formats per item
     amount: int | None = None
     # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
     category_id: int | None = Field(default=None, foreign_key="category.id")
@@ -120,7 +120,7 @@ class ItemPublic(ItemBase):
     @computed_field
     def borrowed(self) -> bool:
         return self.borrower_id is not None
-    
+
     @computed_field
     def is_container(self) -> bool:
         return bool(self.content)
