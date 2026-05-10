@@ -63,7 +63,7 @@ async def get_all_files(
 
 
 @router.put("/{id}", response_model=FilePublic)
-async def update_file(id: str, file: FileUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def update_file(id: int, file: FileUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     db_file = await session.get(File, id)
     if not file:
         raise HTTPException(status_code=404, detail="File not found")

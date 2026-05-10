@@ -95,7 +95,7 @@ async def create_backlog_item(item: ItemBacklog, session: SessionDep):
 
 
 @router.get("/{id}", response_model=ItemPublic)
-async def get_item(session: SessionDep, id: str):
+async def get_item(session: SessionDep, id: int):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item id not found")
@@ -108,7 +108,7 @@ async def get_all_item(session: SessionDep, offset: int = 0, limit: int = 10):
 
 
 @router.put("/{id}", response_model=ItemPublic)
-async def update_item(id: str, item: ItemUpdate, session: SessionDep):
+async def update_item(id: int, item: ItemUpdate, session: SessionDep):
     db_item = await session.get(Item, id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -133,7 +133,7 @@ async def update_item(id: str, item: ItemUpdate, session: SessionDep):
 
 
 @router.delete("/{id}")
-async def delete_item(id: str, session: SessionDep):
+async def delete_item(id: int, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -143,7 +143,7 @@ async def delete_item(id: str, session: SessionDep):
 
 
 @router.get("/{id}/containers", response_model=list[ContainerObject])
-async def get_item_with_containers(id: str, session: SessionDep):
+async def get_item_with_containers(id: int, session: SessionDep):
     # recursive query to get all parent containers of an item, starting from the item itself,
     # and return a list of ContainerObjects with item_id and short_name
     item = await session.get(Item, id)

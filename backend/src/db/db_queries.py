@@ -24,7 +24,7 @@ def get_query_by_name(name: str, db: Database):
     return query
 
 
-def get_query_by_id(id: str, db: Database):
+def get_query_by_id(id: int, db: Database):
     collection = db[COLLECTION_NAME]
     query = collection.find_one({"_id": ObjectId(id)})
     if query:
@@ -40,7 +40,7 @@ def get_all_queries(db: Database):
     return queries
 
 
-def update_query(id: str, query_data, db: Database):
+def update_query(id: int, query_data, db: Database):
     collection = db[COLLECTION_NAME]
     query_data_dict = query_data.dict()
     query_data_dict["updated_at"] = datetime.now().isoformat()
@@ -50,7 +50,7 @@ def update_query(id: str, query_data, db: Database):
     return None
 
 
-def delete_query(id: str, db: Database):
+def delete_query(id: int, db: Database):
     collection = db[COLLECTION_NAME]
     result = collection.delete_one({"_id": ObjectId(id)})
     return result.deleted_count > 0

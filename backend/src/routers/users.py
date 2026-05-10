@@ -45,7 +45,7 @@ async def get_all_users(
 
 
 @router.put("/{id}", response_model=UserPublic)
-async def update_user(id: str, user: UserUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def update_user(id: int, user: UserUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     db_user = await session.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -58,7 +58,7 @@ async def update_user(id: str, user: UserUpdate, session: Annotated[AsyncSession
 
 
 @router.delete("/{id}")
-async def delete_user(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+async def delete_user(id: int, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     user = await session.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

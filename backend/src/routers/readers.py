@@ -34,9 +34,9 @@ async def create_reader(session: SessionDep, reader: ReaderCreate):
     return db_reader
 
 
-@router.delete("/{reader_id}", response_model=dict)
-async def delete_reader(session: SessionDep, reader_id: str):
-    reader = await session.get(Reader, reader_id)
+@router.delete("/{id}", response_model=dict)
+async def delete_reader(session: SessionDep, id: int):
+    reader = await session.get(Reader, id)
     if not reader:
         raise HTTPException(status_code=404, detail="Reader not found")
     await session.delete(reader)

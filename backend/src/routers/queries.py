@@ -43,7 +43,7 @@ async def get_all_queries_endpoint(request: Request) -> Response | list[Query]:
 
 
 @router.put("/{id}", response_model=None)
-async def update_query_endpoint(request: Request, id: str, query: Query) -> Response | dict:
+async def update_query_endpoint(request: Request, id: int, query: Query) -> Response | dict:
     db = get_bs(request).dbc.db
     updated_query = update_query(id, query, db)
     if not updated_query:
