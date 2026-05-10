@@ -1,9 +1,11 @@
 import pathlib
 from functools import lru_cache
 from pathlib import Path
+from sys import exit
 from typing import Annotated
 
 from fastapi import Depends
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,7 +27,12 @@ def get_settings() -> Settings:
     Reads the configuration settings from environment variables and returns a Settings object.
     :return: Settings object containing the configuration settings.
     """
-    return Settings()
+    try:
+        return Settings()
+    except ValidationError as ex:
+        print("Your .env file is invalid!")
+        print(ex)
+        exit(1)
 
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
