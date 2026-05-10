@@ -19,6 +19,8 @@ COPY run.sh .
 
 FROM python:3.14-slim AS runtime
 
+ARG COMMIT_HASH=unknown
+ENV COMMIT_HASH=${COMMIT_HASH}
 ENV PATH="/app/.venv/bin:$PATH"
 
 RUN groupadd -g 1001 appgroup && \
@@ -27,6 +29,7 @@ RUN groupadd -g 1001 appgroup && \
 WORKDIR /app
 
 COPY --from=build --chown=appuser:appgroup /app .
+RUN echo $COMMIT_HASH > /app/COMMIT_HASH
 
 USER appuser
 

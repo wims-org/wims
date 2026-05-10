@@ -25,9 +25,10 @@ services:
       - ./docker/config.default.yml:/app/src/config.yml:ro
       - ./docker/data/categories.json:/app/data/categories.json:ro
     environment:
-      - database.host=db
-      - database.user=root
-      - database.password=example
+      - LOG_LEVEL=INFO
+      - DATABASE_URI=mysql+aiomysql://root:example@db:3306/wims
+      - FEATURES_OPENAI_API_KEY=sthsth
+      - SENTRY_DSN="https://9f6b292159894c6983b61313779ad123@glitch.fleaz.me/4"
       - RUN_MODE=production
 
   db:

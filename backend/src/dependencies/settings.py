@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     features_openai_api_key: str = ""
     asset_path: Path = "./data/assets"
+    commit_hash: str = "unknown"
 
     model_config = SettingsConfigDict(env_file=pathlib.Path(__file__).parent.parent / ".env")
 
