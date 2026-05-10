@@ -98,6 +98,15 @@ class ApiService {
         }
     }
 
+    public async deleteItem(itemId: number): Promise<void> {
+        try {
+            await axios.delete(`/items/${itemId}`)
+        } catch (error) {
+            console.error('Error deleting item:', error)
+            throw error
+        }
+    }
+
     public async createFile(fileData: FormData): Promise<File> {
         try {
             return axios.post<File>('/files', fileData, {

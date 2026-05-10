@@ -46,10 +46,23 @@ export async function connectToReader(page: Page, reader_id: string): Promise<st
   return firstId as string;
 }
 
-export async function postScan(page: Page, message: { reader_id: string; tag_id: string }): Promise<APIResponse> {
-  const backendBase = process.env.BACKEND_URL || 'http://localhost:5005';
+export async function postScan(page: Page, message: { reader_id: string; code_value: string; code_format: string }): Promise<APIResponse> {
+  const backendBase = process.env.BACKEND_URL || 'http://localhost:8000';
   const url = backendBase.replace(/\/$/, '') + '/scan';
   return page.request.post(url, { data: message });
+}
+
+export async function deleteItemByCode(page: Page, code_value: string): Promise<void> {
+  const backendBase = process.env.BACKEND_URL || 'http://localhost:8000';
+  const url = backendBase.replace(/\/$/, '') + '/items/search';
+  const searchResponse = await page.request.post(url, { data: { filters: [{ field: 'code', value: code_value , qualifier: 'eq' }] } });
+  console.log(`Searching for items with code_value=${code_value}, response status: ${searchResponse.status()}`);
+  const searchResult = await searchResponse.json();
+  if (searchResult && Array.isArray(searchResult) && searchResult.length > 0) {
+    const itemId = searchResult[0].id;
+    const deleteUrl = `${backendBase.replace(/\/$/, '')}/items/${itemId}`;
+    await page.request.delete(deleteUrl);
+  }
 }
 
 export async function ensureAppReady(page: Page): Promise<void> {

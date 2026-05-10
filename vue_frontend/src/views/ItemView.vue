@@ -31,7 +31,7 @@
             </button>
             <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
               :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
-            <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
+            <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" @delete="deleteItem"/>
           </BTab>
           <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
             data-testid="object-identification">
@@ -212,6 +212,21 @@ const handleFormSubmit = async (formData: Record<string, unknown>) => {
     console.error('Error submitting form:', error)
   }
   tabCheck.value++
+}
+
+const deleteItem = async (id: number) => {
+  errorMessage.value = ''
+  try {
+    await ApiService.deleteItem(id)
+    successMessage.value = 'Item deleted successfully'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
+    router.push('/items/new')
+  } catch (error) {
+    errorMessage.value = 'Could not delete item. Please try again.'
+    console.error('Error deleting item:', error)
+  }
 }
 
 const buildItemRequest = (formData: Record<string, unknown>): Record<string, unknown> => {

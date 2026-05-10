@@ -39,6 +39,6 @@ async def delete_reader(session: SessionDep, reader_id: str):
     reader = await session.get(Reader, reader_id)
     if not reader:
         raise HTTPException(status_code=404, detail="Reader not found")
-    session.delete(reader)
+    await session.delete(reader)
     await session.commit()
     return {"ok": True}

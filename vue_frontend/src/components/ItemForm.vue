@@ -51,6 +51,15 @@
         v-show="!field.hidden && (!field.details || showDetails)">{{fieldIndex}}
       </component>
       <BButton type="submit" variant="primary" class="mt-3">Submit</BButton>
+      <BButton
+        v-if="!props.isNewItem"
+        type="button"
+        variant="danger"
+        class="mt-3 align-self-end"
+        @click="$emit('delete', props.item.id)"
+      >
+        Delete Item
+      </BButton>
     </BForm>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
@@ -102,7 +111,7 @@ const visibleFields = computed(() => {
 })
 
 // Emits
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit', 'delete'])
 
 // Reactive State
 const formData = ref<Record<string, unknown | null>>({})

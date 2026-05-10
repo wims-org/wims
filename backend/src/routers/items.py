@@ -137,8 +137,8 @@ async def delete_item(id: str, session: SessionDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    session.delete(item)
-    session.commit()
+    await session.delete(item)
+    await session.commit()
     return {"ok": True}
 
 

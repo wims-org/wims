@@ -15,7 +15,7 @@
           <br />
             <span class="text-secondary">{{ reader.reader_id }}</span>
         </div>
-        <button @click.stop="deleteReader(reader.reader_id)" class="btn btn-danger btn-sm">
+        <button @click.stop="deleteReader(reader)" class="btn btn-danger btn-sm">
           Delete
         </button>
       </li>
@@ -61,7 +61,9 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { clientStore } from '@/stores/clientStore'
-import type Reader from '@/interfaces/reader.interface'
+
+import type { components } from '@/interfaces/api-types'
+type Reader = components['schemas']['ReaderPublic']
 import { useRouter } from 'vue-router'
 
 const clientStoreInstance = clientStore()
@@ -127,9 +129,9 @@ async function submitReader(): Promise<void> {
   }
 }
 
-async function deleteReader(readerId: string): Promise<void> {
+async function deleteReader(reader: Reader): Promise<void> {
   try {
-    await axios.delete(`/readers/${readerId}`)
+    await axios.delete(`/readers/${reader.id}`)
     fetchReaders()
   } catch (error) {
     console.error('Error deleting reader:', error)
