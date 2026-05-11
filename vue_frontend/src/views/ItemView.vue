@@ -123,6 +123,9 @@ const applyQueryParamsToItem = () => {
 const fetchItem = async () => {
   const hasCodeParams = !!(route.query.code)
   try {
+    if (!itemId.value || isNaN(itemId.value)) {
+      throw new Error('Invalid item ID')
+    }
     const data = await ApiService.getItem(itemId.value as number)
     item.value = data
     newItem.value = false
@@ -386,11 +389,11 @@ watch(
 )
 
 watch(
-  () => [route.query.query, route.query.offset],
-  async ([newQuery, newOffset]) => {
+  () => [route.query.query],
+  async ([newQuery]) => {
     if (newQuery && typeof newQuery === 'string') {
       query_param.value = decodeURIComponent(newQuery || '')
-      offset.value = parseInt(newOffset as string, 10) || 0
+      offset.value = parseInt(route.query.offset as string, 10) || 0
       await fetchPrevNextItems()
     } else {
       query_param.value = ''
@@ -404,7 +407,7 @@ watch(
   () => [route.query.code, route.query.format],
   async ([code, newFormat]) => {
     console.log('new values ', code, newFormat)
-    if (item.value !== undefined && code  && (typeof code === 'string' || typeof code === 'number')) {
+    if (item.value !== undefined && (typeof code === 'string' || typeof code === 'number')) {
       item.value.code = code
       // item.value.code_format = typeof newFormat === 'string' ? newFormat : undefined // ToDo define formats and codes
     } else {
