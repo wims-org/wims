@@ -4,14 +4,8 @@
       <div class="mb-2 d-flex justify-content-between align-items-center">
         <span class="text-nowrap mr-2">
           <font-awesome-icon icon="file-csv" />
-          Upload .CSV:</span
-        >
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          @change="handleCsvUpload"
-          class="form-control-file"
-        />
+          Upload .CSV:</span>
+        <input type="file" accept=".csv,text/csv" @change="handleCsvUpload" class="form-control-file" />
         <button type="button" class="btn btn-secondary btn-sm ml-2" @click="resetColumnWidths">
           <font-awesome-icon icon="trash" />
           Reset Columns
@@ -25,39 +19,25 @@
         <table class="table table-bordered table-sm">
           <thead>
             <tr>
-              <th
-                v-for="col in columns"
-                :key="col"
-                :style="{ width: columnWidths[col] + 'px' }"
-                class="draggable-th"
-              >
+              <th v-for="col in columns" :key="col" :style="{ width: columnWidths[col] + 'px' }" class="draggable-th">
                 <div class="th-content">
                   {{ formFields[col]?.label || col }}
                   <span class="resize-handle" @mousedown="startResize($event, col)"></span>
                 </div>
               </th>
               <th class="button-column">
-                <button
-                  type="button"
-                  class="btn btn-success btn-sm"
-                  @click="toggleColumnDropdown()"
-                >
+                <button type="button" class="btn btn-success btn-sm" @click="toggleColumnDropdown()">
                   Add Column
                 </button>
                 <div v-if="columnDropDown" class="dropdown-menu">
-                  <button
-                    v-for="(field, key) in formFields"
-                    :key="key"
-                    class="dropdown-item"
-                    @click="
-                      () => {
-                        columns.indexOf(key) === -1
-                          ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
-                          : columns.splice(columns.indexOf(key), 1)
-                        columnDropDown = false
-                      }
-                    "
-                  >
+                  <button v-for="(field, key) in formFields" :key="key" class="dropdown-item" @click="
+                    () => {
+                      columns.indexOf(key) === -1
+                        ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
+                        : columns.splice(columns.indexOf(key), 1)
+                      columnDropDown = false
+                    }
+                  ">
                     <font-awesome-icon v-if="columns.indexOf(key) !== -1" icon="check" />
                     {{ field.label || key }}
                   </button>
@@ -66,45 +46,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, rowIdx) in items"
-              :key="item.id || rowIdx"
-              :class="{ 'item-error': item.id && errorItems.includes(item.id) }"
-            >
-              <td
-                v-for="col in columns"
-                :key="col"
-                :class="{
-                  'invalid-cell':
-                    !rowEmpty(item) &&
-                    formFields[col]?.required &&
-                    (item[col] === undefined || item[col] === ''),
-                }"
-              >
-                <component
-                  v-if="formFields[col]"
-                  :is="getFieldComponent(formFields[col].type)"
-                  :name="col"
-                  :label="formFields[col].label"
-                  :value="item[col]"
-                  :disabled="false"
-                  :required="!rowEmpty(item) && formFields[col].required"
-                  hide-label
-                  borderless
-                  @update:value="
+            <tr v-for="(item, rowIdx) in items" :key="item.id || rowIdx"
+              :class="{ 'item-error': item.id && errorItems.includes(item.id) }">
+              <td v-for="col in columns" :key="col" :class="{
+                'invalid-cell':
+                  !rowEmpty(item) &&
+                  formFields[col]?.required &&
+                  (item[col] === undefined || item[col] === ''),
+              }">
+                <component v-if="formFields[col]" :is="getFieldComponent(formFields[col].type)" :name="col"
+                  :label="formFields[col].label" :value="item[col]" :disabled="false"
+                  :required="!rowEmpty(item) && formFields[col].required" hide-label borderless @update:value="
                     (val: string | number | boolean | string[]) =>
                       updateField(val, rowIdx, col, formFields[col].type)
-                  "
-                />
+                  " />
                 <span v-else>-</span>
               </td>
               <td class="button-column">
-                <button
-                  v-if="items.length > 1 && rowIdx !== items.length - 1"
-                  type="button"
-                  class="btn btn-danger btn-sm"
-                  @click="removeRow(rowIdx)"
-                >
+                <button v-if="items.length > 1 && rowIdx !== items.length - 1" type="button"
+                  class="btn btn-danger btn-sm" @click="removeRow(rowIdx)">
                   Remove
                 </button>
               </td>
@@ -323,7 +283,7 @@ const fetchAndAddItemToTable = async (scanData: ScanEvent) => {
   if (items.some((item) => item.id === scanData.id || item.code === scanData.code_value)) return
   const newRow = Object.assign({}, emptyItem)
   newRow.id = scanData.id
-  newRow.code = scanData.code_value 
+  newRow.code = scanData.code_value
   try {
     const data = await ApiService.getItem(scanData.id)
     Object.assign(newRow, data)
@@ -530,6 +490,11 @@ const fallbackCopyTextToClipboard = (text: string) => {
   /* width: 92%;  enable for scrolling */
   width: unset;
   table-layout: fixed;
+  
+  .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -564,11 +529,11 @@ td .form-group {
   margin-bottom: 0 !important;
 }
 
-td .form-group > label {
+td .form-group>label {
   display: none !important;
 }
 
-td .form-group > input.form-control {
+td .form-group>input.form-control {
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -610,13 +575,13 @@ td.invalid-cell {
   transition: background 0.2s;
 }
 
-  resize-handle:hover {
-    background-color: var(--border-color);
-  }
+resize-handle:hover {
+  background-color: var(--border-color);
+}
 
-  resize-handle:active {
-    background-color: var(--border-color);
-  }
+resize-handle:active {
+  background-color: var(--border-color);
+}
 
 .dropdown-menu {
   position: absolute;

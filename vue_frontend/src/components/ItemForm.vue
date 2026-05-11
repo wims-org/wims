@@ -55,7 +55,7 @@
         v-if="!props.isNewItem"
         type="button"
         variant="danger"
-        class="mt-3 align-self-end"
+        class="mt-3 ms-2 align-self-end"
         @click="$emit('delete', props.item.id)"
       >
         Delete Item
