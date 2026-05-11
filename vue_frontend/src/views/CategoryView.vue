@@ -20,10 +20,12 @@ import { onMounted, ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import router from '@/router'
 import CategoryTreeView from '@/components/shared/CategoryTreeView.vue'
+import { useRoute } from 'vue-router'
 type SearchQuery = components['schemas']['Query'] & { [key: string]: unknown }
 
 type Category = components['schemas']['CategoryPublic']
 
+const route = useRoute()
 const category = ref<Category>()
 const items = ref<components['schemas']['ItemPublic'][]>([])
 const containers = ref<components['schemas']['ItemPublic'][]>([])
@@ -33,7 +35,7 @@ const items_query = ref<SearchQuery>({})
 
 
 watch(
-  () => router.currentRoute.value.params.categoryId,
+  () => route.params.categoryId,
   async (newId) => {
     if (newId != null) {
       containers.value = []
@@ -63,6 +65,7 @@ const fetchCategory = async (id: number): Promise<Category> => {
 
 const fetchItemsByCategory = async (category: Category): Promise<void> => {
   items_query.value = { filters: [{ field: 'category_id', qualifier: 'eq', value: category.id }] }
+  console.log('Fetching items for category with query:', items_query.value)
   return axios
     .post('/items/search', items_query.value)
     .then((response) => {
@@ -88,8 +91,10 @@ const fetchContainersForItems = async (container_ids: number[]): Promise<void> =
 }
 
 onMounted(() => {
-  fetchCategory(+router.currentRoute.value.params.categoryId).then(async () => {
-    await fetchItemsByCategory(category.value as Category)
+  console.log('Mounted CategoryView with categoryId:', route.params.categoryId)
+  fetchCategory(+route.params.categoryId).then(async (fetchedCategory) => {
+    category.value = fetchedCategory
+    await fetchItemsByCategory(fetchedCategory)
     await fetchContainersForItems(
       items.value.map((item) => item.container_id).filter((id) => id) as number[]
     )
