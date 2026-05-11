@@ -22,7 +22,7 @@
         Borrow Item
       </button>
       <button
-        v-if="props.item?.borrowed_by && props.item?.borrowed_by === clientStore().user?._id"
+        v-if="props.item?.borrowed_by && props.item?.borrowed_by === clientStore().user?.id"
         type="button"
         class="btn btn-danger p-2 ms-2"
         data-testid="return-item-button"
@@ -181,12 +181,12 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
 }
 
 const borrow_able = () => {
-  return !props.item?.borrowed_by && !props.item?.borrowed_until && clientStore().user?._id
+  return !props.item?.borrowed_by && !props.item?.borrowed_until && clientStore().user?.id
 }
 
 const borrow = () => {
   if (clientStore().user) {
-    updateFieldModel(clientStore().user?._id, 'borrowed_by', 'user')
+    updateFieldModel(clientStore().user?.id, 'borrowed_by', 'user')
     updateFieldModel(Date.now() + 604800000, 'borrowed_until', 'epoch') // 7 days from now
     handleSubmit()
   }

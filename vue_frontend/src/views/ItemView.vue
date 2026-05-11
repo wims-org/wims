@@ -307,8 +307,8 @@ const handle_item_next = () => {
 onMounted(() => {
   query_param.value = decodeURIComponent((route.query.query as string) || '')
   offset.value = parseInt(route.query.offset as string, 10) || 0
-
-  if (route.params.id === 'new') {
+  console.log('Mounted with query:', query_param.value, 'and offset:', offset.value, route.params)
+  if (route.params.id === 'new' || Number.isNaN(Number(route.params.id))) {
     // Case 1: new item form, optionally pre-filled from query params
     newItem.value = true
     applyQueryParamsToItem()
@@ -364,7 +364,7 @@ watch(
     errorMessage.value = ''
 
     items.value = []
-    if (_newId === 'new') {
+    if (_newId === 'new' || (typeof _newId === 'string' && Number.isNaN(Number(_newId)))) {
       newItem.value = true
       itemId.value = undefined
       item.value = {} as Item
@@ -401,11 +401,11 @@ watch(
 )
 
 watch(
-  () => [route.query.rawValue, route.query.format],
-  async ([newRawValue, newFormat]) => {
-    console.log('new values ', newRawValue)
-    if (item.value !== undefined && newRawValue && (typeof newRawValue === 'string' || typeof newRawValue === 'number')) {
-      item.value.code = newRawValue
+  () => [route.query.code, route.query.format],
+  async ([code, newFormat]) => {
+    console.log('new values ', code, newFormat)
+    if (item.value !== undefined && code  && (typeof code === 'string' || typeof code === 'number')) {
+      item.value.code = code
       // item.value.code_format = typeof newFormat === 'string' ? newFormat : undefined // ToDo define formats and codes
     } else {
       query_param.value = ''

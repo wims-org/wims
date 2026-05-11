@@ -26,7 +26,7 @@
             <BNavItem :href="`${api_url}/redoc`" target="_blank">API Docs</BNavItem>
             <hr />
 
-            <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
+            <BNavItem v-if="user" :to="`/users/${user?.id}`">{{ user?.username }}</BNavItem>
             <BNavItem v-if="user" @click="signOut">Sign Out</BNavItem>
             <BNavItem v-else to="/users">Sign In</BNavItem>
           </BNav>
@@ -62,7 +62,7 @@
           <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
             connection_msg
             }}</BNavItem>
-          <BNavItem v-if="user" :to="`/users/${user?._id}`">{{ user?.username }}</BNavItem>
+          <BNavItem v-if="user" :to="`/users/${user?.id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
 

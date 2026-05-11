@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import axios from 'axios'
 import { SearchType, SearchTypeEndpoint } from '@/interfaces/FormField.interface'
 
@@ -48,8 +48,8 @@ const props = defineProps({
     default: 'text',
   },
   value: {
-    type: String,
-    default: '',
+    type: [Number, String],
+    default: null,
   },
   disabled: {
     type: Boolean,
@@ -78,6 +78,7 @@ const emit = defineEmits<{
 const debounceTimeout = ref<NodeJS.Timeout | null>(null)
 const minLength = 3
 const selection = ref(false)
+const firstFetch = ref(true)
 
 const fetchSearchResults = async (term: string) => {
   try {
@@ -112,7 +113,7 @@ watch(searchTerm, (newTerm) => {
   if (debounceTimeout.value) {
     clearTimeout(debounceTimeout.value)
   }
-  if (!props.disabled && newTerm.length >= minLength && !selection.value) {
+  if (!firstFetch.value && !props.disabled && newTerm.length >= minLength && !selection.value) {
     debounceTimeout.value = setTimeout(() => {
       fetchSearchResults(newTerm).then(() => {
         expanded.value = dropdownOptions.value.length > 0
@@ -123,9 +124,17 @@ watch(searchTerm, (newTerm) => {
   }
 })
 
+onMounted(() => {
+  debounceTimeout.value = setTimeout(() => {firstFetch.value = false}, 300)
+  if (props.value) {
+    getSearchTermFromValue(props.value).then((result) => {
+      searchTerm.value = result
+    })
+  }
+})
+
 const selectOption = (option: searchResult) => {
   selection.value = true
-  console.log('Selected option:', option)
   searchTerm.value = option.display_string
   expanded.value = false
   emit('update:value', option.select)
@@ -190,7 +199,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
   return options
 }
 
-const getSearchTermFromValue = (value: string) => {
+const getSearchTermFromValue = (value: string | number) => {
   return new Promise<string>((resolve) => {
     switch (props.searchType) {
       case SearchType.USER:
@@ -200,7 +209,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.username)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.ITEM:
         return axios
@@ -209,7 +218,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.name)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.QUERY:
         return axios
@@ -218,7 +227,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.name)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.CATEGORY:
         return axios
@@ -227,7 +236,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.title)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       default:
         resolve('')

@@ -3,36 +3,13 @@
     <h3 class="mb-4">Profile of {{ user?.username }}</h3>
     <BForm @submit.prevent="submitUser">
       <BFormGroup label="Edit User" label-for="user-form">
-        <TextField
-          class="mb-3"
-          name="username"
-          label="Username"
-          :value="user?.username ?? ''"
-          @update:value="updateUsername"
-          required
-        />
-        <TextField
-          name="email"
-          label="Email"
-          type="email"
-          :value="user?.email ?? ''"
-          @update:value="updateEmail"
-          required
-        />
-        <TextField
-          class="mt-3"
-          name="tags"
-          label="Tags"
-          :value="user?.code ?? ''"
-          @update:value="updateTags"
-          item-label="Tag"
-        />
-        <BButton
-          type="submit"
-          variant="primary"
-          :disabled="blockSubmission"
-          :class="{ success: success }"
-        >
+        <TextField class="mb-3" name="username" label="Username" :value="user?.username ?? ''"
+          @update:value="updateUsername" required />
+        <TextField name="email" label="Email" type="email" :value="user?.email ?? ''" @update:value="updateEmail"
+          required />
+        <TextField class="mt-3" name="tags" label="Tags" :value="user?.code ?? ''" @update:value="updateTags"
+          item-label="Tag" />
+        <BButton type="submit" variant="primary" :disabled="blockSubmission" :class="{ success: success }">
           Update User
         </BButton>
         <span class="ms-2">since: {{ formatDate(user?.created_at) }}</span>
@@ -121,8 +98,8 @@ async function logout() {
 }
 
 const deleteUser = async () => {
-  await axios.delete(`/users/${user.value?._id}`)
-  if (clientStoreInstance.user?._id === user.value?._id) {
+  await axios.delete(`/users/${user.value?.id}`)
+  if (clientStoreInstance.user?.id === user.value?.id) {
     await clientStoreInstance.unsetUser()
   }
   router.push('/users')
@@ -137,6 +114,7 @@ function formatDate(date: string | undefined) {
 :deep(.form-control) {
   width: unset;
 }
+
 .success {
   animation: successFlash 2s;
 }
@@ -145,6 +123,7 @@ function formatDate(date: string | undefined) {
   0% {
     background-color: var(--color-success);
   }
+
   100% {
     background-color: var(--bs-btn-bg);
   }

@@ -65,7 +65,7 @@ export const formFields: Record<string, FormField> = {
   documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
   related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
   current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: true, required: false },
-  borrowed_by: { label: 'Borrowed By', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
+  borrower_id: { label: 'Borrowed By', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
   borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: true, required: false },
   borrowed_until: { label: 'Borrowed Until', type: 'epoch', disabled: false, hidden: false, details: true, required: false },
   owner_id: { label: 'Owner', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },

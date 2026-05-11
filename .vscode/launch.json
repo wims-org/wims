@@ -21,7 +21,7 @@
         "--host",
         "0.0.0.0",
         "--port",
-        "8000",
+        "5005",
         "--reload",
         "--timeout-graceful-shutdown",
         "0"
