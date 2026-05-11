@@ -21,7 +21,7 @@ import ApiService from '@/services/ApiService'
 import { preloadItemView } from '@/router'
 const router = useRouter()
 
-type Query = components['schemas']['Query'] & { [key: string]: unknown }
+type Query = components['schemas']['Query'] 
 type Item = components['schemas']['ItemPublic']
 
 // Props

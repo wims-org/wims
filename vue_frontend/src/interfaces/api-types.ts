@@ -177,8 +177,24 @@ export interface paths {
         get: operations["read_reader_readers__reader_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
         /** Delete Reader */
-        delete: operations["delete_reader_readers__reader_id__delete"];
+        delete: operations["delete_reader_readers__id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -480,7 +496,7 @@ export interface components {
             /** Description */
             description: string | null;
             /** Id */
-            id?: number | null;
+            id: number;
             parent?: components["schemas"]["Category"] | null;
             /** Children */
             children?: components["schemas"]["Category"][] | null;
@@ -503,6 +519,8 @@ export interface components {
         ConfigResponseModel: {
             /** Llm Enabled */
             llm_enabled: boolean;
+            /** Commit Hash */
+            commit_hash: string;
         };
         /** ContainerObject */
         ContainerObject: {
@@ -544,7 +562,8 @@ export interface components {
         Filter: {
             /** Field */
             field: string;
-            qualifier: components["schemas"]["Qualifier"];
+            /** @description If null, defaults to 'eq'. */
+            qualifier?: components["schemas"]["Qualifier"] | null;
             /** Value */
             value: string | number | (string | number)[];
         };
@@ -851,26 +870,26 @@ export interface components {
             term?: string | null;
             /**
              * Filters
-             * @default []
+             * @description If null, defaults to empty list.
              */
-            filters: components["schemas"]["Filter"][];
+            filters?: components["schemas"]["Filter"][] | null;
             /**
              * Offset
-             * @default 0
+             * @description If null, defaults to 0.
              */
-            offset: number;
+            offset?: number | null;
             /**
              * Limit
-             * @default 10
+             * @description If null, defaults to 10.
              */
-            limit: number;
+            limit?: number | null;
             /** Sort By */
             sort_by?: string | null;
             /**
              * Sort Desc
-             * @default false
+             * @description If null, defaults to False.
              */
-            sort_desc: boolean;
+            sort_desc?: boolean | null;
         };
         /** ReaderCreate */
         ReaderCreate: {
@@ -882,7 +901,7 @@ export interface components {
         /** ReaderPublic */
         ReaderPublic: {
             /** Id */
-            id?: number | null;
+            id: number;
             /**
              * Created At
              * Format: date-time
@@ -921,13 +940,10 @@ export interface components {
         /** SseEvent */
         SseEvent: {
             event: components["schemas"]["Event"];
-            /** Data */
-            data: components["schemas"]["SseEventData"] | {
-                [key: string]: unknown;
-            };
+            data: components["schemas"]["SseEventData"];
             /**
              * Id
-             * @default 23410159-cd07-4000-86b9-4be9f96b51a1
+             * @default fb6e1016-481e-4b3f-85ac-d9f088b6a426
              */
             id: string;
             /**
@@ -977,6 +993,8 @@ export interface components {
             username: string;
             /** Email */
             email?: string | null;
+            /** Code */
+            code?: string | null;
         };
         /** UserCreate */
         UserCreate: {
@@ -984,11 +1002,13 @@ export interface components {
             username: string;
             /** Email */
             email?: string | null;
+            /** Code */
+            code?: string | null;
         };
         /** UserPublic */
         UserPublic: {
             /** Id */
-            id?: number;
+            id: number;
             /**
              * Created At
              * Format: date-time
@@ -1003,6 +1023,8 @@ export interface components {
             username: string;
             /** Email */
             email?: string | null;
+            /** Code */
+            code?: string | null;
         };
         /** UserUpdate */
         UserUpdate: {
@@ -1010,6 +1032,8 @@ export interface components {
             username: string;
             /** Email */
             email?: string | null;
+            /** Code */
+            code?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1151,7 +1175,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1193,7 +1217,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1311,7 +1335,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1349,7 +1373,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1391,7 +1415,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1468,7 +1492,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1658,12 +1682,12 @@ export interface operations {
             };
         };
     };
-    delete_reader_readers__reader_id__delete: {
+    delete_reader_readers__id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                reader_id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1820,7 +1844,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };

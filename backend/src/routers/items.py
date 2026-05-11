@@ -1,7 +1,7 @@
 import enum
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,19 +27,32 @@ class Qualifier(enum.Enum):
     LESS_THAN = "lt"
 
 
-class Filter(BaseModel):
+class FilterReq(BaseModel):
     field: str
-    qualifier: Qualifier
+    qualifier: Qualifier = Qualifier.EQUALS
     value: str | int | list[str | int]
 
 
-class Query(BaseModel):
+class Filter(FilterReq):
+    # since pydantic does not allow for nullable defaults, this wrapper is used
+    qualifier: Qualifier | None = Field(default=None, description="If null, defaults to 'eq'.")
+
+
+class QueryReq(BaseModel):
     term: str | None = None
     filters: list[Filter] = []
-    offset: int = 0
-    limit: int = 10
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=10, ge=1)
     sort_by: str | None = None
     sort_desc: bool = False
+
+
+class Query(QueryReq):
+    # since pydantic does not allow for nullable defaults, this wrapper is used
+    filters: list[Filter] | None = Field(default=None, description="If null, defaults to empty list.")
+    offset: int | None = Field(default=None, ge=0, description="If null, defaults to 0.")
+    limit: int | None = Field(default=None, ge=1, description="If null, defaults to 10.")
+    sort_desc: bool | None = Field(default=None, description="If null, defaults to False.")
 
 
 class ContainerObject(BaseModel):
@@ -170,6 +183,7 @@ async def get_item_search(query: Query, session: SessionDep):
     Search for items based on a query object, post to allow for body.
     """
     try:
+        query = QueryReq.model_validate(query, )
         statement = select(Item)
         term_fields = ["short_name"]
         # Term
@@ -177,7 +191,7 @@ async def get_item_search(query: Query, session: SessionDep):
             statement = statement.where(or_(*[col(getattr(Item, key)).contains(query.term) for key in term_fields]))
 
         # Filters
-        for filter in query.filters:
+        for filter in query.filters or []:
             if "." in filter.field:
                 relation_name, field_name = filter.field.split(".", 1)
                 if relation_name not in RELATION_MAP:
@@ -192,7 +206,7 @@ async def get_item_search(query: Query, session: SessionDep):
                     raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
                 column = getattr(Item, filter.field)
 
-            match filter.qualifier:
+            match filter.qualifier or Qualifier.EQUALS:
                 case Qualifier.EQUALS:
                     statement = statement.where(column == filter.value)
                 case Qualifier.NOT_EQUALS:
@@ -207,7 +221,7 @@ async def get_item_search(query: Query, session: SessionDep):
                     statement = statement.where(column < filter.value)
 
         # Offset & limits
-        statement = statement.offset(query.offset).limit(query.limit)
+        statement = statement.offset(query.offset or 0).limit(query.limit or 10)
 
         # Order & sort
         if query.sort_by:
@@ -215,6 +229,8 @@ async def get_item_search(query: Query, session: SessionDep):
                 statement = statement.order_by(getattr(Item, query.sort_by).desc())
             else:
                 statement = statement.order_by(getattr(Item, query.sort_by))
+    except (ValidationError, ValueError) as e:
+        raise HTTPException(status_code=422, detail=f"Validation error: {str(e)}") from e
     except (KeyError, AttributeError) as e:
         print(e)
         raise HTTPException(status_code=400, detail="Your query is bad and you should feel bad!") from None

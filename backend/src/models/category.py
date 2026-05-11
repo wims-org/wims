@@ -25,7 +25,7 @@ class Category(CategoryBase, SQLModelBase, table=True):
 
 
 class CategoryPublic(CategoryBase):
-    id: int | None = None
+    id: int = Field(..., nullable=False)
     parent: Category | None = None
     children: list[Category] | None = None
 

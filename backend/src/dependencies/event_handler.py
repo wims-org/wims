@@ -69,7 +69,7 @@ class SseEventData(pydantic.BaseModel):
 
 class SseEvent(pydantic.BaseModel):
     event: Event
-    data: SseEventData | dict
+    data: SseEventData
     id: str = str(uuid.uuid4())
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 

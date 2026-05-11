@@ -113,7 +113,7 @@ async function onCameraReady() {
     error.value = ''
 }
 
-/*** track functons ***/
+/*** track functions ***/
 
 function paintOutline(detectedCodes: { cornerPoints: { x: number, y: number }[] }[], ctx: CanvasRenderingContext2D) {
     for (const detectedCode of detectedCodes) {

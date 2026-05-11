@@ -5,9 +5,8 @@ import type { Item } from '@/interfaces/items.interface'
 import type { components } from '@/interfaces/api-types'
 
 
-type Query = components['schemas']['Query'] & { [key: string]: unknown }
-type ItemUpdate = components['schemas']['ItemUpdate'] & { [key: string]: unknown }
-type UserCreate = components['schemas']['UserCreate'] & { [key: string]: unknown }
+type Query = components['schemas']['Query']
+type ItemUpdate = components['schemas']['ItemUpdate']
 
 type ItemContainer = components["schemas"]["ContainerObject"]
 class ApiService {

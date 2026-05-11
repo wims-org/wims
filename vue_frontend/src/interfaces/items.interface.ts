@@ -7,5 +7,7 @@ export interface Item extends ItemPublic {
     images?: File[]
     attachments?: File[]
     container_name?: string
+
+    [key: string]: unknown;
 }
 

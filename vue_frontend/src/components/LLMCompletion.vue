@@ -2,39 +2,22 @@
   <BContainer>
     <BCol>
       <BRow>
-        <input
-          type="text"
-          class="form-control"
-          v-model="stringInput"
-          placeholder="Add Item by Description or Name..."
-        />
+        <input type="text" class="form-control" v-model="stringInput"
+          placeholder="Add Item by Description or Name..." />
       </BRow>
       <BRow>
         <h5>Upload Images:</h5>
         <ImageThumbnailField :value="uploadedImages" @update:value="updateImage($event)" />
       </BRow>
-      <BRow  v-if="images && images.length > 0">
+      <BRow v-if="images && images.length > 0">
         <h5>Select existing Images:</h5>
-        <ImageThumbnailField
-          :value="images"
-          disabled
-          selector
-          @update:selectedImages="selectedImages = $event"
-        />
+        <ImageThumbnailField :value="images" disabled selector @update:selectedImages="selectedImages = $event" />
       </BRow>
 
-      <button
-        type="button"
-        class="btn btn-primary"
-        @click="fetchIdentification()"
-        :disabled="
-          requestInProgress ||
-          (uploadedImages.length === 0 && !stringInput && selectedImages.length === 0)
-        "
-      >
-        <span v-if="requestInProgress"
-          ><font-awesome-icon icon="spinner" spin /> Processing...</span
-        >
+      <button type="button" class="btn btn-primary" @click="fetchIdentification()" :disabled="requestInProgress ||
+        (uploadedImages.length === 0 && !stringInput && selectedImages.length === 0)
+        ">
+        <span v-if="requestInProgress"><font-awesome-icon icon="spinner" spin /> Processing...</span>
         <span v-else>Start Identification</span>
       </button>
       <div v-if="requestError" class="alert alert-danger mt-3">
@@ -51,17 +34,16 @@ import { ref, onMounted } from 'vue'
 import ImageThumbnailField from '@/components/fields/ImageThumbnailField.vue'
 import eventBus, { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
-import type { components } from '@/interfaces/api-types.ts'
-type FilePublic = components['schemas']['FilePublic']
+import type { File } from '@/interfaces/file.interface'
 
 const stringInput = ref('')
-const uploadedImages = ref<FilePublic[]>([])
-const selectedImages = ref<FilePublic[]>([])
+const uploadedImages = ref<File[]>([])
+const selectedImages = ref<File[]>([])
 const requestInProgress = ref(false)
 const requestError = ref<string>()
-  
+
 defineProps<{
-  images?: Array<FilePublic>
+  images?: Array<File>
 }>()
 
 onMounted(() => {
@@ -102,7 +84,7 @@ const fetchIdentification = async () => {
   }
 }
 
-const updateImage = (updatedValue: Array<FilePublic>) => {
+const updateImage = (updatedValue: Array<File>) => {
   uploadedImages.value.length = 0 // Clear the existing array
   uploadedImages.value.push(...updatedValue) // Add the new URLs
 }

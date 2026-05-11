@@ -64,12 +64,13 @@ import { clientStore } from '@/stores/clientStore'
 
 import type { components } from '@/interfaces/api-types'
 type Reader = components['schemas']['ReaderPublic']
+type ReaderCreate = components['schemas']['ReaderCreate']
 import { useRouter } from 'vue-router'
 
 const clientStoreInstance = clientStore()
 const router = useRouter()
 const readers = ref<Reader[]>([])
-const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
+const newReader = ref<ReaderCreate>({ reader_id: '', reader_name: '' })
 
 async function fetchReaders(): Promise<void> {
   try {
@@ -122,7 +123,7 @@ async function deselectReader() {
 
 async function submitReader(): Promise<void> {
   try {
-    await axios.post('/readers', Object(newReader.value))
+    await axios.post('/readers', Object(newReader.value) as Reader)
     fetchReaders()
   } catch (error) {
     console.error('Error submitting reader:', error)

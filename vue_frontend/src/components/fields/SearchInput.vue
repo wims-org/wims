@@ -1,29 +1,13 @@
 <template>
   <BContainer class="search-input">
-    <div
-      class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-      data-testid="text-field"
-    >
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="text-field">
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
       <div class="dropdown">
-        <input
-          v-model="searchTerm"
-          type="text"
-          class="form-control"
-          :placeholder="!disabled ? 'Search...' : 'No Value'"
-          :disabled="disabled"
-          :name="name"
-          :required="required"
+        <input v-model="searchTerm" type="text" class="form-control" :placeholder="!disabled ? 'Search...' : 'No Value'"
+          :disabled="disabled" :name="name" :required="required"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
-          @focus="expanded = true"
-          @blur="handleBlur()"
-          @keydown.enter="handleEnter()"
-          @keydown.esc="clearSearch()"
-        />
-        <ul
-          v-if="!disabled && expanded && dropdownOptions.length"
-          class="dropdown-menu dropdown-menu-end show"
-        >
+          @focus="expanded = true" @blur="handleBlur()" @keydown.enter="handleEnter()" @keydown.esc="clearSearch()" />
+        <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu dropdown-menu-end show">
           <li v-for="option in dropdownOptions" :key="option.id">
             <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
               {{ option.display_string }}
@@ -181,7 +165,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
       ...(result as User[]).map((user) => ({
         id: user.id,
         display_string: user.username + (user.email ? ` <${user.email}>` : ''),
-        select: user.id,
+        select: '' + user.id,
       })),
     )
   } else if (props.searchType === SearchType.ITEM) {
@@ -253,8 +237,7 @@ const getSearchTermFromValue = (value: string) => {
 </script>
 
 <style scoped>
-.dropdown-menu {
-}
+.dropdown-menu {}
 
 .is-invalid {
   padding-right: 0.75rem;

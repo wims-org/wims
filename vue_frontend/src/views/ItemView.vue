@@ -22,7 +22,7 @@
               Add content now
             </button>
             <ItemListContainer v-if="item?.id" :settingsId="'item-view-container'"
-              :query="{ filters: { container_id: itemId } }" @select="handleItemSelect"
+              :query="{ filters: [{ field: 'container_id', value: item.id }] }" @select="handleItemSelect"
               :title="`Items in ${item?.short_name}`" />
           </BTab>
           <BTab title="Item Data" id="itemData" data-testid="item-data">
@@ -54,6 +54,7 @@ import { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
 import type { components } from '@/interfaces/api-types'
+import type { Item } from '@/interfaces/items.interface'
 import ApiService from '@/services/ApiService'
 
 const LLMCompletion = defineAsyncComponent(() => import('@/components/LLMCompletion.vue'))
@@ -66,7 +67,6 @@ const SearchModal = defineAsyncComponent(() => import('@/components/shared/Searc
 const ItemError = defineAsyncComponent(() => import('@/components/ItemError.vue'))
 
 type SearchQuery = components['schemas']['Query']
-type Item = components['schemas']['ItemPublic']
 type ItemUpdate = components['schemas']['ItemUpdate']
 
 
@@ -75,7 +75,7 @@ Use Cases:
 1. When navigating to /items/new, the component should display an empty form for creating a new item. 
    If query parameters for code_format and code_value are provided, they should pre-fill the corresponding fields in the form.
 2. When navigating to /items/:id, the component should fetch and display the item data for the given id.
-3. If the item is not found (404) and there are paramters for code_format and code_value, it should display an empty form with a message indicating that the item was not found, allowing the user to create a new item like 2.
+3. If the item is not found (404) and there are parameters for code_format and code_value, it should display an empty form with a message indicating that the item was not found, allowing the user to create a new item like 2.
 4. If the item is not found (404) and there are no parameters for code_format and code_value, it should display a new component "ItemError" with a button to navigate to items/new
 
 Component Lifecycle and Logic:
@@ -185,7 +185,7 @@ const fetchPrevNextItems = async () => {
   }
 }
 
-const handleFormSubmit = async (formData: Record<string, unknown>) => {
+const handleFormSubmit = async (formData: ItemUpdate) => {
   errorMessage.value = ''
   try {
     isComparing.value = false
@@ -229,7 +229,7 @@ const deleteItem = async (id: number) => {
   }
 }
 
-const buildItemRequest = (formData: Record<string, unknown>): Record<string, unknown> => {
+const buildItemRequest = (formData: ItemUpdate): Item | ItemUpdate => {
   // Transform the formData into the format expected by the API
   return {
     ...formData,
@@ -406,6 +406,7 @@ watch(
     console.log('new values ', newRawValue)
     if (item.value !== undefined && newRawValue && (typeof newRawValue === 'string' || typeof newRawValue === 'number')) {
       item.value.code = newRawValue
+      // item.value.code_format = typeof newFormat === 'string' ? newFormat : undefined // ToDo define formats and codes
     } else {
       query_param.value = ''
       previousItemId.value = undefined

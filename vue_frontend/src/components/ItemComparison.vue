@@ -26,7 +26,7 @@
               <component :is="getFieldComponent(field.type)" :name="String(key)" :label="field.label || key"
                 :value="formData_org[key]" :disabled="field.disabled ?? undefined" :required="field.required"
                 @update:value="updateFieldModel($event, String(key), field.type)" @click="handleInputClick(key)"
-                :class="{ 'is-invalid': field.required && item_org.value && item_org?.[key] }" />
+                :class="{ 'is-invalid': field.required && item_org && item_org?.[key] }" />
             </td>
             <td class="text-center col-2 align-content-center">
               <button type="button" @click="() => (formData_org[key] = formData_new[key])" class="btn btn-primary mr-3"
@@ -81,9 +81,8 @@ import { fieldTypeToComponent } from '@/utils/form.helper';
 import { formFields } from '@/interfaces/FormField.interface';
 import SearchModal from '@/components/shared/SearchModal.vue';
 import type { PropType } from 'vue';
-import type { components } from '@/interfaces/api-types';
 import { useThemeStore } from '@/stores/themeStore';
-type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown };
+import type { Item } from '@/interfaces/items.interface'
 
 const themeStore = useThemeStore()
 const isDark = computed(() => themeStore.theme === 'dark')

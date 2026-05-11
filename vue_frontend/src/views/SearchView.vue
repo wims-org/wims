@@ -9,7 +9,7 @@
 import SearchComponent from '../components/shared/SearchComponent.vue'
 import { useRouter } from 'vue-router'
 import type { components } from '@/interfaces/api-types'
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
+type SearchQuery = components['schemas']['Query']
 const router = useRouter()
 
 const handleSelect = (tag: string, query: SearchQuery | null, offset: number | null) => {

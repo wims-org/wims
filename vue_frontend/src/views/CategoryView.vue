@@ -9,9 +9,8 @@
     </div>
     <CategoryTreeView :categories="category ? [category] : []" :selectable="true" :expand-all="true" />
     <ItemList :items="containers" :title="`Containers containing ${category?.title}`"
-      @select="handleSelect($event.id, containers_query, $event.offset)" />
-    <ItemList :items="items" :title="`Items in ${category?.title}`"
-      @select="handleSelect($event.id, items_query, $event.offset)" />
+      @select="handleSelect($event.id, containers_query)" />
+    <ItemList :items="items" :title="`Items in ${category?.title}`" @select="handleSelect($event.id, items_query)" />
   </div>
 </template>
 
@@ -25,7 +24,7 @@ type SearchQuery = components['schemas']['Query'] & { [key: string]: unknown }
 
 type Category = components['schemas']['CategoryPublic']
 
-const category = ref<Category | null>(null)
+const category = ref<Category>()
 const items = ref<components['schemas']['ItemPublic'][]>([])
 const containers = ref<components['schemas']['ItemPublic'][]>([])
 const containers_query = ref<SearchQuery>({})
@@ -39,9 +38,10 @@ watch(
     if (newId != null) {
       containers.value = []
       items.value = []
-      category.value = null
-      await fetchCategory(+newId as number).then(async () => {
-        await fetchItemsByCategory(category.value)
+      category.value = undefined
+      await fetchCategory(+newId as number).then(async (fetchedCategory) => {
+        category.value = fetchedCategory
+        await fetchItemsByCategory(fetchedCategory)
         await fetchContainersForItems(
           items.value.map((item) => item.container_id).filter((id) => id) as number[],
         )
@@ -50,11 +50,11 @@ watch(
   },
 )
 
-const fetchCategory = async (id: number): Promise<void> => {
+const fetchCategory = async (id: number): Promise<Category> => {
   return axios
     .get(`/categories/${id}`)
     .then((response) => {
-      category.value = response.data
+      return response.data
     })
     .catch((error) => {
       console.error('Error fetching category:', error)
@@ -98,11 +98,11 @@ onMounted(() => {
   })
 })
 
-const handleSelect = (id: number, query: SearchQuery | null, offset: number | null) => {
+const handleSelect = (id: number, query: SearchQuery | null) => {
   console.log('Selected id:', id)
   router.push(
     `/items/${id}` +
-    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}` : ''),
   )
 }
 </script>

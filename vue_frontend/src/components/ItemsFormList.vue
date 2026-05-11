@@ -319,11 +319,11 @@ const filterErrorUUIDs = () => {
 
 const fetchAndAddItemToTable = async (scanData: ScanEvent) => {
   if (clientStore().expected_event_action !== EventAction.FORM_SCAN_ADD) return
-  if (!scanData?.id) return
-  if (items.some((item) => item.id === scanData.id)) return
+  if (!scanData?.id && !scanData?.code_value) return
+  if (items.some((item) => item.id === scanData.id || item.code === scanData.code_value)) return
   const newRow = Object.assign({}, emptyItem)
   newRow.id = scanData.id
-  newRow.code = scanData.code_value
+  newRow.code = scanData.code_value 
   try {
     const data = await ApiService.getItem(scanData.id)
     Object.assign(newRow, data)

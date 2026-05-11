@@ -19,11 +19,11 @@
           @update:value="updateEmail"
           required
         />
-        <ArrayField
+        <TextField
           class="mt-3"
           name="tags"
           label="Tags"
-          :value="user?.ids ?? []"
+          :value="user?.code ?? ''"
           @update:value="updateTags"
           item-label="Tag"
         />
@@ -44,7 +44,7 @@
         <BButton v-if="clientStoreInstance.user" variant="secondary" class="me-2" @click="logout">
           Logout
         </BButton>
-        <BButton v-else variant="primary" class="me-2" @click="selectUser(user?.id ?? undefined)">
+        <BButton v-else variant="primary" class="me-2" @click="selectUser(user.id)">
           Select this user
         </BButton>
         <BButton variant="danger" @click="deleteUser"> Delete this user </BButton>
@@ -61,7 +61,7 @@ type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 const router = useRouter()
 const blockSubmission = ref(false)
-const user = ref<User | undefined>(undefined)
+const user = ref<User>({} as User)
 const success = ref(false)
 
 function updateUsername(value: string | number | null) {
@@ -75,9 +75,9 @@ function updateEmail(value: string | number | null) {
   user.value.email = value == null ? '' : String(value)
 }
 
-function updateTags(value: Array<string | number>) {
+function updateTags(value: string | number | null) {
   if (!user.value) return
-  user.value.ids = value.map((v) => String(v))
+  user.value.code = value == null ? '' : String(value)
 }
 
 import { clientStore } from '@/stores/clientStore'
@@ -93,11 +93,11 @@ onMounted(async () => {
 const submitUser = async () => {
   blockSubmission.value = true
   axios
-    .put(`/users/${user.value?._id}`, user.value)
+    .put(`/users/${user.value?.id}`, user.value)
     .then((response) => {
       const updatedUser = response.data as User
       user.value = updatedUser
-      clientStoreInstance.setUser(updatedUser._id as string)
+      clientStoreInstance.setUser(updatedUser.id)
       success.value = true
       setTimeout(() => {
         success.value = false

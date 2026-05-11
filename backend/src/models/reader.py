@@ -13,7 +13,7 @@ class Reader(ReaderBase, SQLModelBase, table=True):
 
 
 class ReaderPublic(ReaderBase, SQLModelBase):
-    pass
+    id: int = Field(..., nullable=False)
 
 
 class ReaderCreate(ReaderBase):

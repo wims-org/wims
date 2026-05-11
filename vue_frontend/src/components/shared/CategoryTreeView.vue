@@ -53,7 +53,7 @@
           </form>
         </div>
 
-        <CategoryTreeView v-if="isExpanded(category) && hasChildren(category)" :categories="category.children || []"
+        <CategoryTreeView v-if="isExpanded(category) && hasChildren(category)" :categories="category.children"
           :expand-all="expandAll" :expanded-categories="expandedCategories" @add-child="$emit('add-child', $event)"
           :selectable="selectable" :parent="category" />
       </li>
@@ -88,27 +88,22 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 type Category = components['schemas']['CategoryPublic']
 
-type CategoryNode = Category & {
-  id?: string
-  children?: CategoryNode[]
-}
-
 const props = defineProps<{
   categories: Category[]
   expandAll?: boolean
   expandedCategories?: Set<number>
   selectable?: boolean
-  parent?: CategoryNode
+  parent?: Category
   showActions?: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-child', payload: { parentKey: string | null; title: string }): void
+  (e: 'add-child', payload: { parentKey: number | null; title: string }): void
 }>()
 
 const hoveredKey = ref<number | null>(null)
 const expandedCategories = ref<Set<number>>(new Set(props.expandedCategories || []))
-const categories = ref<CategoryNode[]>([...props.categories || []])
+const categories = ref<Category[]>([...props.categories || []])
 
 const formKey = ref<number | null>(null)
 const newChildTitle = ref<string>('')
@@ -124,15 +119,15 @@ watch(
   },
 )
 
-const hasChildren = (category: CategoryNode): boolean => {
+const hasChildren = (category: Category): boolean => {
   return Array.isArray(category.children) && category.children.length > 0
 }
 
-const isExpanded = (category: CategoryNode) => {
+const isExpanded = (category: Category) => {
   return expandedCategories.value && expandedCategories.value.has(category.id)
 }
 
-const toggleExpanded = (category: CategoryNode) => {
+const toggleExpanded = (category: Category) => {
   if (isExpanded(category)) {
     expandedCategories.value.delete(category.id)
   } else {
@@ -145,7 +140,7 @@ const closeAddForm = () => {
   newChildTitle.value = ''
 }
 
-const submitAddChild = (parent: CategoryNode | null) => {
+const submitAddChild = (parent: Category | null) => {
   const title = newChildTitle.value.trim()
   if (!title) return
   const parentKey = parent ? parent.id : null
@@ -162,8 +157,8 @@ const submitAddChild = (parent: CategoryNode | null) => {
 
 const createCategory = async (
   title: string,
-  parentKey: string | null,
-): Promise<CategoryNode | null> => {
+  parentKey: number | null,
+): Promise<Category | null> => {
   return axios
     .post('/categories', {
       title,
