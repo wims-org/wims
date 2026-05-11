@@ -27,7 +27,7 @@ async def create_file(
 
     # Check if we already have a file with this hash.
     # e.g. from a failed
-    db_file = await session.execute(select(File).where(File.asset_path == asset_path))
+    db_file = await session.execute(select(File).where(File.asset_path == str(asset_path)))
     db_file = db_file.scalar_one_or_none()
     if db_file:
         return db_file
