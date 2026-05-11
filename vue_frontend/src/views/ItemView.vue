@@ -1,12 +1,12 @@
 <template>
   <BContainer fluid data-testid="item-view">
     <router-link v-show="previousItemId"
-      :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
+      :to="`/items/${previousItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset - 1 }))}`"
       class="text-decoration-none arrow-button arrow-button-prev">
       <IFaArrowLeft />
     </router-link>
     <router-link v-show="nextItemId"
-      :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
+      :to="`/items/${nextItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset + 1 }))}`"
       class="text-decoration-none arrow-button arrow-button-next">
       <IFaArrowRight />
     </router-link>
@@ -31,7 +31,7 @@
             </button>
             <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
               :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
-            <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" @delete="deleteItem"/>
+            <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" @delete="deleteItem" />
           </BTab>
           <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
             data-testid="object-identification">
@@ -101,7 +101,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const items = ref<Item[]>([])
 const showModal = ref(false)
-const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
+const query = ref<SearchQuery>()
 const previousItemId = ref<number | undefined>(undefined)
 const nextItemId = ref<number | undefined>(undefined)
 const offset = ref<number>(0)
@@ -158,12 +158,10 @@ const fetchItem = async () => {
 const fetchPrevNextItems = async () => {
   previousItemId.value = undefined
   nextItemId.value = undefined
-  if (!query_param.value) return
-  const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
-
+  if (!query.value) return
   const prevRequest = offset.value > 0 ? axios
     .post('/items/search', {
-      ...parsedQuery,
+      ...query.value,
       offset: offset.value - 1,
       limit: 1,
     })
@@ -172,7 +170,7 @@ const fetchPrevNextItems = async () => {
 
   const nextRequest = axios
     .post('/items/search', {
-      ...parsedQuery,
+      ...query.value,
       offset: offset.value + 1,
       limit: 1,
     })
@@ -260,7 +258,7 @@ const handleItemSelect = (item: Item) => {
   }
   router.push(
     `/items/${id}` +
-    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    (query ? `?query=${encodeURIComponent(JSON.stringify({ ...query, offset }))}` : ''),
   )
 }
 
@@ -293,7 +291,7 @@ const closeModal = () => {
 const handle_item_prev = () => {
   if (previousItemId.value) {
     router.push(
-      `/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`,
+      `/items/${previousItemId.value}?query=${encodeURIComponent(JSON.stringify({ ...query.value, offset: offset.value - 1 }))}`,
     )
   }
 }
@@ -301,16 +299,16 @@ const handle_item_prev = () => {
 const handle_item_next = () => {
   if (nextItemId.value) {
     router.push(
-      `/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`,
+      `/items/${nextItemId.value}?query=${encodeURIComponent(JSON.stringify({ ...query.value, offset: offset.value + 1 }))}`,
     )
   }
 }
 
 // Lifecycle Hooks
 onMounted(() => {
-  query_param.value = decodeURIComponent((route.query.query as string) || '')
-  offset.value = parseInt(route.query.offset as string, 10) || 0
-  console.log('Mounted with query:', query_param.value, 'and offset:', offset.value, route.params)
+  query.value = JSON.parse(decodeURIComponent((route.query.query as string) || ''))
+  offset.value = query.value?.offset || 0
+  console.log('Mounted with query:', query.value, 'and offset:', offset.value, route.params)
   if (route.params.id === 'new' || Number.isNaN(Number(route.params.id))) {
     // Case 1: new item form, optionally pre-filled from query params
     newItem.value = true
@@ -320,7 +318,7 @@ onMounted(() => {
     fetchItem()
   }
 
-  if (query_param.value) {
+  if (query.value) {
     fetchPrevNextItems()
   }
   // Keyboard navigation: left/right arrows navigate prev/next item.
@@ -391,12 +389,13 @@ watch(
 watch(
   () => [route.query.query],
   async ([newQuery]) => {
+    console.log('Updated query:', query.value, newQuery)
     if (newQuery && typeof newQuery === 'string') {
-      query_param.value = decodeURIComponent(newQuery || '')
-      offset.value = parseInt(route.query.offset as string, 10) || 0
+      query.value = JSON.parse(decodeURIComponent(newQuery || ''))
+      offset.value = query.value?.offset || 0
       await fetchPrevNextItems()
     } else {
-      query_param.value = ''
+      query.value = {} as SearchQuery
       previousItemId.value = undefined
       nextItemId.value = undefined
     }
@@ -411,9 +410,7 @@ watch(
       item.value.code = code
       // item.value.code_format = typeof newFormat === 'string' ? newFormat : undefined // ToDo define formats and codes
     } else {
-      query_param.value = ''
-      previousItemId.value = undefined
-      nextItemId.value = undefined
+      item.value.code = null
     }
   },
 )

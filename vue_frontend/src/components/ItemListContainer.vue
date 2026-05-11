@@ -151,7 +151,7 @@ const handleSelect = (item: { id: number }) => {
   router.push(
     `/items/${id}` +
     (searchQuery.value
-      ? `?query=${encodeURIComponent(JSON.stringify(searchQuery.value))}&offset=${offset}`
+      ? `?query=${encodeURIComponent(JSON.stringify({ ...searchQuery.value, offset }))}`
       : ''),
   ).then(() => {
     const time_end = performance.now()
