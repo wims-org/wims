@@ -34,7 +34,7 @@ async def create_file(
 
     db_file = File(
         filename=file.filename,
-        asset_path=asset_path,
+        asset_path=str(asset_path),
         filetype="image",
     )
     session.add(db_file)
