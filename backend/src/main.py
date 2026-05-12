@@ -13,7 +13,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 import routers
 from dependencies import database, event_handler, settings
-from routers import completion
 
 wims_config = settings.get_settings()
 
@@ -117,7 +116,7 @@ app.include_router(routers.scan.router)
 app.include_router(routers.metrics.router)
 
 if settings.get_settings().features_openai_api_key:
-    app.include_router(completion.router)
+    app.include_router(routers.identification.router)
     logger.info("LLM features enabled")
 else:
     logger.info("LLM feature disabled. Handarbeit!")

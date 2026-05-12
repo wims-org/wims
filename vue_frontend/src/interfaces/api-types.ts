@@ -428,7 +428,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/completion/identification": {
+    "/identification": {
         parameters: {
             query?: never;
             header?: never;
@@ -438,7 +438,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Identification */
-        post: operations["identification_completion_identification_post"];
+        post: operations["identification_identification_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -533,7 +533,7 @@ export interface components {
          * Event
          * @enum {string}
          */
-        Event: "SCAN" | "SCAN_NEW" | "COMPLETION" | "ALIVE" | "ERROR";
+        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR";
         /** FilePublic */
         FilePublic: {
             /** Item Id */
@@ -571,6 +571,18 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** IdentificationRequest */
+        IdentificationRequest: {
+            /** Query */
+            query?: string | null;
+            /** Client Id */
+            client_id: string;
+            /**
+             * File Ids
+             * @default []
+             */
+            file_ids: number[];
         };
         /** Item */
         Item: {
@@ -943,7 +955,7 @@ export interface components {
             data: components["schemas"]["SseEventData"];
             /**
              * Id
-             * @default fb6e1016-481e-4b3f-85ac-d9f088b6a426
+             * @default 00734ee9-3f3b-43f5-b73b-1da3998623a4
              */
             id: string;
             /**
@@ -2422,14 +2434,18 @@ export interface operations {
             };
         };
     };
-    identification_completion_identification_post: {
+    identification_identification_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentificationRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2446,6 +2462,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

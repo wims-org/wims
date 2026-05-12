@@ -183,7 +183,9 @@ async def get_item_search(query: Query, session: SessionDep):
     Search for items based on a query object, post to allow for body.
     """
     try:
-        query = QueryReq.model_validate(query, )
+        query = QueryReq.model_validate(
+            query,
+        )
         statement = select(Item)
         term_fields = ["short_name"]
         # Term

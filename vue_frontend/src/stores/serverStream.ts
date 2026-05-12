@@ -30,10 +30,10 @@ export const serverStream = defineStore('ServerStream', {
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         eventBus.emit(EventAction.NEW_ITEM, parsedData)
       })
-      this.eventSource.addEventListener(StreamEvent.COMPLETION, (event) => {
-        console.log(StreamEvent.COMPLETION, event.data)
+      this.eventSource.addEventListener(StreamEvent.IDENTIFICATION, (event) => {
+        console.log(StreamEvent.IDENTIFICATION, event.data)
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
-        eventBus.emit(EventAction.COMPLETION, parsedData)
+        eventBus.emit(EventAction.IDENTIFICATION, parsedData)
       })
       this.eventSource.addEventListener(StreamEvent.ERROR, (event) => {
         console.error(StreamEvent.ERROR, event.data)

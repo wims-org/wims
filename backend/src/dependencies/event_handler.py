@@ -23,7 +23,7 @@ class MessageQueue(pydantic.BaseModel):
 class Event(enum.Enum):
     SCAN = "SCAN"
     SCAN_NEW = "SCAN_NEW"
-    COMPLETION = "COMPLETION"
+    IDENTIFICATION = "IDENTIFICATION"
     ALIVE = "ALIVE"
     ERROR = "ERROR"
 

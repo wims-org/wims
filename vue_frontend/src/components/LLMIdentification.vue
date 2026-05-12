@@ -36,25 +36,27 @@ import eventBus, { type Events } from '../stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 import type { File } from '@/interfaces/file.interface'
 
-const stringInput = ref('')
+const props = defineProps<{
+  description?: string
+  images?: Array<File>
+}>()
+
+const stringInput = ref(props.description || '')
 const uploadedImages = ref<File[]>([])
 const selectedImages = ref<File[]>([])
 const requestInProgress = ref(false)
 const requestError = ref<string>()
 
-defineProps<{
-  images?: Array<File>
-}>()
-
 onMounted(() => {
   if (clientStore().backend_config.llm_enabled === false) {
     return
   }
+
 })
 
-eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
+eventBus.on(EventAction.IDENTIFICATION, (data: Events[EventAction.IDENTIFICATION]) => {
   requestError.value = ''
-  console.log('Completion event received:', data)
+  console.log('Identification event received:', data)
   requestInProgress.value = false
 })
 eventBus.on(EventAction.ERROR, (data: Events[EventAction.ERROR]) => {
@@ -73,9 +75,9 @@ const fetchIdentification = async () => {
     const body = {
       query: stringInput.value,
       client_id: clientStore().client_id,
-      imageUrls: [...uploadedImages.value, ...selectedImages.value],
+      file_ids: [...uploadedImages.value, ...selectedImages.value].map((f) => f.id),
     }
-    const response = await axios.post('/completion/identification', body)
+    const response = await axios.post('/identification', body)
     console.log({ ...response.data })
   } catch (error) {
     console.error('Error posting ident data:', error)

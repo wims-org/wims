@@ -26,16 +26,18 @@
               :title="`Items in ${item?.short_name}`" />
           </BTab>
           <BTab title="Item Data" id="itemData" data-testid="item-data">
-            <button v-if="completion" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
+            <button v-if="identification" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
               Toggle Comparison
             </button>
-            <ItemCompare v-if="isComparing && completion && item" :item_org="item" :item_new="completion"
+            <ItemCompare v-if="isComparing && identification && item" :item_org="item" :item_new="identification"
               :newItem="newItem" @submit="handleFormSubmit" :key="item?.id" />
             <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" @delete="deleteItem" />
           </BTab>
           <BTab v-if="clientStore.backend_config?.llm_enabled" title="Object Identification" id="objectIdentification"
             data-testid="object-identification">
-            <LLMCompletion :images="item?.images || []" :key="item?.id" />
+            <LLMIdentification :images="item?.images || []"
+              :description="item?.short_name || item?.description ? (item?.short_name + '; ' + item?.description) : ''"
+              :key="item?.id" />
           </BTab>
         </BTabs>
       </template>
@@ -57,7 +59,7 @@ import type { components } from '@/interfaces/api-types'
 import type { Item } from '@/interfaces/items.interface'
 import ApiService from '@/services/ApiService'
 
-const LLMCompletion = defineAsyncComponent(() => import('@/components/LLMCompletion.vue'))
+const LLMIdentification = defineAsyncComponent(() => import('@/components/LLMIdentification.vue'))
 const ItemForm = defineAsyncComponent(() => import('../components/ItemForm.vue'))
 const ItemCompare = defineAsyncComponent(() => import('../components/ItemComparison.vue'))
 const ContainerListComponent = defineAsyncComponent(
@@ -82,7 +84,7 @@ Component Lifecycle and Logic:
 
 - On mount, the component checks if the route parameter 'id' is 'new' to determine if it's creating a new item or editing an existing one.
   It then fetches the item data if it's an existing item, and sets up the query parameters for navigation.
-- The component listens to events from the event bus, particularly for completion results and redirects, to update the view accordingly.
+- The component listens to events from the event bus, particularly for identification results and redirects, to update the view accordingly.
 - The component provides methods to handle form submission for creating/updating items, selecting items from the container tree, 
   and navigating to previous/next items based on search queries.
 - The component uses watchers to react to changes in route parameters and query parameters to fetch data and update the view as needed.   
@@ -96,12 +98,12 @@ const itemId = ref<number | undefined>(typeof route.params.id === 'string' ? +ro
 const item = ref<Item>({} as Item)
 const newItem = ref(false)
 const isComparing = ref(false)
-const completion = ref<Item>()
+const identification = ref<Item>()
 const errorMessage = ref('')
 const successMessage = ref('')
 const items = ref<Item[]>([])
 const showModal = ref(false)
-const query = ref<SearchQuery>()
+const query = ref<SearchQuery | undefined>(undefined)
 const previousItemId = ref<number | undefined>(undefined)
 const nextItemId = ref<number | undefined>(undefined)
 const offset = ref<number>(0)
@@ -150,7 +152,7 @@ const fetchItem = async () => {
     }
   }
   // for testing comparison view
-  // completion.value = item.value
+  // identification.value = item.value
   // isComparing.value = true
   tabCheck.value++
 }
@@ -237,9 +239,9 @@ const buildItemRequest = (formData: ItemUpdate): Item | ItemUpdate => {
   }
 }
 
-const handleCompletion = (result: { data: { response: object } }) => {
+const handleIdentification = (result: { data: { response: object } }) => {
   if (result?.data?.response) {
-    completion.value = result.data.response as Item
+    identification.value = result.data.response as Item
     isComparing.value = true
   } else {
     isComparing.value = false
@@ -306,7 +308,7 @@ const handle_item_next = () => {
 
 // Lifecycle Hooks
 onMounted(() => {
-  query.value = JSON.parse(decodeURIComponent((route.query.query as string) || ''))
+  query.value = route.query.query ? JSON.parse(decodeURIComponent((route.query.query as string) || '')) : undefined
   offset.value = query.value?.offset || 0
   console.log('Mounted with query:', query.value, 'and offset:', offset.value, route.params)
   if (route.params.id === 'new' || Number.isNaN(Number(route.params.id))) {
@@ -351,9 +353,9 @@ onMounted(() => {
   })
 })
 
-eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
+eventBus.on(EventAction.IDENTIFICATION, (data: Events[EventAction.IDENTIFICATION]) => {
   if (data) {
-    handleCompletion(data)
+    handleIdentification(data)
   }
 })
 
@@ -369,7 +371,7 @@ watch(
       newItem.value = true
       itemId.value = undefined
       item.value = {} as Item
-      completion.value = undefined
+      identification.value = undefined
       isComparing.value = false
       applyQueryParamsToItem()
       return
@@ -377,7 +379,7 @@ watch(
     if (!Number.isNaN(_newId) && itemId.value !== Number(_newId)) {
       itemId.value = Number(_newId)
       item.value = {} as Item
-      completion.value = undefined
+      identification.value = undefined
       newItem.value = false
       isComparing.value = false
       await fetchItem()

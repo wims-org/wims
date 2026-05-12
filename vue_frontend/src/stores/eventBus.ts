@@ -7,7 +7,7 @@ type Events = {
   [EventAction.FORM_SCAN_ADD]: components['schemas']['SseEvent']['data']
   [EventAction.CONTAINER_SCAN]: components['schemas']['SseEvent']['data']
   [EventAction.ALIVE]: { reader_id: string }
-  [EventAction.COMPLETION]: { data: { response: object } }
+  [EventAction.IDENTIFICATION]: { data: { response: object } }
   [EventAction.ERROR]: { id: string; reader_id: string, data: { message: string } }
 }
 
