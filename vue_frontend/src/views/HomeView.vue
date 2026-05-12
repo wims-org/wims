@@ -1,8 +1,33 @@
 <template>
   <main>
     <h1>Home</h1>
+    <span class="card p-3 mb-3" v-if="clientStore().showHomeInstructions">
+      To create a new item:
+      <ul>
+        <li>
+          <a href="#" @click="$router.push('/readers')">Connect a reader </a><font-awesome-icon icon="arrow-right" /> scan
+        </li>
+        <li>
+          use your device's camera <font-awesome-icon icon="qrcode" /> scan a barcode or RFID tag <font-awesome-icon icon="arrow-right" /> open the item
+          form with the code pre-filled
+        </li>
+        <li>
+          <a href="#" @click="$router.push('/items/new')">Manually create</a> an item without scanning
+        </li>
+      </ul>
+      <button variant="primary" @click="clientStore().setShowHomeInstructions(false)">Dont show this again</button>
+    </span>
+
     <ul class="list-group block-item-list" data-testid="home-nav-list">
-      <li class="list-group-item" @click="$router.push('/items')">Items</li>
+      <div class="list-group-item p-0">
+        <div class="d-flex align-items-center flex-wrap">
+          <span class="list-group-item flex-fill p-3" @click="$router.push('/items')">Items</span>
+          <span class="list-group-item p-3" @click.stop="$router.push('/items/new')">
+            <font-awesome-icon icon="plus" />
+            New Item
+          </span>
+        </div>
+      </div>
       <li class="list-group-item" @click="$router.push('/categories')">Categories</li>
       <li class="list-group-item" @click="$router.push('/readers')">Readers</li>
       <li class="list-group-item" @click="$router.push('/import')">Import</li>
@@ -12,3 +37,6 @@
   </main>
 </template>
 
+<script setup lang="ts">
+import { clientStore } from '@/stores/clientStore'
+</script>

@@ -15,7 +15,7 @@ import { useRouter, useRoute } from 'vue-router'
 import TitleComponent from './components/TitleComponent.vue'
 import eventBus, { type Events } from './stores/eventBus'
 import { EventAction } from './interfaces/EventAction'
-import { setReaderId, setUserFromSessionStorage, setCameraConstraintsFromSessionStorage } from './utils'
+import { setReaderId, setUserFromSessionStorage, setCameraConstraintsFromSessionStorage, setShowHomeInstructionsFromSessionStorage, setNFCCapability } from './utils'
 import { clientStore } from '@/stores/clientStore'
 
 // Router and Route
@@ -28,6 +28,8 @@ onMounted(async () => {
   setReaderId(router)
   setUserFromSessionStorage()
   setCameraConstraintsFromSessionStorage()
+  setShowHomeInstructionsFromSessionStorage()
+  setNFCCapability()
 
   // Handle scan event from event bus
   eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {

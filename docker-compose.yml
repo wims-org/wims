@@ -1,15 +1,4 @@
 services:
-  proxy:
-    image: nginx:alpine
-    volumes:
-      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./backend/src/data:/data
-    ports:
-      - 8080:80
-    depends_on:
-      - frontend
-      - backend
-
   frontend:
     image: kailus.dev/wims-org/wims-frontend:dev
     build: ./vue_frontend

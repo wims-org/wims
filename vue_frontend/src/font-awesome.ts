@@ -27,6 +27,7 @@ import {
   faList,
   faGripLines,
   faMagnifyingGlass,
+  faQrcode,
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -55,6 +56,7 @@ library.add(
   faList,
   faGripLines,
   faMagnifyingGlass,
+  faQrcode,
 )
 
 export { FontAwesomeIcon }

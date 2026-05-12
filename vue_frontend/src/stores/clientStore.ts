@@ -6,6 +6,7 @@ import { EventAction } from '@/interfaces/EventAction'
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import type { BarcodeFormats } from '@/interfaces/reader.interface'
+import { set } from '@vueuse/core'
 
 type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
@@ -41,6 +42,8 @@ export const clientStore = defineStore('client', {
       'matrix_codes',
     ] as BarcodeFormats,
     cameraConstraints: null as Record<string, unknown> | null,
+    showHomeInstructions: true,
+    nfcCapability: null as boolean | null,
   }),
   getters: {
     getClientId(): string {
@@ -61,6 +64,9 @@ export const clientStore = defineStore('client', {
     getCameraConstraints(): Record<string, unknown> | null {
       return this.cameraConstraints
     },
+    getNFCCapability(): boolean {
+      return this.nfcCapability || false
+    }
   },
   actions: {
     setClientId(client_id: string) {
@@ -74,7 +80,7 @@ export const clientStore = defineStore('client', {
         .get(`/users/${userId}`)
         .then((response) => {
           this.user = response.data
-          sessionStorage.setItem('user_id', ''+userId)
+          sessionStorage.setItem('user_id', '' + userId)
           sessionStorage.setItem('user_id_time', Date.now().toString())
         })
         .catch((error) => {
@@ -141,6 +147,13 @@ export const clientStore = defineStore('client', {
       sessionStorage.setItem('camera_constraints', JSON.stringify(cameraConstraints))
       this.cameraConstraints = cameraConstraints
     },
+    setShowHomeInstructions(show: boolean) {
+      sessionStorage.setItem('show_home_instructions', show.toString())
+      this.showHomeInstructions = show
+    },
+    setNFCCapable(isCapable: boolean) {
+      this.nfcCapability = isCapable
+    }
   },
 })
 if (import.meta.hot) {
