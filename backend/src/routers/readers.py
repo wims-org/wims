@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from dependencies.database import SessionDep
+from dependencies.event_handler import ElementUpdate, Event, EventHandlerDep, SseEvent
 from models.reader import Reader, ReaderCreate, ReaderPublic
 
 router = APIRouter(prefix="/readers", tags=["readers"], responses={404: {"description": "Not found"}})
@@ -22,7 +23,7 @@ async def read_reader(session: SessionDep, reader_id: str):
 
 
 @router.post("", response_model=ReaderPublic)
-async def create_reader(session: SessionDep, reader: ReaderCreate):
+async def create_reader(session: SessionDep, reader: ReaderCreate, event_handler: EventHandlerDep):
     db_reader = Reader.model_validate(reader)
     reader = await session.execute(select(Reader).where(Reader.reader_id == db_reader.reader_id))
     reader = reader.scalar_one_or_none()
@@ -31,14 +32,26 @@ async def create_reader(session: SessionDep, reader: ReaderCreate):
     session.add(db_reader)
     await session.commit()
     await session.refresh(db_reader)
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.READERS},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
     return db_reader
 
 
 @router.delete("/{id}", response_model=dict)
-async def delete_reader(session: SessionDep, id: int):
+async def delete_reader(session: SessionDep, id: int, event_handler: EventHandlerDep):
     reader = await session.get(Reader, id)
     if not reader:
         raise HTTPException(status_code=404, detail="Reader not found")
     await session.delete(reader)
     await session.commit()
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.READERS},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
     return {"ok": True}

@@ -9,6 +9,10 @@ type Events = {
   [EventAction.ALIVE]: { reader_id: string }
   [EventAction.IDENTIFICATION]: { data: { response: object } }
   [EventAction.ERROR]: { id: string; reader_id: string, data: { message: string } }
+  [EventAction.ELEMENT_UPDATE_READERS]: { element: string }
+  [EventAction.ELEMENT_UPDATE_CONTAINER]: { element: string }
+  [EventAction.ELEMENT_UPDATE_USERS]: { element: string }
+  [EventAction.ELEMENT_UPDATE_CATEGORIES]: { element: string }
 }
 
 const eventBus = mitt<Events>()

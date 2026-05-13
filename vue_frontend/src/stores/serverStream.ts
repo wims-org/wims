@@ -40,6 +40,19 @@ export const serverStream = defineStore('ServerStream', {
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         eventBus.emit(EventAction.ERROR, parsedData)
       })
+      this.eventSource.addEventListener(StreamEvent.ELEMENT_UPDATE, (event) => {
+        console.log(StreamEvent.ELEMENT_UPDATE, event.data)
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
+        if (parsedData.element === 'READERS') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_READERS, parsedData)
+        } else if (parsedData.element === 'CONTAINERS') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_CONTAINER, parsedData)
+        } else if (parsedData.element === 'USERS') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_USERS, parsedData)
+        } else if (parsedData.element === 'CATEGORIES') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_CATEGORIES, parsedData)
+        }
+      })
       this.eventSource.addEventListener(StreamEvent.ALIVE, () => {
         // event data contains all subscriptions but setting them is quite flaky
         console.log(StreamEvent.ALIVE)

@@ -26,6 +26,11 @@ class Event(enum.Enum):
     IDENTIFICATION = "IDENTIFICATION"
     ALIVE = "ALIVE"
     ERROR = "ERROR"
+    ELEMENT_UPDATE = "ELEMENT_UPDATE"
+
+
+class ElementUpdate(enum.Enum):
+    READERS = "READERS"
 
 
 class CodeFormat(enum.Enum):
@@ -39,9 +44,12 @@ class CodeFormat(enum.Enum):
     CODE_93 = "code_93"  # https://en.wikipedia.org/wiki/Code_93
     CODABAR = "codabar"  # https://en.wikipedia.org/wiki/Codabar
     DATABAR = "databar"  # https://en.wikipedia.org/wiki/GS1_DataBar
-    DATABAR_EXPANDED = "databar_expanded"  # https://en.wikipedia.org/wiki/GS1_DataBar -> Expanded
-    DX_FILM_EDGE = "dx_film_edge"  # https://en.wikipedia.org/wiki/Barcode#Film_edge_barcode
-    EAN_13 = "ean_13"  # https://en.wikipedia.org/wiki/International_Article_Number_(EAN)
+    # https://en.wikipedia.org/wiki/GS1_DataBar -> Expanded
+    DATABAR_EXPANDED = "databar_expanded"
+    # https://en.wikipedia.org/wiki/Barcode#Film_edge_barcode
+    DX_FILM_EDGE = "dx_film_edge"
+    # https://en.wikipedia.org/wiki/International_Article_Number_(EAN)
+    EAN_13 = "ean_13"
     EAN_8 = "ean_8"  # https://en.wikipedia.org/wiki/EAN-8
     ITF = "itf"  # https://en.wikipedia.org/wiki/Interleaved_2_of_5
     MAXI_CODE = "maxi_code"  # https://en.wikipedia.org/wiki/MaxiCode
@@ -67,9 +75,13 @@ class SseEventData(pydantic.BaseModel):
     stream_id: str | None = None
 
 
+class ElementUpdateData(pydantic.BaseModel):
+    element: ElementUpdate
+
+
 class SseEvent(pydantic.BaseModel):
     event: Event
-    data: SseEventData
+    data: SseEventData | ElementUpdateData
     id: str = str(uuid.uuid4())
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
@@ -153,7 +165,7 @@ class EventHandler:
         async with self._queues_lock:
             for stream_id in list(self.__message_queues.keys()):
                 if len(self.__message_queues[stream_id].message_queue) >= 10:
-                    del self.__message_queues[stream_id]
+                    self.__message_queues[stream_id].message_queue = []
                     continue
                 msg = message.model_dump(mode="json")
                 msg["data"]["stream_id"] = str(stream_id)

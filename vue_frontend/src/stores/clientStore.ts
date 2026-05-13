@@ -12,7 +12,7 @@ type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 export const clientStore = defineStore('client', {
   state: () => ({
-    client_id: uuidv4(),
+    client_id: getClientIdFromStorage() || uuidv4(),
     reader_id: '',
     reader: {} as components['schemas']['ReaderPublic'],
     expected_event_action: EventAction.REDIRECT,
@@ -153,9 +153,17 @@ export const clientStore = defineStore('client', {
     },
     setNFCCapable(isCapable: boolean) {
       this.nfcCapability = isCapable
+    },
+    saveClientIdToStorage(): void {
+      sessionStorage.setItem('client_id', clientStore().client_id)
     }
   },
 })
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(clientStore, import.meta.hot))
 }
+function getClientIdFromStorage(): string | null {
+  const storedClientId = sessionStorage.getItem('client_id')
+  return storedClientId
+}
+
