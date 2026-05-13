@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { connectToReader } from "../helpers/sse_subscription";
+import { connectToReader, deleteItemByCode } from "../helpers/sse_subscription";
 const { v4: uuidv4 } = require("uuid");
 import { postScan } from "../helpers/sse_subscription";
 
@@ -15,7 +15,8 @@ test.describe("Item View", () => {
   }) => {
     const message = {
       reader_id: "04-04-46-42-CD-66-84",
-      tag_id: uuidv4(),
+      code_value: uuidv4(),
+      code_format: "uuid"
     };
 
     await connectToReader(page, "04-04-46-42-CD-66-84").then(async (readerId) => {
@@ -35,7 +36,7 @@ test.describe("Item View", () => {
     for (const textField of textFields) {
       const input = await textField.locator("input");
       if (await input.isVisible()) {
-        await expect(input).toHaveValue(new RegExp(`^(${message.tag_id}|)$`));
+        await expect(input).toHaveValue(new RegExp(`^(${message.code_value}|)$`));
       }
     }
 
@@ -108,15 +109,51 @@ test.describe("Item View", () => {
     }
   });
   test("should display item form with known item", async ({ page }) => {
+    // try to delete item if it exists already to ensure test consistency
+    // search item with code
+    // delete results if they exist
+    const code = "123e4567-e89b-12d3-a456-426614174000";
+    await deleteItemByCode(page, code).catch((err) => {
+      console.error("Error deleting item by code before test:", err);
+    });
+
     const message = {
       reader_id: "04-04-46-42-CD-66-85",
-      tag_id: "123e4567-e89b-12d3-a456-426614174000",
+      code_value: code,
+      code_format: "uuid"
     };
+    // create item
+
     await connectToReader(page, "04-04-46-42-CD-66-85").then(async (readerId) => {
       const resp = await postScan(page, message);
       // this item should exist
-      expect(resp.ok()).toBeTruthy();
+      expect(resp.ok()).toBeFalsy();
     });
+    // fill short name
+    await page.getByTestId("item-view").waitFor({ timeout: 1500 });
+    await expect(page.getByTestId("item-view")).toBeVisible();
+    await page.waitForTimeout(500);
+    await expect(page.getByTestId("object-identification")).toContainClass("active");
+    await page.getByRole('tab', { name: 'Item Data' }).click();
+    await page.getByTestId("toggle-details-button").click();
+
+    const shortNameField = await page
+      .getByTestId("text-field")
+      .filter({ hasText: "Short Name" })
+      .first();
+    await shortNameField.scrollIntoViewIfNeeded();
+    await expect(shortNameField).toBeVisible();
+    await shortNameField.locator("input").fill("Hammer");
+    // save item
+    await page.locator("button[type='submit']", { hasText: "Submit" }).click();
+    // wait for save to complete
+    await page.waitForTimeout(500);
+    
+    // check if item is known
+
+    const resp = await postScan(page, message);
+    // this item should exist
+    expect(resp.ok()).toBeTruthy();
     // Wait for the connection to be established and for the app to navigate to item view
     await page.waitForTimeout(1000);
     await page.getByTestId("item-view").waitFor({ timeout: 15000 });
@@ -125,14 +162,11 @@ test.describe("Item View", () => {
     // click show details button
     await page.getByTestId("toggle-details-button").click();
 
-    // Check TextField with label "short name"
-    const shortNameField = await page
-      .getByTestId("text-field")
-      .filter({ hasText: "Short Name" })
-      .first();
     const shortNameInput = await shortNameField.locator("input");
     await shortNameField.scrollIntoViewIfNeeded();
     await expect(shortNameInput).toBeVisible();
     await expect(shortNameInput).toHaveValue("Hammer");
+    // delete item
+    await page.getByRole("button", { name: "Delete Item" }).click();
   });
 });

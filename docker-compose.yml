@@ -1,14 +1,4 @@
 services:
-  proxy:
-    image: nginx:alpine
-    volumes:
-      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - 8080:80
-    depends_on:
-      - frontend
-      - backend
-
   frontend:
     image: kailus.dev/wims-org/wims-frontend:dev
     build: ./vue_frontend
@@ -24,20 +14,23 @@ services:
       - ./docker/config.default.yml:/app/src/config.yml:ro
       - ./docker/data/categories.json:/app/data/categories.json:ro
     environment:
-      - database.host=db
-      - database.user=root
-      - database.password=example
+      - LOG_LEVEL=INFO
+      - DATABASE_URI=mysql+aiomysql://root:example@db:3306/wims
+      - FEATURES_OPENAI_API_KEY=sthsth
+      - SENTRY_DSN="https://9f6b292159894c6983b61313779ad123@glitch.fleaz.me/4"
       - RUN_MODE=production
 
   db:
-    image: mongodb/mongodb-community-server:latest
+    image: mariadb:latest
     restart: unless-stopped
     volumes:
-      - mongodb-data:/data/db
-      - ./docker/mongo_init.js:/docker-entrypoint-initdb.d/e_setup_database.js:ro
+      - mariadb-data:/var/lib/mysql
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MARIADB_USER: root 
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: wims
+
 
 volumes:
+  mariadb-data:
   mongodb-data:

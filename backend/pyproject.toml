@@ -1,20 +1,24 @@
 [project]
 authors = [{name = "EeveesEyes"}]
 dependencies = [
-  "deepmerge>=2.0",
+  "aiomysql>=0.3.2",
+  "alembic>=1.18.4",
+  "asyncpg>=0.31.0",
   "fastapi>=0.122.0",
   "fastapi-utils>=0.8.0",
   "jsonschema>=4.25.1",
   "loguru>=0.7.3",
   "openai>=2.8.1",
   "openpyxl>=3.1.5",
-  "paho-mqtt>=2.1.0",
   "prometheus-client>=0.24.1",
+  "psycopg2-binary>=2.9.11",
   "pydantic>=2.12.5",
-  "pymongo>=4.15.4",
+  "pydantic-settings>=2.13.1",
+  "python-dotenv>=1.2.1",
   "python-multipart>=0.0.20",
-  "pyyaml>=6.0.3",
-  "requests>=2.32.5",
+  "sentry-sdk[fastapi]>=2.54.0",
+  "sqlalchemy>=2.0.46",
+  "sqlmodel>=0.0.37",
   "sse-starlette>=3.0.3",
   "uvicorn>=0.38.0",
   "wtforms>=3.2.1",
@@ -23,7 +27,7 @@ description = ""
 license = {text = "GPL-3.0-or-later"}
 name = "backend"
 readme = "README.md"
-requires-python = "==3.14.*"
+requires-python = ">=3.13"
 version = "0.1.0"
 
 [dependency-groups]
@@ -40,3 +44,75 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "SIM", "I", "UP", "B"]
+
+[tool.alembic]
+
+# path to migration scripts.
+# this is typically a path given in POSIX (e.g. forward slashes)
+# format, relative to the token %(here)s which refers to the location of this
+# ini file
+script_location = "%(here)s/alembic"
+
+# template used to generate migration file names; The default value is %%(rev)s_%%(slug)s
+# Uncomment the line below if you want the files to be prepended with date and time
+# see https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file
+# for all available tokens
+# file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+# Or organize into date-based subdirectories (requires recursive_version_locations = true)
+# file_template = "%%(year)d/%%(month).2d/%%(day).2d_%%(hour).2d%%(minute).2d_%%(second).2d_%%(rev)s_%%(slug)s"
+
+# additional paths to be prepended to sys.path. defaults to the current working directory.
+prepend_sys_path = [
+  ".",
+]
+
+# timezone to use when rendering the date within the migration file
+# as well as the filename.
+# If specified, requires the tzdata library which can be installed by adding
+# `alembic[tz]` to the pip requirements.
+# string value is passed to ZoneInfo()
+# leave blank for localtime
+# timezone =
+
+# max length of characters to apply to the "slug" field
+# truncate_slug_length = 40
+
+# set to 'true' to run the environment during
+# the 'revision' command, regardless of autogenerate
+# revision_environment = false
+
+# set to 'true' to allow .pyc and .pyo files without
+# a source .py file to be detected as revisions in the
+# versions/ directory
+# sourceless = false
+
+# version location specification; This defaults
+# to <script_location>/versions.  When using multiple version
+# directories, initial revisions must be specified with --version-path.
+# version_locations = [
+#    "%(here)s/alembic/versions",
+#    "%(here)s/foo/bar"
+# ]
+
+# set to 'true' to search source files recursively
+# in each "version_locations" directory
+# new in Alembic version 1.10
+# recursive_version_locations = false
+
+# the output encoding used when revision files
+# are written from script.py.mako
+# output_encoding = "utf-8"
+
+[[tool.alembic.post_write_hooks]]
+# lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
+module = "ruff"
+name = "ruff"
+options = "check --fix REVISION_SCRIPT_FILENAME"
+type = "module"
+#
+# [[tool.alembic.post_write_hooks]]
+# Alternatively, use the exec runner to execute a binary found on your PATH
+# name = "ruff"
+# type = "exec"
+# executable = "ruff"
+# options = "check --fix REVISION_SCRIPT_FILENAME"

@@ -311,3 +311,15 @@ textarea.form-control {
   background-color: var(--color-danger);
   color: var(--color-primary-contrast);
 }
+
+@media (max-width: 575.98px) {
+.container,
+.container-fluid,
+.container-sm,
+.container-md {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+}

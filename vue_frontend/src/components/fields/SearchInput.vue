@@ -1,29 +1,13 @@
 <template>
   <BContainer class="search-input">
-    <div
-      class="form-group d-flex align-items-center justify-content-between flex-wrap p-2"
-      data-testid="text-field"
-    >
+    <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="text-field">
       <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
       <div class="dropdown">
-        <input
-          v-model="searchTerm"
-          type="text"
-          class="form-control"
-          :placeholder="!disabled ? 'Search...' : 'No Value'"
-          :disabled="disabled"
-          :name="name"
-          :required="required"
+        <input v-model="searchTerm" type="text" class="form-control" :placeholder="!disabled ? 'Search...' : 'No Value'"
+          :disabled="disabled" :name="name" :required="required"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
-          @focus="expanded = true"
-          @blur="handleBlur()"
-          @keydown.enter="handleEnter()"
-          @keydown.esc="clearSearch()"
-        />
-        <ul
-          v-if="!disabled && expanded && dropdownOptions.length"
-          class="dropdown-menu dropdown-menu-end show"
-        >
+          @focus="expanded = true" @blur="handleBlur()" @keydown.enter="handleEnter()" @keydown.esc="clearSearch()" />
+        <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu dropdown-menu-end show">
           <li v-for="option in dropdownOptions" :key="option.id">
             <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
               {{ option.display_string }}
@@ -36,15 +20,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import axios from 'axios'
 import { SearchType, SearchTypeEndpoint } from '@/interfaces/FormField.interface'
 
 import type { components } from '@/interfaces/api-types'
-type User = components['schemas']['User'] & { [key: string]: unknown }
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
 type Query = components['schemas']['Query'] & { [key: string]: unknown }
-type Category = components['schemas']['Category'] & { [key: string]: unknown }
+type Category = components['schemas']['CategoryPublic'] & { [key: string]: unknown }
 
 const props = defineProps({
   searchType: {
@@ -64,8 +48,8 @@ const props = defineProps({
     default: 'text',
   },
   value: {
-    type: String,
-    default: '',
+    type: [Number, String],
+    default: null,
   },
   disabled: {
     type: Boolean,
@@ -94,6 +78,7 @@ const emit = defineEmits<{
 const debounceTimeout = ref<NodeJS.Timeout | null>(null)
 const minLength = 3
 const selection = ref(false)
+const firstFetch = ref(true)
 
 const fetchSearchResults = async (term: string) => {
   try {
@@ -128,7 +113,7 @@ watch(searchTerm, (newTerm) => {
   if (debounceTimeout.value) {
     clearTimeout(debounceTimeout.value)
   }
-  if (!props.disabled && newTerm.length >= minLength && !selection.value) {
+  if (!firstFetch.value && !props.disabled && newTerm.length >= minLength && !selection.value) {
     debounceTimeout.value = setTimeout(() => {
       fetchSearchResults(newTerm).then(() => {
         expanded.value = dropdownOptions.value.length > 0
@@ -139,9 +124,17 @@ watch(searchTerm, (newTerm) => {
   }
 })
 
+onMounted(() => {
+  debounceTimeout.value = setTimeout(() => {firstFetch.value = false}, 300)
+  if (props.value) {
+    getSearchTermFromValue(props.value).then((result) => {
+      searchTerm.value = result
+    })
+  }
+})
+
 const selectOption = (option: searchResult) => {
   selection.value = true
-  console.log('Selected option:', option)
   searchTerm.value = option.display_string
   expanded.value = false
   emit('update:value', option.select)
@@ -169,7 +162,7 @@ const clearSearch = () => {
 }
 
 interface searchResult {
-  id: string
+  id: number
   display_string: string
   select: User | Item | Query | string
 }
@@ -179,14 +172,14 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
   if (props.searchType === SearchType.USER) {
     options.push(
       ...(result as User[]).map((user) => ({
-        id: user._id,
+        id: user.id,
         display_string: user.username + (user.email ? ` <${user.email}>` : ''),
-        select: user._id,
+        select: '' + user.id,
       })),
     )
   } else if (props.searchType === SearchType.ITEM) {
     return (result as Item[]).map(
-      (item) => ({ id: item.tag_uuid, display_string: item.name, select: item }) as searchResult,
+      (item) => ({ id: item.id, display_string: item.name, select: item }) as searchResult,
     )
   } else if (props.searchType === SearchType.QUERY) {
     return (result as Query[]).map(
@@ -196,7 +189,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
     return (result as Category[]).map(
       (category) =>
         ({
-          id: category._id,
+          id: category.id,
           display_string: category.title,
           select: category.title,
         }) as searchResult,
@@ -206,7 +199,7 @@ const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searc
   return options
 }
 
-const getSearchTermFromValue = (value: string) => {
+const getSearchTermFromValue = (value: string | number) => {
   return new Promise<string>((resolve) => {
     switch (props.searchType) {
       case SearchType.USER:
@@ -216,7 +209,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.username)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.ITEM:
         return axios
@@ -225,7 +218,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.name)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.QUERY:
         return axios
@@ -234,7 +227,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.name)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       case SearchType.CATEGORY:
         return axios
@@ -243,7 +236,7 @@ const getSearchTermFromValue = (value: string) => {
             resolve(response.data.title)
           })
           .catch(() => {
-            resolve(value)
+            resolve(value as string)
           })
       default:
         resolve('')
@@ -253,8 +246,7 @@ const getSearchTermFromValue = (value: string) => {
 </script>
 
 <style scoped>
-.dropdown-menu {
-}
+.dropdown-menu {}
 
 .is-invalid {
   padding-right: 0.75rem;

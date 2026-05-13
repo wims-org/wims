@@ -6,7 +6,7 @@
       <div class="thumbnail-container-wrapper d-flex flex-wrap align-items-center">
         <div v-for="(image, index) in value" :key="index" class="thumbnail-container m-2"
           @click="selector?selectImage(image):openImageModal(image)">
-          <img :src="image" class="thumbnail" alt="Image Thumbnail" />
+          <img :src="image.asset_url" class="thumbnail" alt="Image Thumbnail" />
           <button type="button" class="remove-btn" @click.stop="removeImage(index)">
             <font-awesome-icon icon="times" />
           </button>
@@ -18,15 +18,14 @@
           <font-awesome-icon icon="camera" size="xl" />
           <p>No images</p>
         </div>
-        <div class="add-image-container m-2" v-if="!disabled">
-          <input ref="cameraInput" type="file" class="d-none" accept="image/*" capture="environment"
+        <div class="add-image-container m-2 position-relative" v-if="!disabled">
+          <button type="button" class="btn btn-primary add-image-btn">+</button>
+          <input type="file" class="file-input-overlay" accept="image/*" capture="environment"
             @change="addImage" />
-          <button type="button" class="btn btn-primary add-image-btn" @click="triggerCameraInput">
-            +
-          </button>
         </div>
       </div>
-      <ImageModal v-if="showModal && selectedImage" :image="selectedImage" @close="closeImageModal" />
+      <div v-if="uploadError" class="text-danger small mt-1 w-100">{{ uploadError }}</div>
+      <ImageModal v-if="showModal && selectedImage" :image="selectedImage.asset_url" @close="closeImageModal" />
     </div>
   </BContainer>
 </template>
@@ -34,6 +33,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import ImageModal from '@/components/shared/ImageModal.vue'
+import ApiService from '@/services/ApiService'
+import type { File } from '@/interfaces/file.interface'
 
 const props = defineProps({
   name: {
@@ -45,7 +46,7 @@ const props = defineProps({
     required: false,
   },
   value: {
-    type: Array as () => (string[] | null),
+    type: Array as () => (File[] | null),
     default: () => [],
   },
   disabled: {
@@ -67,41 +68,57 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string[]): void
-  (e: 'update:selectedImages', value: string[]): void
+  (e: 'update:value', value: File[]): void
+  (e: 'update:selectedImages', value: File[]): void
 }>()
 
-const cameraInput = ref<HTMLInputElement | null>(null)
 const showModal = ref(false)
-const selectedImage = ref<string | null>(null)
-const selectedImages = ref<string[]>([])
+const selectedImage = ref<File | null>(null)
+const selectedImages = ref<File[]>([])
+const uploadError = ref('')
 
-function triggerCameraInput() {
-  cameraInput.value?.click()
+async function compressImage(file: globalThis.File, maxWidth = 1920, quality = 0.82): Promise<globalThis.File> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxWidth / bitmap.width)
+  const canvas = document.createElement('canvas')
+  canvas.width = bitmap.width * scale
+  canvas.height = bitmap.height * scale
+  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob ? new globalThis.File([blob], file.name, { type: 'image/jpeg' }) : file),
+      'image/jpeg', quality,
+    )
+  })
 }
 
-function addImage(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files.length > 0) {
-    const file = input.files[0]
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        const updatedValue = [...(props.value || []), e.target.result as string] as string[]
-        emit('update:value', updatedValue)
-      }
-    }
-    reader.readAsDataURL(file)
+async function addImage(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  const compressed = await compressImage(file)
+  const formData = new FormData()
+  formData.append('file', compressed, file.name)
+  uploadError.value = ''
+  try {
+    const newImage: File = await ApiService.createFile(formData)
+    const updatedValue = props.value ? [...props.value, newImage] : [newImage]
+    emit('update:value', updatedValue)
+  } catch (error) {
+    console.error('Error uploading image:', error)
+    uploadError.value = 'Upload failed. Please try again.'
+  } finally {
+    target.value = ''
   }
 }
 
 function removeImage(index: number) {
   if (!props.value) return
-  const updatedValue = props.value.filter((_, i) => i !== index) as string[]
+  const updatedValue = props.value.filter((_, i) => i !== index) as File[]
   emit('update:value', updatedValue)
 }
 
-function openImageModal(image: string) {
+function openImageModal(image: File) {
   selectedImage.value = image
   showModal.value = true
 }
@@ -111,7 +128,7 @@ function closeImageModal() {
   selectedImage.value = null
 }
 
-function selectImage(image: string) {
+function selectImage(image: File) {
   if (selectedImages.value.includes(image)) {
     selectedImages.value = selectedImages.value.filter((img) => img !== image)
   } else {
@@ -169,6 +186,16 @@ remove-btn:hover {
   justify-content: center;
   align-items: center;
   padding: 0;
+}
+
+.file-input-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .borderless label {

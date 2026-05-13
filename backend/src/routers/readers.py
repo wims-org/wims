@@ -1,41 +1,57 @@
-from fastapi import APIRouter, HTTPException, Request
-from loguru import logger
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException
+from sqlmodel import select
 
-from routers.utils import get_bs
+from dependencies.database import SessionDep
+from dependencies.event_handler import ElementUpdate, Event, EventHandlerDep, SseEvent
+from models.reader import Reader, ReaderCreate, ReaderPublic
 
 router = APIRouter(prefix="/readers", tags=["readers"], responses={404: {"description": "Not found"}})
 
 
-class Reader(BaseModel):
-    reader_id: str
-    reader_name: str
+@router.get("", response_model=list[ReaderPublic])
+async def get_readers(session: SessionDep, offset: int = 0, limit: int = 100):
+    return (await session.execute(select(Reader).offset(offset).limit(limit))).scalars().all()
 
 
-@router.get("", response_model=list[Reader])
-async def get_readers(request: Request):
-    logger.debug("Fetching all readers")
-    readers = list(get_bs(request).dbc.read("readers"))
-    return readers
-
-
-@router.get("/{reader_id}", response_model=Reader)
-async def read_user(request: Request, reader_id: str):
-    reader = get_bs(request).dbc.read("readers", {"reader_id": reader_id}).pop()
-    if reader is None:
-        raise HTTPException(status_code=404, detail="Reader not found")
+@router.get("/{reader_id}", response_model=ReaderPublic)
+async def read_reader(session: SessionDep, reader_id: str):
+    reader = await session.execute(select(Reader).where(Reader.reader_id == reader_id))
+    reader = reader.scalar_one_or_none()
+    if not reader:
+        raise HTTPException(status_code=400, detail="Reader id not found")
     return reader
 
 
-@router.post("", response_model=Reader)
-async def create_reader(request: Request, reader: Reader):
-    res = get_bs(request).dbc.create("readers", reader.model_dump(mode="dict"))
-    return reader if res else None
+@router.post("", response_model=ReaderPublic)
+async def create_reader(session: SessionDep, reader: ReaderCreate, event_handler: EventHandlerDep):
+    db_reader = Reader.model_validate(reader)
+    reader = await session.execute(select(Reader).where(Reader.reader_id == db_reader.reader_id))
+    reader = reader.scalar_one_or_none()
+    if reader:
+        return reader
+    session.add(db_reader)
+    await session.commit()
+    await session.refresh(db_reader)
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.READERS},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
+    return db_reader
 
 
-@router.delete("/{reader_id}", response_model=dict)
-async def delete_reader(request: Request, reader_id: str):
-    result = get_bs(request).dbc.delete("readers", {"reader_id": reader_id})
-    if result == 0:
+@router.delete("/{id}", response_model=dict)
+async def delete_reader(session: SessionDep, id: int, event_handler: EventHandlerDep):
+    reader = await session.get(Reader, id)
+    if not reader:
         raise HTTPException(status_code=404, detail="Reader not found")
-    return {"message": "Reader deleted successfully"}
+    await session.delete(reader)
+    await session.commit()
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.READERS},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
+    return {"ok": True}

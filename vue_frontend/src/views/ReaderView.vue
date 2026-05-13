@@ -6,24 +6,43 @@
         v-for="reader in readers"
         data-testid="reader-item"
         :key="reader.reader_id"
-        @click="reader.reader_id === clientStoreInstance?.reader_id ? deselectReader() : selectReader(reader.reader_id)"
+        @click="
+          reader.reader_id === clientStoreInstance?.reader_id
+            ? deselectReader()
+            : selectReader(reader.reader_id)
+        "
         class="list-group-item d-flex justify-content-between align-items-center"
         :class="{ active: reader?.reader_id === (clientStoreInstance?.reader_id ?? '') }"
       >
         <div>
           {{ reader.reader_name }}
           <br />
-            <span class="text-secondary">{{ reader.reader_id }}</span>
+          <span class="text-secondary">{{ reader.reader_id }}</span>
         </div>
-        <button @click.stop="deleteReader(reader.reader_id)" class="btn btn-danger btn-sm">
-          Delete
-        </button>
+        <button @click.stop="deleteReader(reader)" class="btn btn-danger btn-sm">Delete</button>
       </li>
       <div v-if="readers.length === 0" class="list-group-item">
         <div class="spinner-border spinner-border-sm" role="status"></div>
         Loading...
       </div>
     </ul>
+    <div class="mt-4 p-3 card">
+      <div>Register this device as a reader to subscribe from other devices:</div>
+      <form class="card-body" @submit.prevent="registerDeviceAsReader">
+        <div class="mb-3">
+          <label for="registerReaderId" class="form-label">Reader Name</label>
+          <input
+            type="text"
+            v-model="newDeviceReader.reader_name"
+            id="registerReaderId"
+            class="form-control"
+            required
+            placeholder="Enter reader name to register this device"
+          />
+        </div>
+        <BButton variant="primary" type="submit">Register as Reader</BButton>
+      </form>
+    </div>
     <div class="card mt-4">
       <div class="card-header">Add New Reader</div>
       <div class="card-body">
@@ -58,16 +77,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { clientStore } from '@/stores/clientStore'
-import type Reader from '@/interfaces/reader.interface'
+
+import type { components } from '@/interfaces/api-types'
+type Reader = components['schemas']['ReaderPublic']
+type ReaderCreate = components['schemas']['ReaderCreate']
 import { useRouter } from 'vue-router'
+import eventBus from '@/stores/eventBus'
+import { EventAction } from '@/interfaces/EventAction'
 
 const clientStoreInstance = clientStore()
 const router = useRouter()
 const readers = ref<Reader[]>([])
-const newReader = ref<Reader>({ reader_id: '', reader_name: '' })
+const newReader = ref<ReaderCreate>({ reader_id: '', reader_name: '' })
+const newDeviceReader = ref<ReaderCreate>({
+  reader_id: clientStoreInstance.client_id,
+  reader_name: '',
+})
 
 async function fetchReaders(): Promise<void> {
   try {
@@ -120,24 +148,40 @@ async function deselectReader() {
 
 async function submitReader(): Promise<void> {
   try {
-    await axios.post('/readers', Object(newReader.value))
+    await axios.post('/readers', Object(newReader.value) as Reader)
     fetchReaders()
   } catch (error) {
     console.error('Error submitting reader:', error)
   }
 }
 
-async function deleteReader(readerId: string): Promise<void> {
+async function deleteReader(reader: Reader): Promise<void> {
   try {
-    await axios.delete(`/readers/${readerId}`)
+    await axios.delete(`/readers/${reader.id}`)
     fetchReaders()
   } catch (error) {
     console.error('Error deleting reader:', error)
   }
 }
 
+async function registerDeviceAsReader(): Promise<void> {
+  try {
+    clientStoreInstance.saveClientIdToStorage()
+    await axios.post('/readers', Object(newDeviceReader.value) as Reader)
+    await selectReader(newDeviceReader.value.reader_id)
+    fetchReaders()
+  } catch (error) {
+    console.error('Error registering device as reader:', error)
+  }
+}
+
 onMounted(() => {
   fetchReaders()
+  eventBus.on(EventAction.ELEMENT_UPDATE_READERS, fetchReaders)
+})
+
+onUnmounted(() => {
+  eventBus.off(EventAction.ELEMENT_UPDATE_READERS, fetchReaders)
 })
 </script>
 

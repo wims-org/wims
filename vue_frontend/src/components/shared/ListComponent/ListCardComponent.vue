@@ -22,7 +22,7 @@
       <div
         class="img-wrapper"
         :data-img-id="imageIndex"
-        ref="el => observeImage(el, item.tag_uuid)"
+        ref="el => observeImage(el, item.id)"
       >
         <div
           v-if="erroredImages[imageIndex] || !images[imageIndex] || !loadRequested"
@@ -37,7 +37,7 @@
 
         <img
           v-else
-          :src="images[imageIndex]"
+          :src="images[imageIndex].asset_url"
           class="thumbnail real-image"
           :class="{
             'img-hidden': erroredImages[imageIndex],
@@ -56,8 +56,10 @@
 // Item component for displaying a single item in a list with a picture slider and title.
 // Props definition containing pictures array and title string. Emit event on item click.
 import { ref } from 'vue'
+import type { File } from '@/interfaces/file.interface'
+
 const props = defineProps<{
-  images: string[]
+  images: File[]
   title: string
   imageSize?: number
   loadRequested?: boolean

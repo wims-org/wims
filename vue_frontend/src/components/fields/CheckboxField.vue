@@ -14,7 +14,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue'
 import { BFormCheckbox, BFormGroup } from 'bootstrap-vue-next'
 import type { CheckboxValue } from 'bootstrap-vue-next'
 

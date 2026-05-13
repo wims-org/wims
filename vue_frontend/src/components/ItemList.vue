@@ -48,7 +48,7 @@
     >
       <div
         v-for="(item, i) in items"
-        :key="item.tag_uuid"
+        :key="item.id"
         :class="{
           'list-group-item list-group-item-action':
             activeViewMode === 'text' || activeViewMode === 'image-list',
@@ -63,23 +63,23 @@
         <template v-if="activeViewMode === 'image-list'">
           <ListItemComponent
             class="image-component"
-            :data-img-id="item.tag_uuid"
+            :data-img-id="item.id"
             :title="item.short_name"
             :description="item.description"
-            :images="item.images"
+            :images="item.images || []"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.tag_uuid]"
+            :load-requested="loadRequested[''+item.id]"
           />
         </template>
 
         <template v-if="activeViewMode === 'image'">
           <ListCardComponent
             class="image-component"
-            :data-img-id="item.tag_uuid"
+            :data-img-id="item.id"
             :title="item.short_name"
-            :images="item.images"
+            :images="item.images || []"
             :image-size="activeImageSize"
-            :load-requested="loadRequested[item.tag_uuid]"
+            :load-requested="loadRequested[''+item.id]"
           />
         </template>
       </div>
@@ -90,11 +90,10 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onUnmounted, onMounted } from 'vue'
 import type { PropType } from 'vue'
-import type { components } from '@/interfaces/api-types'
 import ListCardComponent from '@/components/shared/ListComponent/ListCardComponent.vue'
 import ListItemComponent from '@/components/shared/ListComponent/ListItemComponent.vue'
 
-type Item = components['schemas']['Item']
+import type { Item } from '@/interfaces/items.interface'
 
 // Props
 const props = defineProps({

@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 import type { Query } from '@/interfaces/queries'
 import { logger } from '@sentry/vue'

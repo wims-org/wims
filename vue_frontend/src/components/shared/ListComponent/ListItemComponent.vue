@@ -11,7 +11,7 @@
         />
         <img
           v-else
-          :src="images[0]"
+          :src="images[0].asset_url"
           class="thumbnail real-image"
           alt="Image Thumbnail"
           loading="lazy"
@@ -28,8 +28,11 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
+
+import type { File } from '@/interfaces/file.interface'
+
 defineProps<{
-  images: string[]
+  images: File[]
   title: string
   description?: string | null
   imageSize?: number

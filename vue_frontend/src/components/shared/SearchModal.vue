@@ -34,7 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'select', tag: string): void
+  (e: 'select', id: number|undefined): void
 }>()
 
 const saved_action = ref(EventAction.REDIRECT)
@@ -49,12 +49,12 @@ function listenToScanEvent() {
       clientStore().expected_event_action,
       clientStore().expected_event_action === EventAction.CONTAINER_SCAN,
     )
-    handleSelect(data.rfid)
+    handleSelect(data.id)
   })
 }
 
 function returnNone() {
-  emit('select', '')
+  emit('select', undefined)
   closeModal()
 }
 
@@ -64,9 +64,9 @@ function closeModal() {
   emit('close')
 }
 
-function handleSelect(tag: string) {
-  console.log('SearchModal handleSelect called with tag:', tag)
-  emit('select', tag)
+function handleSelect(id: number) {
+  console.log('SearchModal handleSelect called with id:', id)
+  emit('select', id)
   closeModal()
 }
 

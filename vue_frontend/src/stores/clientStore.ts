@@ -6,14 +6,15 @@ import { EventAction } from '@/interfaces/EventAction'
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import type { BarcodeFormats } from '@/interfaces/reader.interface'
+import { set } from '@vueuse/core'
 
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 export const clientStore = defineStore('client', {
   state: () => ({
-    client_id: uuidv4(),
+    client_id: getClientIdFromStorage() || uuidv4(),
     reader_id: '',
-    reader: {} as components['schemas']['Reader'],
+    reader: {} as components['schemas']['ReaderPublic'],
     expected_event_action: EventAction.REDIRECT,
     user: undefined as User | undefined,
     backend_config: {} as components['schemas']['ConfigResponseModel'],
@@ -41,6 +42,8 @@ export const clientStore = defineStore('client', {
       'matrix_codes',
     ] as BarcodeFormats,
     cameraConstraints: null as Record<string, unknown> | null,
+    showHomeInstructions: true,
+    nfcCapability: null as boolean | null,
   }),
   getters: {
     getClientId(): string {
@@ -61,12 +64,15 @@ export const clientStore = defineStore('client', {
     getCameraConstraints(): Record<string, unknown> | null {
       return this.cameraConstraints
     },
+    getNFCCapability(): boolean {
+      return this.nfcCapability || false
+    }
   },
   actions: {
     setClientId(client_id: string) {
       this.client_id = client_id
     },
-    setUser(userId: string) {
+    setUser(userId: number) {
       if (this.user && this.user.id === userId) {
         return
       }
@@ -74,7 +80,7 @@ export const clientStore = defineStore('client', {
         .get(`/users/${userId}`)
         .then((response) => {
           this.user = response.data
-          sessionStorage.setItem('user_id', userId)
+          sessionStorage.setItem('user_id', '' + userId)
           sessionStorage.setItem('user_id_time', Date.now().toString())
         })
         .catch((error) => {
@@ -141,8 +147,23 @@ export const clientStore = defineStore('client', {
       sessionStorage.setItem('camera_constraints', JSON.stringify(cameraConstraints))
       this.cameraConstraints = cameraConstraints
     },
+    setShowHomeInstructions(show: boolean) {
+      sessionStorage.setItem('show_home_instructions', show.toString())
+      this.showHomeInstructions = show
+    },
+    setNFCCapable(isCapable: boolean) {
+      this.nfcCapability = isCapable
+    },
+    saveClientIdToStorage(): void {
+      sessionStorage.setItem('client_id', clientStore().client_id)
+    }
   },
 })
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(clientStore, import.meta.hot))
 }
+function getClientIdFromStorage(): string | null {
+  const storedClientId = sessionStorage.getItem('client_id')
+  return storedClientId
+}
+

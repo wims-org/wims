@@ -4,76 +4,38 @@
  */
 
 export interface paths {
-    "/readers": {
+    "/users": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Readers */
-        get: operations["get_readers_readers_get"];
+        /** Get All Users */
+        get: operations["get_all_users_users_get"];
         put?: never;
-        /** Create Reader */
-        post: operations["create_reader_readers_post"];
+        /** Create User */
+        post: operations["create_user_users_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/readers/{reader_id}": {
+    "/users/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Read User */
-        get: operations["read_user_readers__reader_id__get"];
-        put?: never;
+        /** Get User */
+        get: operations["get_user_users__id__get"];
+        /** Update User */
+        put: operations["update_user_users__id__put"];
         post?: never;
-        /** Delete Reader */
-        delete: operations["delete_reader_readers__reader_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Items Query */
-        get: operations["get_items_query_items__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/items/{rfid}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Item */
-        get: operations["get_item_items__rfid__get"];
-        /**
-         * Put Item
-         * @description Update an item. If the item does not exist or is invalid, an error is raised.
-         */
-        put: operations["put_item_items__rfid__put"];
-        post?: never;
-        /** Delete Item */
-        delete: operations["delete_item_items__rfid__delete"];
+        /** Delete User */
+        delete: operations["delete_user_users__id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -88,16 +50,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Post Item
-         * @description Create an item. If the item already exists, an error is raised.
-         */
-        post: operations["post_item_items_post"];
+        /** Create Item */
+        post: operations["create_item_items_post"];
         delete?: never;
         options?: never;
         head?: never;
-        /** Patch Items */
-        patch: operations["patch_items_items_patch"];
+        patch?: never;
         trace?: never;
     };
     "/items/backlog": {
@@ -109,26 +67,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Post Backlog Item
-         * @description Create a backlog item (no strict validation). If the item already exists, an error is raised.
-         */
-        post: operations["post_backlog_item_items_backlog_post"];
+        /** Create Backlog Item */
+        post: operations["create_backlog_item_items_backlog_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/items/{rfid}/containers": {
+    "/items/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Item With Containers */
-        get: operations["get_item_with_containers_items__rfid__containers_get"];
+        /** Get Item */
+        get: operations["get_item_items__id__get"];
+        /** Update Item */
+        put: operations["update_item_items__id__put"];
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_items__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All Item */
+        get: operations["get_all_item_items__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -137,15 +111,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/items/{rfid}/content": {
+    "/items/{id}/containers": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Item Content */
-        get: operations["get_item_content_items__rfid__content_get"];
+        /** Get Item With Containers */
+        get: operations["get_item_with_containers_items__id__containers_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -174,7 +148,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/items/bulk": {
+    "/readers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Readers */
+        get: operations["get_readers_readers_get"];
+        put?: never;
+        /** Create Reader */
+        post: operations["create_reader_readers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{reader_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Reader */
+        get: operations["read_reader_readers__reader_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readers/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -183,12 +192,133 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Bulk Import Items
-         * @description Bulk import items. Accepts a list of item dicts.
-         *     If an item with the same tag_uuid exists, it is updated; otherwise, it is created.
-         */
-        post: operations["bulk_import_items_items_bulk_post"];
+        post?: never;
+        /** Delete Reader */
+        delete: operations["delete_reader_readers__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All Files */
+        get: operations["get_all_files_files_get"];
+        put?: never;
+        /** Create File */
+        post: operations["create_file_files_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get File */
+        get: operations["get_file_files__id__get"];
+        /** Update File */
+        put: operations["update_file_files__id__put"];
+        post?: never;
+        /** Delete File */
+        delete: operations["delete_file_files__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get All Categories */
+        get: operations["get_all_categories_categories_get"];
+        put?: never;
+        /** Create Category */
+        post: operations["create_category_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Category Tree */
+        get: operations["get_category_tree_categories_tree_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{id}/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Category Tree From Id */
+        get: operations["get_category_tree_from_id_categories__id__tree_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Category */
+        get: operations["get_category_categories__id__get"];
+        /** Update Category */
+        put: operations["update_category_categories__id__put"];
+        post?: never;
+        /** Delete Category */
+        delete: operations["delete_category_categories__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/config/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Config */
+        get: operations["config_config__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -264,96 +394,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/queries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All Queries Endpoint */
-        get: operations["get_all_queries_endpoint_queries_get"];
-        put?: never;
-        /** Create Query Endpoint */
-        post: operations["create_query_endpoint_queries_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/queries/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Query Endpoint */
-        get: operations["get_query_endpoint_queries__name__get"];
-        put?: never;
-        post?: never;
-        /** Delete Query Endpoint */
-        delete: operations["delete_query_endpoint_queries__name__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/queries/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update Query Endpoint */
-        put: operations["update_query_endpoint_queries__id__put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All Users */
-        get: operations["get_all_users_users_get"];
-        put?: never;
-        /** Create User */
-        post: operations["create_user_users_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get User */
-        get: operations["get_user_users__id__get"];
-        /** Update User */
-        put: operations["update_user_users__id__put"];
-        post?: never;
-        /** Delete User */
-        delete: operations["delete_user_users__id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/scan": {
         parameters: {
             query?: never;
@@ -365,176 +405,6 @@ export interface paths {
         put?: never;
         /** Scan Event */
         post: operations["scan_event_scan_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/config/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Config */
-        get: operations["config_config__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Categories */
-        get: operations["get_categories_categories_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/tree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get All Categories Tree */
-        get: operations["get_all_categories_tree_categories_tree_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/search/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search Categories */
-        get: operations["search_categories_categories_search__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Category */
-        get: operations["get_category_categories__id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/{id}/tree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Category Tree */
-        get: operations["get_category_tree_categories__id__tree_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/{id}/branch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Category Branch */
-        get: operations["get_category_branch_categories__id__branch_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/categories/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create Category */
-        post: operations["create_category_categories__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/backup/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Create Backup */
-        get: operations["create_backup_backup_create_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/backup/load": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Backup */
-        post: operations["import_backup_backup_load_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -558,7 +428,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/completion/identification": {
+    "/identification": {
         parameters: {
             query?: never;
             header?: never;
@@ -568,7 +438,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Identification */
-        post: operations["identification_completion_identification_post"];
+        post: operations["identification_identification_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -579,388 +449,496 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /**
-         * AggregatedStates
-         * @enum {string}
-         */
-        AggregatedStates: "latest" | "borrowed" | "todo" | "empty" | "name_asc" | "name_desc";
-        /** Body_import_backup_backup_load_post */
-        Body_import_backup_backup_load_post: {
+        /** Body_create_file_files_post */
+        Body_create_file_files_post: {
             /**
              * File
              * Format: binary
              */
             file: string;
         };
-        /** CategoryReqRes */
-        "CategoryReqRes-Input": {
+        /** Category */
+        Category: {
             /** Id */
-            _id: string | null;
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Parent Id */
-            parent_id?: string | null;
+            parent_id?: number | null;
             /** Title */
             title: string;
             /** Description */
             description: string | null;
-            parent?: components["schemas"]["CategoryReqRes-Input"] | null;
-            /**
-             * Children
-             * @default []
-             */
-            children: components["schemas"]["CategoryReqRes-Input"][];
         };
-        /** CategoryReqRes */
-        "CategoryReqRes-Output": {
-            /** Id */
-            _id: string | null;
+        /** CategoryCreate */
+        CategoryCreate: {
             /** Parent Id */
-            parent_id?: string | null;
+            parent_id?: number | null;
             /** Title */
             title: string;
             /** Description */
             description: string | null;
-            parent?: components["schemas"]["CategoryReqRes-Output"] | null;
-            /**
-             * Children
-             * @default []
-             */
-            children: components["schemas"]["CategoryReqRes-Output"][];
         };
-        /** Change */
-        Change: {
-            /** User */
-            user: string;
-            /** Timestamp */
-            timestamp: number;
-            /** Diff From Prev Version */
-            diff_from_prev_version: {
-                [key: string]: unknown;
-            };
+        /** CategoryPublic */
+        CategoryPublic: {
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Id */
+            id: number;
+            parent?: components["schemas"]["Category"] | null;
+            /** Children */
+            children?: components["schemas"]["Category"][] | null;
         };
+        /** CategoryUpdate */
+        CategoryUpdate: {
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+        };
+        /**
+         * CodeFormat
+         * @enum {string}
+         */
+        CodeFormat: "data_matrix" | "aztec" | "code_128" | "code_39" | "code_93" | "codabar" | "databar" | "databar_expanded" | "dx_film_edge" | "ean_13" | "ean_8" | "itf" | "maxi_code" | "micro_qr_code" | "pdf417" | "qr_code" | "rm_qr_code" | "upc_a" | "upc_e" | "linear_codes" | "matrix_codes" | "unknown" | "uuid";
         /** ConfigResponseModel */
         ConfigResponseModel: {
-            /** Database Connected */
-            database_connected: boolean;
             /** Llm Enabled */
             llm_enabled: boolean;
-            /**
-             * Camera Enabled
-             * @default false
-             */
-            camera_enabled: boolean;
+            /** Commit Hash */
+            commit_hash: string;
+        };
+        /** ContainerObject */
+        ContainerObject: {
+            /** Item Id */
+            item_id: number;
+            /** Short Name */
+            short_name: string;
+        };
+        /**
+         * Event
+         * @enum {string}
+         */
+        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR";
+        /** FilePublic */
+        FilePublic: {
+            /** Item Id */
+            item_id?: number | null;
+            /** Asset Path */
+            asset_path: string;
+            /** Filename */
+            filename: string;
+            /** Filetype */
+            filetype: string;
+            /** Id */
+            id: number;
+        };
+        /** FileUpdate */
+        FileUpdate: {
+            /** Item Id */
+            item_id?: number | null;
+            /** Asset Path */
+            asset_path: string;
+            /** Filename */
+            filename: string;
+            /** Filetype */
+            filetype: string;
+        };
+        /** Filter */
+        Filter: {
+            /** Field */
+            field: string;
+            /** @description If null, defaults to 'eq'. */
+            qualifier?: components["schemas"]["Qualifier"] | null;
+            /** Value */
+            value: string | number | (string | number)[];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** IdentificationRequest */
+        IdentificationRequest: {
+            /** Query */
+            query?: string | null;
+            /** Client Id */
+            client_id: string;
+            /**
+             * File Ids
+             * @default []
+             */
+            file_ids: number[];
+        };
         /** Item */
         Item: {
-            /** Tag Uuid */
-            tag_uuid: string;
+            /** Id */
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Short Name */
             short_name: string;
+            /** Container Id */
+            container_id?: number | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
-            /** Item Type */
-            item_type?: string | null;
+            /** Category Id */
+            category_id?: number | null;
             /**
              * Consumable
              * @default false
              */
             consumable: boolean;
-            /** Created At */
-            created_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Changes
-             * @default []
-             */
-            changes: components["schemas"]["Change"][];
-            /** Ai Generated */
-            ai_generated?: string[];
             /** Description */
             description?: string | null;
             /** Min Amount */
             min_amount?: number | null;
             /** Tags */
             tags?: string[];
-            /**
-             * Images
-             * @default []
-             */
-            images: string[];
-            /** Cost New */
-            cost_new?: number | null;
+            /** Price New */
+            price_new?: number | null;
+            /** Price Used */
+            price_used?: number | null;
             /** Acquisition Date */
-            acquisition_date?: number | null;
-            /** Cost Used */
-            cost_used?: number | null;
+            acquisition_date?: string | null;
             /** Manufacturer */
             manufacturer?: string | null;
             /** Model Number */
             model_number?: string | null;
             /** Manufacturing Date */
-            manufacturing_date?: number | null;
-            /** Upc */
-            upc?: string | null;
-            /** Asin */
-            asin?: string | null;
+            manufacturing_date?: string | null;
             /** Serial Number */
             serial_number?: string | null;
-            /**
-             * Vendors
-             * @default []
-             */
-            vendors: string[];
-            /**
-             * Shop Url
-             * @default []
-             */
-            shop_url: string[];
-            size?: components["schemas"]["Size"] | null;
-            /**
-             * Documentation
-             * @default []
-             */
-            documentation: string[];
-            /**
-             * Related Items
-             * @default []
-             */
-            related_items: components["schemas"]["Relation"][];
-            /** Container Tag Uuid */
-            container_tag_uuid?: string | null;
-            container?: components["schemas"]["Item"] | null;
-            /** Is Container */
-            is_container?: boolean | null;
-            /** Current Location */
-            current_location?: string | null;
-            /** Borrowed By */
-            borrowed_by?: string | null;
+            /** Author Id */
+            author_id?: number | null;
+            /** Borrower Id */
+            borrower_id?: number | null;
             /** Borrowed At */
-            borrowed_at?: number | null;
+            borrowed_at?: string | null;
             /** Borrowed Until */
-            borrowed_until?: number | null;
+            borrowed_until?: string | null;
             /** Owner Id */
-            owner_id?: string | null;
-            /** Borrowed */
-            readonly borrowed: boolean;
-            /** Container Name */
-            readonly container_name: boolean;
+            owner_id?: number | null;
         };
-        /** ItemBacklogRequest */
-        ItemBacklogRequest: {
-            /** Tag Uuid */
-            tag_uuid: string;
-            /** Short Name */
-            short_name?: string | null;
-            /** Description */
-            description?: string | null;
+        /**
+         * ItemBacklog
+         * @description This model is used for weaker validation in eg /backlog route
+         */
+        ItemBacklog: {
+            /**
+             * Short Name
+             * @default New Item
+             */
+            short_name: string;
+            /** Container Id */
+            container_id?: number | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
-            /** Item Type */
-            item_type?: string | null;
-            /** Consumable */
-            consumable?: boolean | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Created By */
-            created_by?: string | null;
-            /** Changes */
-            changes?: components["schemas"]["Change"][] | null;
-            /** Ai Generated */
-            ai_generated?: string[] | null;
+            /** Category Id */
+            category_id?: number | null;
+            /**
+             * Consumable
+             * @default false
+             */
+            consumable: boolean;
+            /** Description */
+            description?: string | null;
             /** Min Amount */
             min_amount?: number | null;
             /** Tags */
-            tags?: string[] | null;
-            /** Images */
-            images?: string[] | null;
-            /** Cost New */
-            cost_new?: number | null;
+            tags?: string[];
+            /** Price New */
+            price_new?: number | null;
+            /** Price Used */
+            price_used?: number | null;
             /** Acquisition Date */
-            acquisition_date?: number | null;
-            /** Cost Used */
-            cost_used?: number | null;
+            acquisition_date?: string | null;
             /** Manufacturer */
             manufacturer?: string | null;
             /** Model Number */
             model_number?: string | null;
             /** Manufacturing Date */
-            manufacturing_date?: number | null;
-            /** Upc */
-            upc?: string | null;
-            /** Asin */
-            asin?: string | null;
+            manufacturing_date?: string | null;
             /** Serial Number */
             serial_number?: string | null;
-            /** Vendors */
-            vendors?: string[] | null;
-            /** Shop Url */
-            shop_url?: string[] | null;
-            size?: components["schemas"]["Size"] | null;
-            /** Documentation */
-            documentation?: string[] | null;
-            /** Container Tag Uuid */
-            container_tag_uuid?: string | null;
-            /** Current Location */
-            current_location?: string | null;
-            /** Borrowed By */
-            borrowed_by?: string | null;
+            /** Author Id */
+            author_id?: number | null;
+            /** Borrower Id */
+            borrower_id?: number | null;
             /** Borrowed At */
-            borrowed_at?: number | null;
+            borrowed_at?: string | null;
             /** Borrowed Until */
-            borrowed_until?: number | null;
+            borrowed_until?: string | null;
             /** Owner Id */
-            owner_id?: string | null;
+            owner_id?: number | null;
         };
-        /** ItemChangedResponse */
-        ItemChangedResponse: {
-            /** Message */
-            message: string;
-            /**
-             * Error Items
-             * @default []
-             */
-            error_items: string[];
-            /**
-             * Errors
-             * @default []
-             */
-            errors: string[];
-        };
-        /** ItemRequest */
-        ItemRequest: {
-            /** Tag Uuid */
-            tag_uuid: string;
+        /** ItemCreate */
+        ItemCreate: {
             /** Short Name */
             short_name: string;
-            /** Description */
-            description?: string | null;
+            /** Container Id */
+            container_id?: number | null;
+            /** Code */
+            code: string | null;
             /** Amount */
             amount?: number | null;
-            /** Item Type */
-            item_type?: string | null;
-            /** Consumable */
-            consumable?: boolean | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Created By */
-            created_by?: string | null;
+            /** Category Id */
+            category_id?: number | null;
             /**
-             * Changes
-             * @default []
+             * Consumable
+             * @default false
              */
-            changes: components["schemas"]["Change"][] | null;
-            /** Ai Generated */
-            ai_generated?: string[];
+            consumable: boolean;
+            /** Description */
+            description?: string | null;
             /** Min Amount */
             min_amount?: number | null;
-            /** Tags */
-            tags?: string[];
             /**
-             * Images
+             * Tags
              * @default []
              */
-            images: string[] | null;
-            /** Cost New */
-            cost_new?: number | null;
+            tags: string[];
+            /** Price New */
+            price_new?: number | null;
+            /** Price Used */
+            price_used?: number | null;
             /** Acquisition Date */
-            acquisition_date?: number | null;
-            /** Cost Used */
-            cost_used?: number | null;
+            acquisition_date?: string | null;
             /** Manufacturer */
             manufacturer?: string | null;
             /** Model Number */
             model_number?: string | null;
             /** Manufacturing Date */
-            manufacturing_date?: number | null;
-            /** Upc */
-            upc?: string | null;
-            /** Asin */
-            asin?: string | null;
+            manufacturing_date?: string | null;
             /** Serial Number */
             serial_number?: string | null;
-            /**
-             * Vendors
-             * @default []
-             */
-            vendors: string[] | null;
-            /**
-             * Shop Url
-             * @default []
-             */
-            shop_url: string[] | null;
-            size?: components["schemas"]["Size"] | null;
-            /**
-             * Documentation
-             * @default []
-             */
-            documentation: string[] | null;
-            /** Container Tag Uuid */
-            container_tag_uuid?: string | null;
-            /** Current Location */
-            current_location?: string | null;
-            /** Borrowed By */
-            borrowed_by?: string | null;
+            /** Author Id */
+            author_id?: number | null;
+            /** Borrower Id */
+            borrower_id?: number | null;
             /** Borrowed At */
-            borrowed_at?: number | null;
+            borrowed_at?: string | null;
             /** Borrowed Until */
-            borrowed_until?: number | null;
+            borrowed_until?: string | null;
             /** Owner Id */
-            owner_id?: string | null;
+            owner_id?: number | null;
+            /** Images */
+            images?: components["schemas"]["FilePublic"][] | null;
+            /** Files */
+            files?: components["schemas"]["FilePublic"][] | null;
         };
-        /** Query */
-        Query: {
-            /** Name */
-            name: string;
-            /** Query */
-            query: {
-                [key: string]: unknown;
-            };
+        /** ItemPublic */
+        ItemPublic: {
+            /** Short Name */
+            short_name: string;
+            /** Container Id */
+            container_id?: number | null;
+            /** Code */
+            code: string | null;
+            /** Amount */
+            amount?: number | null;
+            /** Category Id */
+            category_id?: number | null;
+            /**
+             * Consumable
+             * @default false
+             */
+            consumable: boolean;
             /** Description */
             description?: string | null;
-            /** Created At */
-            created_at?: string | null;
-            /** Updated At */
-            updated_at?: string | null;
+            /** Min Amount */
+            min_amount?: number | null;
+            /** Tags */
+            tags?: string[];
+            /** Price New */
+            price_new?: number | null;
+            /** Price Used */
+            price_used?: number | null;
+            /** Acquisition Date */
+            acquisition_date?: string | null;
+            /** Manufacturer */
+            manufacturer?: string | null;
+            /** Model Number */
+            model_number?: string | null;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            /** Serial Number */
+            serial_number?: string | null;
+            /** Author Id */
+            author_id?: number | null;
+            /** Borrower Id */
+            borrower_id?: number | null;
+            /** Borrowed At */
+            borrowed_at?: string | null;
+            /** Borrowed Until */
+            borrowed_until?: string | null;
+            /** Owner Id */
+            owner_id?: number | null;
+            /** Id */
+            id: number;
+            category?: components["schemas"]["Category"] | null;
+            container?: components["schemas"]["Item"] | null;
+            /** Content */
+            content?: components["schemas"]["Item"][] | null;
+            borrower?: components["schemas"]["User"] | null;
+            author?: components["schemas"]["User"] | null;
+            owner?: components["schemas"]["User"] | null;
+            /** Files */
+            files?: components["schemas"]["FilePublic"][] | null;
+            /** Borrowed */
+            readonly borrowed: boolean;
+            /** Is Container */
+            readonly is_container: boolean;
         };
-        /** Reader */
-        Reader: {
+        /** ItemUpdate */
+        ItemUpdate: {
+            /** Short Name */
+            short_name?: string | null;
+            /** Container Id */
+            container_id?: number | null;
+            /** Code */
+            code?: string | null;
+            /** Amount */
+            amount?: number | null;
+            /** Category Id */
+            category_id?: number | null;
+            /**
+             * Consumable
+             * @default false
+             */
+            consumable: boolean;
+            /** Description */
+            description?: string | null;
+            /** Min Amount */
+            min_amount?: number | null;
+            /**
+             * Tags
+             * @default []
+             */
+            tags: string[];
+            /** Price New */
+            price_new?: number | null;
+            /** Price Used */
+            price_used?: number | null;
+            /** Acquisition Date */
+            acquisition_date?: string | null;
+            /** Manufacturer */
+            manufacturer?: string | null;
+            /** Model Number */
+            model_number?: string | null;
+            /** Manufacturing Date */
+            manufacturing_date?: string | null;
+            /** Serial Number */
+            serial_number?: string | null;
+            /** Author Id */
+            author_id?: number | null;
+            /** Borrower Id */
+            borrower_id?: number | null;
+            /** Borrowed At */
+            borrowed_at?: string | null;
+            /** Borrowed Until */
+            borrowed_until?: string | null;
+            /** Owner Id */
+            owner_id?: number | null;
+            /** Images */
+            images?: components["schemas"]["FilePublic"][] | null;
+            /** Files */
+            files?: components["schemas"]["FilePublic"][] | null;
+        };
+        /**
+         * Qualifier
+         * @enum {string}
+         */
+        Qualifier: "in" | "not_in" | "eq" | "not_eq" | "gt" | "lt";
+        /** Query */
+        Query: {
+            /** Term */
+            term?: string | null;
+            /**
+             * Filters
+             * @description If null, defaults to empty list.
+             */
+            filters?: components["schemas"]["Filter"][] | null;
+            /**
+             * Offset
+             * @description If null, defaults to 0.
+             */
+            offset?: number | null;
+            /**
+             * Limit
+             * @description If null, defaults to 10.
+             */
+            limit?: number | null;
+            /** Sort By */
+            sort_by?: string | null;
+            /**
+             * Sort Desc
+             * @description If null, defaults to False.
+             */
+            sort_desc?: boolean | null;
+        };
+        /** ReaderCreate */
+        ReaderCreate: {
             /** Reader Id */
             reader_id: string;
             /** Reader Name */
-            reader_name: string;
+            reader_name?: string;
         };
-        /** RecursiveContainerObject */
-        RecursiveContainerObject: {
-            /** Tag Uuid */
-            tag_uuid: string;
-            /** Short Name */
-            short_name?: string | null;
-            container?: components["schemas"]["RecursiveContainerObject"] | null;
-        };
-        /** Relation */
-        Relation: {
-            /** Related Tags */
-            related_tags: string[];
-            /** Tag */
-            tag: string[];
-            /** Description */
-            description?: string | null;
+        /** ReaderPublic */
+        ReaderPublic: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Reader Id */
+            reader_id: string;
+            /** Reader Name */
+            reader_name?: string;
         };
         /** ScanRequest */
         ScanRequest: {
             /** Reader Id */
             reader_id: string;
-            /** Tag Id */
-            tag_id: string;
-            /** Data */
-            data: {
-                [key: string]: unknown;
-            } | string | unknown;
+            /** Id */
+            id?: string | number | null;
+            /** Code Value */
+            code_value?: string | null;
+            /** @default unknown */
+            code_format: components["schemas"]["CodeFormat"] | null;
         };
         /** ScanResponse */
         ScanResponse: {
@@ -971,29 +949,36 @@ export interface components {
             /** Item Storage Location */
             item_storage_location: string;
         };
-        /** SearchQuery */
-        SearchQuery: {
-            /** Query */
-            query?: {
+        /** SseEvent */
+        SseEvent: {
+            event: components["schemas"]["Event"];
+            data: components["schemas"]["SseEventData"];
+            /**
+             * Id
+             * @default 00734ee9-3f3b-43f5-b73b-1da3998623a4
+             */
+            id: string;
+            /**
+             * Retry
+             * @default 15000
+             */
+            retry: number;
+        };
+        /** SseEventData */
+        SseEventData: {
+            /** Reader Id */
+            reader_id?: string | null;
+            /** Id */
+            id?: string | number | null;
+            /** Code Value */
+            code_value?: string | null;
+            code_format?: components["schemas"]["CodeFormat"] | null;
+            /** Data */
+            data?: {
                 [key: string]: unknown;
             } | null;
-            /** Offset */
-            offset?: number | null;
-            /** Limit */
-            limit?: number | null;
-            /** Term */
-            term?: string | null;
-            /** States */
-            states?: components["schemas"]["AggregatedStates"][] | null;
-        };
-        /** Size */
-        Size: {
-            /** Length */
-            length: number;
-            /** Width */
-            width: number;
-            /** Height */
-            height: number;
+            /** Stream Id */
+            stream_id?: string | null;
         };
         /** StreamRequestData */
         StreamRequestData: {
@@ -1005,26 +990,62 @@ export interface components {
         /** User */
         User: {
             /** Id */
-            _id: string;
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Username */
             username: string;
-            /** Tag Uuids */
-            tag_uuids?: string[];
             /** Email */
             email?: string | null;
-            /** Date Created */
-            date_created?: string;
+            /** Code */
+            code?: string | null;
         };
-        /** UserRequest */
-        UserRequest: {
+        /** UserCreate */
+        UserCreate: {
             /** Username */
             username: string;
-            /** Tag Uuids */
-            tag_uuids?: string[];
             /** Email */
             email?: string | null;
-            /** Date Created */
-            date_created?: string;
+            /** Code */
+            code?: string | null;
+        };
+        /** UserPublic */
+        UserPublic: {
+            /** Id */
+            id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Username */
+            username: string;
+            /** Email */
+            email?: string | null;
+            /** Code */
+            code?: string | null;
+        };
+        /** UserUpdate */
+        UserUpdate: {
+            /** Username */
+            username: string;
+            /** Email */
+            email?: string | null;
+            /** Code */
+            code?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1044,9 +1065,12 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_readers_readers_get: {
+    get_all_users_users_get: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1059,7 +1083,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Reader"][];
+                    "application/json": components["schemas"]["UserPublic"][];
                 };
             };
             /** @description Not found */
@@ -1068,6 +1092,527 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_user_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_user_users__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_users__id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_user_users__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_item_items_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_backlog_item_items_backlog_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemBacklog"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_item_items__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_items__id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_items__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_item_items__get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemPublic"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_item_with_containers_items__id__containers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContainerObject"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_item_search_items_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Query"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemPublic"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_readers_readers_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReaderPublic"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };
@@ -1080,7 +1625,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Reader"];
+                "application/json": components["schemas"]["ReaderCreate"];
             };
         };
         responses: {
@@ -1090,7 +1635,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Reader"];
+                    "application/json": components["schemas"]["ReaderPublic"];
                 };
             };
             /** @description Not found */
@@ -1111,7 +1656,7 @@ export interface operations {
             };
         };
     };
-    read_user_readers__reader_id__get: {
+    read_reader_readers__reader_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1128,7 +1673,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Reader"];
+                    "application/json": components["schemas"]["ReaderPublic"];
                 };
             };
             /** @description Not found */
@@ -1149,12 +1694,12 @@ export interface operations {
             };
         };
     };
-    delete_reader_readers__reader_id__delete: {
+    delete_reader_readers__id__delete: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                reader_id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1189,10 +1734,11 @@ export interface operations {
             };
         };
     };
-    get_items_query_items__get: {
+    get_all_files_files_get: {
         parameters: {
-            query: {
-                query: string;
+            query?: {
+                offset?: number;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -1206,7 +1752,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"][];
+                    "application/json": components["schemas"]["FilePublic"][];
                 };
             };
             /** @description Not found */
@@ -1227,125 +1773,7 @@ export interface operations {
             };
         };
     };
-    get_item_items__rfid__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rfid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Item"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_item_items__rfid__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rfid: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ItemRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemChangedResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_item_items__rfid__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rfid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemChangedResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    post_item_items_post: {
+    create_file_files_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1354,7 +1782,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemRequest"];
+                "multipart/form-data": components["schemas"]["Body_create_file_files_post"];
             };
         };
         responses: {
@@ -1364,7 +1792,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemChangedResponse"];
+                    "application/json": components["schemas"]["FilePublic"];
                 };
             };
             /** @description Not found */
@@ -1385,79 +1813,12 @@ export interface operations {
             };
         };
     };
-    patch_items_items_patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Item"][];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    post_backlog_item_items_backlog_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ItemBacklogRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemChangedResponse"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_item_with_containers_items__rfid__containers_get: {
+    get_file_files__id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                rfid: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1469,7 +1830,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RecursiveContainerObject"];
+                    "application/json": components["schemas"]["FilePublic"];
                 };
             };
             /** @description Not found */
@@ -1490,12 +1851,54 @@ export interface operations {
             };
         };
     };
-    get_item_content_items__rfid__content_get: {
+    update_file_files__id__put: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                rfid: string;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FilePublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_file_files__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
             cookie?: never;
         };
@@ -1507,7 +1910,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"][];
+                    "application/json": unknown;
                 };
             };
             /** @description Not found */
@@ -1528,18 +1931,17 @@ export interface operations {
             };
         };
     };
-    get_item_search_items_search_post: {
+    get_all_categories_categories_get: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SearchQuery"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -1547,7 +1949,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"][];
+                    "application/json": components["schemas"]["CategoryPublic"][];
                 };
             };
             /** @description Not found */
@@ -1568,7 +1970,7 @@ export interface operations {
             };
         };
     };
-    bulk_import_items_items_bulk_post: {
+    create_category_categories_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1577,7 +1979,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemRequest"][];
+                "application/json": components["schemas"]["CategoryCreate"];
             };
         };
         responses: {
@@ -1587,7 +1989,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemChangedResponse"];
+                    "application/json": components["schemas"]["CategoryPublic"];
                 };
             };
             /** @description Not found */
@@ -1604,6 +2006,209 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_category_tree_categories_tree_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryPublic"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_category_tree_from_id_categories__id__tree_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryPublic"][];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_category_categories__id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_category_categories__id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_category_categories__id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    config_config__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfigResponseModel"];
                 };
             };
         };
@@ -1626,7 +2231,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SseEvent"];
+                    /** SseEvent */
+                    "text/event-stream": unknown;
                 };
             };
             /** @description Not found */
@@ -1767,352 +2374,6 @@ export interface operations {
             };
         };
     };
-    get_all_queries_endpoint_queries_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    create_query_endpoint_queries_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Query"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_query_endpoint_queries__name__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_query_endpoint_queries__name__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_query_endpoint_queries__id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Query"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_users_users_get: {
-        parameters: {
-            query?: {
-                term?: string | null;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"][];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_user_users_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_user_users__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_user_users__id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["User"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_user_users__id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     scan_event_scan_post: {
         parameters: {
             query?: never;
@@ -2153,302 +2414,6 @@ export interface operations {
             };
         };
     };
-    config_config__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConfigResponseModel"];
-                };
-            };
-        };
-    };
-    get_categories_categories_get: {
-        parameters: {
-            query?: {
-                offset?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_all_categories_tree_categories_tree_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
-                };
-            };
-        };
-    };
-    search_categories_categories_search__get: {
-        parameters: {
-            query: {
-                term: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_category_categories__id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string | number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_category_tree_categories__id__tree_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_category_branch_categories__id__branch_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_category_categories__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CategoryReqRes-Input"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CategoryReqRes-Output"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_backup_backup_create_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    import_backup_backup_load_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_import_backup_backup_load_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     metrics_metrics_get: {
         parameters: {
             query?: never;
@@ -2469,14 +2434,18 @@ export interface operations {
             };
         };
     };
-    identification_completion_identification_post: {
+    identification_identification_post: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentificationRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -2493,6 +2462,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

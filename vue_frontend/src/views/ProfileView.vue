@@ -3,39 +3,16 @@
     <h3 class="mb-4">Profile of {{ user?.username }}</h3>
     <BForm @submit.prevent="submitUser">
       <BFormGroup label="Edit User" label-for="user-form">
-        <TextField
-          class="mb-3"
-          name="username"
-          label="Username"
-          :value="user?.username ?? ''"
-          @update:value="updateUsername"
-          required
-        />
-        <TextField
-          name="email"
-          label="Email"
-          type="email"
-          :value="user?.email ?? ''"
-          @update:value="updateEmail"
-          required
-        />
-        <ArrayField
-          class="mt-3"
-          name="tags"
-          label="Tags"
-          :value="user?.tag_uuids ?? []"
-          @update:value="updateTags"
-          item-label="Tag"
-        />
-        <BButton
-          type="submit"
-          variant="primary"
-          :disabled="blockSubmission"
-          :class="{ success: success }"
-        >
+        <TextField class="mb-3" name="username" label="Username" :value="user?.username ?? ''"
+          @update:value="updateUsername" required />
+        <TextField name="email" label="Email" type="email" :value="user?.email ?? ''" @update:value="updateEmail"
+          required />
+        <TextField class="mt-3" name="tags" label="Tags" :value="user?.code ?? ''" @update:value="updateTags"
+          item-label="Tag" />
+        <BButton type="submit" variant="primary" :disabled="blockSubmission" :class="{ success: success }">
           Update User
         </BButton>
-        <span class="ms-2">since: {{ formatDate(user?.date_created) }}</span>
+        <span class="ms-2">since: {{ formatDate(user?.created_at) }}</span>
       </BFormGroup>
     </BForm>
     <hr />
@@ -44,7 +21,7 @@
         <BButton v-if="clientStoreInstance.user" variant="secondary" class="me-2" @click="logout">
           Logout
         </BButton>
-        <BButton v-else variant="primary" class="me-2" @click="selectUser(user?._id ?? '')">
+        <BButton v-else variant="primary" class="me-2" @click="selectUser(user.id)">
           Select this user
         </BButton>
         <BButton variant="danger" @click="deleteUser"> Delete this user </BButton>
@@ -57,11 +34,11 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
 import { useRouter } from 'vue-router'
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 
 const router = useRouter()
 const blockSubmission = ref(false)
-const user = ref<User | undefined>(undefined)
+const user = ref<User>({} as User)
 const success = ref(false)
 
 function updateUsername(value: string | number | null) {
@@ -75,9 +52,9 @@ function updateEmail(value: string | number | null) {
   user.value.email = value == null ? '' : String(value)
 }
 
-function updateTags(value: Array<string | number>) {
+function updateTags(value: string | number | null) {
   if (!user.value) return
-  user.value.tag_uuids = value.map((v) => String(v))
+  user.value.code = value == null ? '' : String(value)
 }
 
 import { clientStore } from '@/stores/clientStore'
@@ -93,11 +70,11 @@ onMounted(async () => {
 const submitUser = async () => {
   blockSubmission.value = true
   axios
-    .put(`/users/${user.value?._id}`, user.value)
+    .put(`/users/${user.value?.id}`, user.value)
     .then((response) => {
       const updatedUser = response.data as User
       user.value = updatedUser
-      clientStoreInstance.setUser(updatedUser._id as string)
+      clientStoreInstance.setUser(updatedUser.id)
       success.value = true
       setTimeout(() => {
         success.value = false
@@ -112,7 +89,7 @@ const submitUser = async () => {
     })
 }
 
-async function selectUser(userId: string) {
+async function selectUser(userId: number) {
   await clientStoreInstance.setUser(userId)
 }
 
@@ -121,8 +98,8 @@ async function logout() {
 }
 
 const deleteUser = async () => {
-  await axios.delete(`/users/${user.value?._id}`)
-  if (clientStoreInstance.user?._id === user.value?._id) {
+  await axios.delete(`/users/${user.value?.id}`)
+  if (clientStoreInstance.user?.id === user.value?.id) {
     await clientStoreInstance.unsetUser()
   }
   router.push('/users')
@@ -137,6 +114,7 @@ function formatDate(date: string | undefined) {
 :deep(.form-control) {
   width: unset;
 }
+
 .success {
   animation: successFlash 2s;
 }
@@ -145,6 +123,7 @@ function formatDate(date: string | undefined) {
   0% {
     background-color: var(--color-success);
   }
+
   100% {
     background-color: var(--bs-btn-bg);
   }

@@ -1,7 +1,12 @@
-from fastapi import APIRouter, Request, Response
-from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
+from typing import Annotated
 
-from routers.utils import get_bs
+from fastapi import APIRouter, Response
+from fastapi.params import Depends
+from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from dependencies import database
 
 router = APIRouter(prefix="", tags=["metrics"])
 
@@ -13,12 +18,14 @@ READER_COUNT = Gauge("reader_count_total", "Total number of readers")
 
 
 @router.get("/metrics")
-def metrics(request: Request):
-    db = get_bs(request).dbc.db
+async def metrics(
+    session: Annotated[AsyncSession, Depends(database.get_db_session)],
+):
+    database = session
 
-    ITEM_COUNT.set(db["items"].count_documents({}))
-    USER_COUNT.set(db["users"].count_documents({}))
-    CATEGORY_COUNT.set(db["categories"].count_documents({}))
-    READER_COUNT.set(db["readers"].count_documents({}))
+    ITEM_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM item"))).scalar())
+    USER_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM user"))).scalar())
+    CATEGORY_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM category"))).scalar())
+    # READER_COUNT.set((await database.execute(text("SELECT COUNT(*) FROM reader"))).scalar())
 
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
