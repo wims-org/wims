@@ -47,6 +47,7 @@
         class="rounded"
         :class="fieldIndex % 2 === 0 ? 'striped-bg' : ''"
         :searchType="field.search_type"
+        :data-testid="`form-field-${String(key)}`"
         @update:value="updateFieldModel($event, String(key), field.type)"
         v-show="!field.hidden && (!field.details || showDetails)"
         >{{ fieldIndex }}

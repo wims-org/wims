@@ -1,21 +1,28 @@
 <template>
   <main>
     <h1>Home</h1>
-    <span class="card p-3 mb-3" v-if="clientStore().showHomeInstructions">
+    <span class="instructions card p-3 mb-3" v-if="clientStore().showHomeInstructions">
       To create a new item:
       <ul>
         <li>
-          <a href="#" @click="$router.push('/readers')">Connect a reader </a><font-awesome-icon icon="arrow-right" /> scan
+          <span class="link-badge badge text-bg-primary me-1" @click="$router.push('/readers')"
+            >Connect a reader
+          </span>
+          <font-awesome-icon icon="arrow-right" /> scan
         </li>
         <li>
-          use your device's camera <font-awesome-icon icon="qrcode" /> scan a barcode or RFID tag <font-awesome-icon icon="arrow-right" /> open the item
-          form with the code pre-filled
+          use your device's camera <font-awesome-icon icon="qrcode" /> scan a barcode or RFID tag
+          <font-awesome-icon icon="arrow-right" /> open the item form with the code pre-filled
         </li>
         <li>
-          <a href="#" @click="$router.push('/items/new')">Manually create</a> an item without scanning
+          <span class="link-badge badge text-bg-primary me-1" @click="$router.push('/items/new')"
+            >Manually create</span
+          >an item without scanning
         </li>
       </ul>
-      <button variant="primary" @click="clientStore().setShowHomeInstructions(false)">Dont show this again</button>
+      <BButton variant="primary" @click="clientStore().setShowHomeInstructions(false)"
+        >Dont show this again</BButton
+      >
     </span>
 
     <ul class="list-group block-item-list" data-testid="home-nav-list">
@@ -40,3 +47,12 @@
 <script setup lang="ts">
 import { clientStore } from '@/stores/clientStore'
 </script>
+
+<style scoped>
+.instructions {
+  cursor: default;
+}
+.link-badge {
+  cursor: pointer;
+}
+</style>

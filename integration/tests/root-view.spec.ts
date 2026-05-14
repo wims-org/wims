@@ -44,10 +44,8 @@ test.describe("Root View", () => {
 
     const initialListLength = await page.getByTestId("reader-item").count();
     // Fill in the reader details
-    await page.getByRole("textbox", { name: "Reader Name" }).fill("Reader-5");
-    await page
-      .getByRole("textbox", { name: "Reader ID" })
-      .fill("04-04-46-42-CD-66-83");
+    await page.getByTestId("data-reader-name-input").fill("Reader-5");
+    await page.getByTestId("data-reader-id-input").fill("04-04-46-42-CD-66-83");
     await page.getByRole("button", { name: "Add Reader" }).click();
     await page.waitForTimeout(100); // Wait for the reader to be added
     // Wait for the new reader to appear in the list

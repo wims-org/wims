@@ -13,7 +13,7 @@
           </BButton>
         </div>
       </div>
-      <details closed  v-if="clientStore.backend_config?.llm_enabled">
+      <details open v-if="clientStore.backend_config?.llm_enabled">
         <summary class="">Identify this item</summary>
         <LLMIdentification
           class="mt-2"
