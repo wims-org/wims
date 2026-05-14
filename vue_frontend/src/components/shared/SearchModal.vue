@@ -4,12 +4,14 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Search Container</h5>
-          <button type="button" class="close" @click="closeModal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          
         </div>
         <div class="modal-body">
           <p>Search or scan RFID tag of container</p>
+          <div class="d-flex justify-content-center mb-3">
+          <NFCReader class="cam-view" v-if="clientStore().getNFCCapability" @scan="closeModal"/>
+          <QRReader class="cam-view" @scan="closeModal"/>
+        </div>
           <SearchComponent @select="handleSelect" />
         </div>
         <div class="modal-footer">
@@ -84,5 +86,10 @@ watch(() => props.show, (newVal) => {
 .modal {
   display: block;
   background: rgba(0, 0, 0, 0.5);
+}
+
+.cam-view {
+  width: 40%;
+  height: auto;
 }
 </style>
