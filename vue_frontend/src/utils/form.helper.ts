@@ -20,14 +20,16 @@ export const fieldTypeToComponent = (type: string) => {
     uuid: ModalField,
     number: NumberField,
     images: ImageThumbnailField,
-    item: ItemField,
-
+    
     text: TextField,
     imageThumbnail: ImageThumbnailField,
     image: ImageThumbnailField,
     file: ImageThumbnailField,
+    // db references:
     user: SearchInput,
     category: SearchInput,
+    item: SearchInput,
+    
     default: TextField
   };
   return componentMap[type] || null;

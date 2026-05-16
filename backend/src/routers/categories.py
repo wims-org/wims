@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from dependencies.database import SessionDep
+from models.api import Query, QueryReq
 from models.category import Category, CategoryCreate, CategoryPublic, CategoryUpdate
 
 router = APIRouter(prefix="/categories", tags=["categories"], responses={404: {"description": "Not found"}})
@@ -22,9 +23,10 @@ async def create_category(category: CategoryCreate, session: SessionDep):
     return db_category
 
 
-@router.get("/search", response_model=list[CategoryPublic])
-async def search_categories(term: str, session: SessionDep):
-    return (await session.execute(select(Category).where(Category.title.ilike(f"%{term}%")))).scalars().all()
+@router.post("/search", response_model=list[CategoryPublic])
+async def search_categories(query: Query, session: SessionDep):
+    query = QueryReq.model_validate(query)
+    return (await session.execute(select(Category).where(Category.title.ilike(f"%{query.term}%")))).scalars().all()
 
 
 @router.get("", response_model=list[CategoryPublic])

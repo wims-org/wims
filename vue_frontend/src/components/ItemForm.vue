@@ -47,8 +47,11 @@
         class="rounded"
         :class="fieldIndex % 2 === 0 ? 'striped-bg' : ''"
         :searchType="field.search_type"
+        :qrSearch="field.qrSearch"
+        :nfcSearch="field.nfcSearch"
+        :resolves="field.resolves"
         :data-testid="`form-field-${String(key)}`"
-        @update:value="updateFieldModel($event, String(key), field.type)"
+        @update:value="updateFieldModel($event, String(key), field.type, field.resolves)"
         v-show="!field.hidden && (!field.details || showDetails)"
         >{{ fieldIndex }}
       </component>
@@ -152,7 +155,7 @@ const getFieldComponent = (type: string) => {
   return fieldTypeToComponent(type)
 }
 
-const updateFieldModel = (value: unknown, key: string, type: string) => {
+const updateFieldModel = (value: unknown, key: string, type: string, resolves?: string) => {
   console.log(`Updating field '${key}' with value:`, value) // Debug log
   if (value === formData.value[key]) return // No change, do nothing
   if (type === 'checkbox') {
@@ -176,17 +179,13 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
       formData.value['container'] = null // Clear the field if no value
     }
     formData.value[key] = value as string
-  } else if (type === 'user') {
-    // value is a UserPublic object from SearchInput; sync the _id FK field
-    const userId = value && typeof value === 'object' ? (value as { id: number }).id : (value as number | null)
-    const idField = `${key}_id` // e.g. borrower -> borrower_id, owner -> owner_id
+  } else if (type === 'item' || type === 'category' || type === 'user') {
+    // value is an object from SearchInput; sync the _id FK field
+    const itemId = value && typeof value === 'object' ? (value as { id: number }).id : (value as number | null)
+    const idField = resolves ?? `${key}_id` // Use resolves if provided, otherwise default to key_id
     if (idField in formData.value) {
-      formData.value[idField] = userId ?? null
+      formData.value[idField] = itemId ?? null
     }
-    formData.value[key] = value ?? null
-  } else if (type === 'category') {
-    // value is a CategoryPublic object from SearchInput; sync category_id
-    formData.value['category_id'] = value && typeof value === 'object' ? (value as { id: number }).id : null
     formData.value[key] = value ?? null
   } else {
     formData.value[key] = value

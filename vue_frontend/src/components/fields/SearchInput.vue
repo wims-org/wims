@@ -2,23 +2,23 @@
   <BContainer class="search-input">
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="text-field">
       <span v-if="!hideLabel && label" :for="name">{{ label }}</span>
+      <div class="d-flex align-items-center gap-1 px-2  ms-auto">
+        <BButton v-if="nfcSearch && clientStore().getNFCCapability" class=" primary p-1 me-2" variant="success"
+          size="sm" @click="readNFC">
+          <IMaterialSymbolsNfc v-if="!showNFCModal" class="nfc-icon" />
+          <BSpinner v-else class="nfc-icon" animation="border" size="sm" />
+        </BButton>
+        <BButton v-if="qrSearch" class="primary p-1" variant="success" size="sm" @click="readQR">
+          <IMaterialSymbolsQrCodeScanner v-if="!showQRModal" class="qr-icon" />
+          <BSpinner v-else class="qr-icon" animation="border" size="sm" />
+        </BButton>
+      </div>
       <div class="dropdown">
-        <input
-          v-model="searchTerm"
-          type="text"
-          class="form-control"
-          :placeholder="!disabled ? 'Search...' : 'No Value'"
-          :disabled="disabled"
-          :name="name"
-          :required="required"
-          autocomplete="off"
+        <input v-model="searchTerm" type="text" class="form-control" :placeholder="!disabled ? 'Search...' : 'No Value'"
+          :disabled="disabled" :name="name" :required="required" autocomplete="off"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
-          @focus="expanded = true"
-          @blur="handleBlur"
-          @input="handleInput"
-          @keydown.enter.prevent="handleEnter"
-          @keydown.esc="clearSearch"
-        />
+          @focus="expanded = true" @blur="handleBlur" @input="handleInput" @keydown.enter.prevent="handleEnter"
+          @keydown.esc="clearSearch" />
         <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu dropdown-menu-end show">
           <li v-for="option in dropdownOptions" :key="option.id">
             <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
@@ -28,15 +28,30 @@
         </ul>
       </div>
     </div>
+
+    <BModal v-model="showQRModal" title="Scan QR / Barcode" hide-footer centered>
+      <QRReaderComp v-if="showQRModal" @scan="handleScan" />
+    </BModal>
+
+    <BModal v-model="showNFCModal" title="Scan NFC Tag" hide-footer centered>
+      <NFCReaderComp v-if="showNFCModal" @scan="handleScan" />
+    </BModal>
   </BContainer>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import axios from 'axios'
 import { SearchType } from '@/interfaces/FormField.interface'
+import type { ScanResult } from '@/interfaces/reader.interface'
 import type { PropType } from 'vue'
 import type { components } from '@/interfaces/api-types'
+import { clientStore } from '@/stores/clientStore'
+import { BModal } from 'bootstrap-vue-next'
+
+// Lazy-loaded only when the respective modal is first opened
+const QRReaderComp = defineAsyncComponent(() => import('@/components/QRReader.vue'))
+const NFCReaderComp = defineAsyncComponent(() => import('@/components/NFCReader.vue'))
 
 type UserPublic = components['schemas']['UserPublic']
 type ItemPublic = components['schemas']['ItemPublic']
@@ -70,11 +85,6 @@ const SEARCH_CONFIG: Record<SearchType, SearchTypeConfig> = {
     fetchById: (id) => `/categories/${id}`,
     search: '/categories/search',
     getDisplayString: (item) => (item as CategoryPublic).title,
-  },
-  [SearchType.QUERY]: {
-    fetchById: (id) => `/items/${id}`,
-    search: '/items/search',
-    getDisplayString: (item) => (item as ItemPublic).short_name,
   },
 }
 
@@ -114,6 +124,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  qrSearch: {
+    type: Boolean,
+    default: false,
+  },
+  nfcSearch: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits<{
@@ -124,6 +142,8 @@ const searchTerm = ref('')
 const dropdownOptions = ref<SearchOption[]>([])
 const expanded = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
+const showQRModal = ref(false)
+const showNFCModal = ref(false)
 
 const config = computed(() => SEARCH_CONFIG[props.searchType])
 
@@ -137,7 +157,7 @@ const resolveDisplayString = async (value: number | SearchResultType): Promise<s
 
 const fetchSearchResults = async (term: string): Promise<void> => {
   try {
-    const { data } = await axios.get<SearchResultType[]>(config.value.search, { params: { term } })
+    const { data } = await axios.post<SearchResultType[]>(config.value.search, { term })
     dropdownOptions.value = data.map((item) => ({
       id: (item as { id: number }).id,
       displayString: config.value.getDisplayString(item),
@@ -211,6 +231,34 @@ const clearSearch = (): void => {
   expanded.value = false
   emit('update:value', null)
 }
+
+const readQR = (): void => {
+  showQRModal.value = true
+}
+
+const readNFC = (): void => {
+  showNFCModal.value = true
+}
+
+const handleScan = async (result: ScanResult): Promise<void> => {
+  showQRModal.value = false
+  showNFCModal.value = false
+  await axios.post<ItemPublic[]>('/items/search', {
+    filters: [{ field: 'code', qualifier: 'eq', value: result.code_value }],
+    limit: 1,
+  }).then(({ data }) => {
+    if (data.length > 0) {
+      const scannedItem = data[0]
+      selectOption({
+        id: scannedItem.id,
+        displayString: SEARCH_CONFIG[SearchType.ITEM].getDisplayString(scannedItem),
+        item: scannedItem,
+      })
+    }
+  }).catch((e) => {
+    console.error('Scan result did not match any item', e)
+  })
+}
 </script>
 
 <style scoped>
@@ -224,5 +272,10 @@ const clearSearch = (): void => {
   z-index: 1000;
   scrollbar-width: thin;
   scrollbar-color: var(--bs-primary) var(--card-bg);
+}
+
+.qr-icon,
+.nfc-icon {
+  font-size: 1.2rem;
 }
 </style>

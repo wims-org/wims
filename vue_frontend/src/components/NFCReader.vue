@@ -25,10 +25,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { clientStore } from '@/stores/clientStore'
-import ScanService from '@/services/ScanService'
+import type { ScanResult } from '@/interfaces/reader.interface'
 
 const emit = defineEmits<{
-  (event: 'scan', value: string): void
+  (event: 'scan', value: ScanResult): void
 }>()
 
 // Web NFC API types (not yet in the standard TypeScript lib)
@@ -44,11 +44,11 @@ interface NDEFReadingEvent extends Event {
 interface NDEFReader extends EventTarget {
   scan(options?: { signal?: AbortSignal }): Promise<void>
 }
-declare const NDEFReader: { new (): NDEFReader }
+declare const NDEFReader: { new(): NDEFReader }
 
 const supported = ref('NDEFReader' in window)
 const scanning = ref(true)
-const result = ref('')
+const result = ref<ScanResult | null>(null)
 const error = ref('')
 const debugLog = ref<string[]>([])
 
@@ -75,7 +75,7 @@ function decodeTextRecord(data: DataView): string {
 
 async function startScan() {
   error.value = ''
-  result.value = ''
+  result.value = null
   debugLog.value = []
   scanning.value = true
   abortController = new AbortController()
@@ -99,19 +99,12 @@ async function startScan() {
         }
       }
 
-      result.value = value
-      ScanService.sendScanResult({
-        reader_id: clientStore().getClientId,
-        code_value: value,
-        code_format: 'uuid',
-      }).catch((err) => {
-        error.value = `Send failed: ${err instanceof Error ? err.message : String(err)}`
-        log(`error.value`)
-      })
+      result.value = { reader_id: clientStore().getClientId, code_value: value, code_format: 'uuid' }
+
       setTimeout(() => {
-        result.value = ''
+        result.value = null
       }, 2000)
-      emit('scan', value)
+      emit('scan', result.value)
     })
 
     ndefReader.addEventListener('readingerror', () => {
