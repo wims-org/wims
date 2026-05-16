@@ -29,11 +29,13 @@ REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total number of HTTP requests",
     ["method", "endpoint", "http_status"],
+    namespace="wims",
 )
 REQUEST_DURATION = Histogram(
     "request_duration_seconds",
     "Request duration in seconds",
     ["method", "endpoint", "http_status"],
+    namespace="wims",
 )
 disable_created_metrics()
 
