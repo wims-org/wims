@@ -5,6 +5,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - wims-data:/data # file/image asset path (optional)
     ports:
       - "8081:80"
     environment:
@@ -32,3 +34,4 @@ services:
 
 volumes:
   mariadb-data:
+  wims-data:

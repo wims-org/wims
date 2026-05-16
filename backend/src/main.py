@@ -83,7 +83,6 @@ def check_asset_path():
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
-    check_asset_path()
     event_handler.EventHandlerFactory.get_instance()
     yield
 
@@ -99,8 +98,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Serve static files from the ./data/ directory
-app.mount("/data", StaticFiles(directory="."))
+# Ensure asset directory exists before mounting
+check_asset_path()
+app.mount("/data/assets", StaticFiles(directory=str(wims_config.asset_path)), name="data")
+logger.info(f"Mounted static files at /data/assets from {wims_config.asset_path}")
 
 app.include_router(routers.users.router)
 app.include_router(routers.items.router)

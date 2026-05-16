@@ -1,6 +1,8 @@
 import json
 import requests
 
+api_url = "http://localhost:8081/api"
+
 with open("init-db-items.json", "r") as file:
     init_data = json.load(file)
 
@@ -10,7 +12,7 @@ with open("init-db-items.json", "r") as file:
         payload = {k: v for k, v in category.items() if k != "parent_title"}
         if parent_title := category.get("parent_title"):
             payload["parent_id"] = title_to_id.get(parent_title)
-        response = requests.post("http://localhost:8000/categories", json=payload)
+        response = requests.post(f"{api_url}/categories", json=payload)
         if response.status_code == 200:
             created = response.json()
             title_to_id[category["title"]] = created["id"]
@@ -21,7 +23,7 @@ with open("init-db-items.json", "r") as file:
             )
 
     for item in init_data.get("items", []):
-        response = requests.post("http://localhost:8000/items", json=item)
+        response = requests.post(f"{api_url}/items", json=item)
         if response.status_code == 200:
             print(f"Successfully inserted item: {item['short_name']}")
         else:
@@ -29,7 +31,7 @@ with open("init-db-items.json", "r") as file:
                 f"Failed to insert item: {item['short_name']}. Status code: {response.status_code}, Response: {response.text}"
             )
     for user in init_data.get("users", []):
-        response = requests.post("http://localhost:8000/users", json=user)
+        response = requests.post(f"{api_url}/users", json=user)
         if response.status_code == 200:
             print(f"Successfully inserted user: {user['username']}")
         else:
@@ -38,7 +40,7 @@ with open("init-db-items.json", "r") as file:
             )
 
     for reader in init_data.get("readers", []):
-        response = requests.post("http://localhost:8000/readers", json=reader)
+        response = requests.post(f"{api_url}/readers", json=reader)
         if response.status_code == 200:
             print(f"Successfully inserted reader: {reader['reader_name']}")
         else:

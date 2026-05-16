@@ -50,6 +50,9 @@ WORKDIR /backend
 COPY --from=backendbuilder --chown=appuser:appgroup /backend .
 RUN echo $COMMIT_HASH > /backend/COMMIT_HASH && chown appuser:appgroup /backend/COMMIT_HASH
 
+RUN mkdir -p /data && chown appuser:appgroup /data
+
+VOLUME [ "/data" ]
 
 # Add the frontend
 COPY --from=frontendbuilder /app/dist/ /var/www/html/

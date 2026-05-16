@@ -136,7 +136,6 @@ class ItemUpdate(ItemBase):
     tags: set[str] = []
     short_name: str | None = None
     code: str | None = None
-    images: list["FilePublic"] | None = None
     files: list["FilePublic"] | None = None
 
     @model_serializer(mode="wrap")  # noqa: F821

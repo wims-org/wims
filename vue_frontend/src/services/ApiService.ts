@@ -32,7 +32,7 @@ class ApiService {
                 if (!file.asset_path) { return }
                 let f: File
                 if (!file.asset_path.startsWith('http')) {
-                    f = { ...file, asset_url: `${axios.defaults.baseURL}/${file.asset_path}` }
+                    f = { ...file, asset_url: `${axios.defaults.baseURL}${file.asset_path.startsWith('/') ? '' : '/'}${file.asset_path}` }
                 } else {
                     f = { ...file, asset_url: file.asset_path }
                 }
@@ -90,6 +90,8 @@ class ApiService {
         //        for (const fileArray of ['files', 'images']) { if (Array.isArray(item[fileArray]) && item[fileArray].length) { this.removeBaseUrlFromFilePaths(item[fileArray] as File[]) } }
         try {
             console.log('Updating item with ID:', itemId, 'and data:', item)
+            item.files = (item as Item).images?.concat((item as Item).attachments || [])
+
             await axios.put(`/items/${itemId}`, item)
         } catch (error) {
             console.error('Error updating item:', error)
