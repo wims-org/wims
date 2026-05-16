@@ -1,0 +1,7 @@
+.git
+vue_frontend/node_modules
+backend/.venv
+**/__pycache__
+**/*.pyc
+integration/
+docs/

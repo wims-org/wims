@@ -1,27 +1,19 @@
 services:
-  frontend:
-    image: kailus.dev/wims-org/wims-frontend:dev
-    build: ./vue_frontend
-    depends_on:
-      - backend
-
-  backend:
-    image: kailus.dev/wims-org/wims-backend:dev
-    build: ./backend
+  wims:
+    image: kailus.dev/wims-org/wims:dev
+    build: .
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./docker/config.default.yml:/app/src/config.yml:ro
-      - ./docker/data/categories.json:/app/data/categories.json:ro
+    ports:
+      - "8081:80"
     environment:
       - LOG_LEVEL=INFO
       - DATABASE_URI=mysql+aiomysql://root:example@db:3306/wims
       - FEATURES_OPENAI_API_KEY=sthsth
       - SENTRY_DSN=https://9f6b292159894c6983b61313779ad123@glitch.fleaz.me/4
       - RUN_MODE=production
-    ports:
-      - "8000:8000"
+
   db:
     image: mariadb:latest
     restart: unless-stopped
@@ -40,4 +32,3 @@ services:
 
 volumes:
   mariadb-data:
-  mongodb-data:
