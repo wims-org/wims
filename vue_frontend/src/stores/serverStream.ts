@@ -45,12 +45,16 @@ export const serverStream = defineStore('ServerStream', {
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         if (parsedData.element === 'READERS') {
           eventBus.emit(EventAction.ELEMENT_UPDATE_READERS, parsedData)
-        } else if (parsedData.element === 'CONTAINERS') {
+        } else if (parsedData.element === 'ITEM') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_ITEM, parsedData)
+        } else if (parsedData.element === 'CONTAINER') {
           eventBus.emit(EventAction.ELEMENT_UPDATE_CONTAINER, parsedData)
         } else if (parsedData.element === 'USERS') {
           eventBus.emit(EventAction.ELEMENT_UPDATE_USERS, parsedData)
         } else if (parsedData.element === 'CATEGORIES') {
           eventBus.emit(EventAction.ELEMENT_UPDATE_CATEGORIES, parsedData)
+        } else {
+          console.warn('Unknown element update', parsedData)
         }
       })
       this.eventSource.addEventListener(StreamEvent.ALIVE, () => {

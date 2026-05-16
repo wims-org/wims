@@ -1,17 +1,13 @@
 <template>
   <BContainer fluid data-testid="item-view">
-    <router-link
-      v-show="previousItemId"
+    <router-link v-show="previousItemId"
       :to="`/items/${previousItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset - 1 }))}`"
-      class="text-decoration-none arrow-button arrow-button-prev"
-    >
+      class="text-decoration-none arrow-button arrow-button-prev">
       <IFaArrowLeft />
     </router-link>
-    <router-link
-      v-show="nextItemId"
+    <router-link v-show="nextItemId"
       :to="`/items/${nextItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset + 1 }))}`"
-      class="text-decoration-none arrow-button arrow-button-next"
-    >
+      class="text-decoration-none arrow-button arrow-button-next">
       <IFaArrowRight />
     </router-link>
     <BCol class="p-0">
@@ -21,62 +17,28 @@
         <h1>{{ item?.short_name }}</h1>
         <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
           <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
-            <ContainerListComponent
-              v-if="item?.id"
-              :itemId="'' + item?.id"
-              @update:value="handleContainerSelect"
-            />
-            <button
-              @click="() => (showModal = true)"
-              class="btn btn-primary my-3"
-              data-testid="add-content-button"
-            >
+            <ContainerListComponent v-if="item?.id" :itemId="item?.id" @update:value="handleContainerSelect" />
+            <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
               Add content now
             </button>
-            <ItemListContainer
-              v-if="item?.id"
-              :settingsId="'item-view-container'"
-              :query="{ filters: [{ field: 'container_id', value: item.id }] }"
-              @select="handleItemSelect"
-              :title="`Items in ${item?.short_name}`"
-            />
+            <ItemListContainer ref="containerContentListRef" v-if="item?.id" :settingsId="'item-view-container'"
+              :query="{ filters: [{ field: 'container_id', value: item.id }] }" @select="handleItemSelect"
+              :title="`Items in ${item?.short_name}`" />
           </BTab>
           <BTab title="Item Data" id="itemData" data-testid="item-data">
-            <details closed v-if="clientStore.backend_config?.llm_enabled">
-              <summary class="">Identify this item</summary>
-              <LLMIdentification
-                class="mt-2"
-                :images="item?.images || []"
-                :description="
-                  item?.short_name
-                    ? item?.short_name + (item?.description ? '; ' + item?.description : '')
-                    : ''
-                "
-                :key="item?.id"
-              />
+            <details closed class="mb-1" v-if="clientStore.backend_config?.llm_enabled">
+              <summary >Identify this item</summary>
+              <LLMIdentification class="mt-2 mb-2" :images="item?.images || []" :description="item?.short_name
+                  ? item?.short_name + (item?.description ? '; ' + item?.description : '')
+                  : ''
+                " :key="item?.id" />
             </details>
-            <button
-              v-if="identification"
-              @click="() => (isComparing = !isComparing)"
-              class="btn btn-secondary mb-3"
-            >
+            <button v-if="identification" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
               Toggle Comparison
             </button>
-            <ItemCompare
-              v-if="isComparing && identification && item"
-              :item_org="item"
-              :item_new="identification"
-              :newItem="false"
-              @submit="handleFormSubmit"
-              :key="item?.id"
-            />
-            <ItemForm
-              v-else
-              :item="item"
-              :isNewItem="false"
-              @submit="handleFormSubmit"
-              @delete="deleteItem"
-            />
+            <ItemCompare v-if="isComparing && identification && item" :item_org="item" :item_new="identification"
+              :newItem="false" @submit="handleFormSubmit" :key="item?.id" />
+            <ItemForm v-else :item="item" :isNewItem="false" @submit="handleFormSubmit" @delete="deleteItem" />
           </BTab>
         </BTabs>
       </template>
@@ -86,11 +48,11 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, ref, onMounted, onUnmounted, watch } from 'vue'
+import { defineAsyncComponent, ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import eventBus from '../stores/eventBus'
-import { type Events } from '../stores/eventBus'
+import eventBus from '@/stores/eventBus'
+import { type Events } from '@/stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
 import type { components } from '@/interfaces/api-types'
@@ -141,7 +103,7 @@ const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
 const itemNotFound = ref(false)
-
+const containerContentListRef = useTemplateRef('containerContentListRef')
 // Stores
 const clientStore = useClientStore()
 
@@ -177,12 +139,12 @@ const fetchPrevNextItems = async () => {
   const prevRequest =
     offset.value > 0
       ? axios
-          .post('/items/search', {
-            ...query.value,
-            offset: offset.value - 1,
-            limit: 1,
-          })
-          .catch(() => null)
+        .post('/items/search', {
+          ...query.value,
+          offset: offset.value - 1,
+          limit: 1,
+        })
+        .catch(() => null)
       : Promise.resolve(null)
 
   const nextRequest = axios
@@ -264,7 +226,7 @@ const handleItemSelect = (item: Item) => {
   }
   router.push(
     `/items/${id}` +
-      (query ? `?query=${encodeURIComponent(JSON.stringify({ ...query, offset }))}` : ''),
+    (query ? `?query=${encodeURIComponent(JSON.stringify({ ...query, offset }))}` : ''),
   )
 }
 
@@ -317,8 +279,11 @@ onMounted(() => {
     : undefined
   offset.value = query.value?.offset || 0
   console.log('Mounted with query:', query.value, 'and offset:', offset.value, route.params)
-  eventBus.on(EventAction.ELEMENT_UPDATE_CONTAINER, fetchItem)
-
+  eventBus.on(EventAction.ELEMENT_UPDATE_ITEM, (data) => data.id === itemId.value && fetchItem())
+  eventBus.on(
+    EventAction.ELEMENT_UPDATE_CONTAINER,
+    (data) => data.id === item.value?.id && containerContentListRef.value?.reloadResults(),
+  )
   fetchItem()
 
   if (query.value) {

@@ -2,18 +2,23 @@
   <BContainer>
     <BCol>
       <BRow>
-        <input type="text" class="form-control" v-model="stringInput"
-          placeholder="Add Item by Description or Name..." />
+        <BCol>
+          <BRow>
+            <label for="stringInput" class="form-label">Text Input</label>
+            <input type="text" id="stringInput" class="form-control" v-model="stringInput"
+              placeholder="Add Item by Description or Name..." />
+          </BRow>
+        </BCol>
+        <BCol>
+          <BRow>
+            <ImageThumbnailField :label="'Upload Images'" :value="uploadedImages" @update:value="updateImage($event)" />
+          </BRow>
+          <BRow v-if="images && images.length > 0">
+            <ImageThumbnailField :label="'Select existing Images'" :value="images" disabled selector
+              @update:selectedImages="selectedImages = $event" />
+          </BRow>
+        </BCol>
       </BRow>
-      <BRow>
-        <h5>Upload Images:</h5>
-        <ImageThumbnailField :value="uploadedImages" @update:value="updateImage($event)" />
-      </BRow>
-      <BRow v-if="images && images.length > 0">
-        <h5>Select existing Images:</h5>
-        <ImageThumbnailField :value="images" disabled selector @update:selectedImages="selectedImages = $event" />
-      </BRow>
-
       <button type="button" class="btn btn-primary" @click="fetchIdentification()" :disabled="requestInProgress ||
         (uploadedImages.length === 0 && !stringInput && selectedImages.length === 0)
         ">
@@ -24,6 +29,7 @@
         Error processing request. Please try again. {{ requestError }}
       </div>
     </BCol>
+    <hr />
   </BContainer>
 </template>
 

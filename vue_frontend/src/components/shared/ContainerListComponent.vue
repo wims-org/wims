@@ -43,12 +43,14 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
+import eventBus from '@/stores/eventBus'
+import { EventAction } from '@/interfaces/EventAction'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 import type { components } from '@/interfaces/api-types'
-type ItemContainer = components["schemas"]["ContainerObject"]
+type ItemContainer = components['schemas']['ContainerObject']
 const props = defineProps<{
-  itemId: string | null
+  itemId: number | null
 }>()
 
 const emit = defineEmits<{
@@ -64,7 +66,7 @@ const fetchContainerChain = async () => {
   loading.value = true
   error.value = null
   containerChain.value = []
-  if (!props.itemId || typeof props.itemId !== 'string') {
+  if (!props.itemId || typeof props.itemId !== 'number') {
     containerChain.value = []
     return
   }
@@ -83,7 +85,7 @@ const fetchContainerChain = async () => {
   }
 }
 
-const handleContainerSelect = async (id: number|undefined) => {
+const handleContainerSelect = async (id: number | undefined) => {
   showSearchModal.value = false
   if (id) {
     emit('update:value', id)
@@ -91,7 +93,13 @@ const handleContainerSelect = async (id: number|undefined) => {
   }
 }
 
-onMounted(fetchContainerChain)
+onMounted(() => {
+  fetchContainerChain()
+  eventBus.on(
+    EventAction.ELEMENT_UPDATE_CONTAINER,
+    async (data) => data.id === props.itemId && await fetchContainerChain()
+  )
+})
 watch(() => props.itemId, fetchContainerChain)
 </script>
 
