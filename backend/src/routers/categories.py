@@ -22,6 +22,11 @@ async def create_category(category: CategoryCreate, session: SessionDep):
     return db_category
 
 
+@router.get("/search", response_model=list[CategoryPublic])
+async def search_categories(term: str, session: SessionDep):
+    return (await session.execute(select(Category).where(Category.title.ilike(f"%{term}%")))).scalars().all()
+
+
 @router.get("", response_model=list[CategoryPublic])
 async def get_all_categories(session: SessionDep, offset: int = 0, limit: int = 100):
     return (await session.execute(select(Category).offset(offset).limit(limit))).scalars().all()

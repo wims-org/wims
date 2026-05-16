@@ -27,10 +27,10 @@
           </BTab>
           <BTab title="Item Data" id="itemData" data-testid="item-data">
             <details closed class="mb-1" v-if="clientStore.backend_config?.llm_enabled">
-              <summary >Identify this item</summary>
+              <summary>Identify this item</summary>
               <LLMIdentification class="mt-2 mb-2" :images="item?.images || []" :description="item?.short_name
-                  ? item?.short_name + (item?.description ? '; ' + item?.description : '')
-                  : ''
+                ? item?.short_name + (item?.description ? '; ' + item?.description : '')
+                : ''
                 " :key="item?.id" />
             </details>
             <button v-if="identification" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
@@ -129,7 +129,6 @@ const fetchItem = async () => {
   // for testing comparison view
   // identification.value = item.value
   // isComparing.value = true
-  tabCheck.value++
 }
 
 const fetchPrevNextItems = async () => {
@@ -284,7 +283,9 @@ onMounted(() => {
     EventAction.ELEMENT_UPDATE_CONTAINER,
     (data) => data.id === item.value?.id && containerContentListRef.value?.reloadResults(),
   )
-  fetchItem()
+  fetchItem().then(() => {
+    tabCheck.value++
+  })
 
   if (query.value) {
     fetchPrevNextItems()

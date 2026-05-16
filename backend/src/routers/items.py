@@ -16,8 +16,7 @@ RELATION_MAP: dict[str, type] = {
     "category": Category,
 }
 
-router = APIRouter(
-    prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
+router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
 
 class Qualifier(enum.Enum):
@@ -37,8 +36,7 @@ class FilterReq(BaseModel):
 
 class Filter(FilterReq):
     # since pydantic does not allow for nullable defaults, this wrapper is used
-    qualifier: Qualifier | None = Field(
-        default=None, description="If null, defaults to 'eq'.")
+    qualifier: Qualifier | None = Field(default=None, description="If null, defaults to 'eq'.")
 
 
 class QueryReq(BaseModel):
@@ -52,14 +50,10 @@ class QueryReq(BaseModel):
 
 class Query(QueryReq):
     # since pydantic does not allow for nullable defaults, this wrapper is used
-    filters: list[Filter] | None = Field(
-        default=None, description="If null, defaults to empty list.")
-    offset: int | None = Field(
-        default=None, ge=0, description="If null, defaults to 0.")
-    limit: int | None = Field(
-        default=None, ge=1, description="If null, defaults to 10.")
-    sort_desc: bool | None = Field(
-        default=None, description="If null, defaults to False.")
+    filters: list[Filter] | None = Field(default=None, description="If null, defaults to empty list.")
+    offset: int | None = Field(default=None, ge=0, description="If null, defaults to 0.")
+    limit: int | None = Field(default=None, ge=1, description="If null, defaults to 10.")
+    sort_desc: bool | None = Field(default=None, description="If null, defaults to False.")
 
 
 class ContainerObject(BaseModel):
@@ -78,11 +72,9 @@ async def _add_item_ids_to_files(item_id: int, item_data: ItemCreate | ItemUpdat
     db_files = (await session.execute(select(File).where(File.id.in_(requested_ids)))).scalars().all()
     db_file_by_id = {db_file.id: db_file for db_file in db_files}
 
-    missing_ids = [
-        file_id for file_id in requested_ids if file_id not in db_file_by_id]
+    missing_ids = [file_id for file_id in requested_ids if file_id not in db_file_by_id]
     if missing_ids:
-        raise HTTPException(
-            status_code=404, detail=f"File ids not found: {missing_ids}")
+        raise HTTPException(status_code=404, detail=f"File ids not found: {missing_ids}")
 
     for file_id in requested_ids:
         db_file = db_file_by_id[file_id]
@@ -103,8 +95,7 @@ async def create_item(item: ItemCreate, session: SessionDep, event_handler: Even
     await session.refresh(db_item)
     await event_handler.append_message_to_all_queues(
         SseEvent(
-            data={"element": ElementUpdate.ITEM,
-                  "id": db_item.id, "code": db_item.code},
+            data={"element": ElementUpdate.ITEM, "id": db_item.id, "code": db_item.code},
             event=Event.ELEMENT_UPDATE,
         )
     )
@@ -146,8 +137,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
     db_item.sqlmodel_update(update)
     if db_item.container_id:
         if db_item.id is db_item.container_id:
-            raise HTTPException(
-                status_code=400, detail="Circular Dependency: Self-reference!")
+            raise HTTPException(status_code=400, detail="Circular Dependency: Self-reference!")
         parents = await get_item_parents(db_item, session)
         parent_ids = [p.item_id for p in parents]
         if db_item.id in parent_ids:
@@ -162,24 +152,21 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
     await session.refresh(db_item)
     await event_handler.append_message_to_all_queues(
         SseEvent(
-            data={"element": ElementUpdate.ITEM,
-                  "id": db_item.id, "code": db_item.code},
+            data={"element": ElementUpdate.ITEM, "id": db_item.id, "code": db_item.code},
             event=Event.ELEMENT_UPDATE,
         )
     )
-    if (old_container_id != item.container_id and old_container_id):
+    if old_container_id != item.container_id and old_container_id:
         await event_handler.append_message_to_all_queues(
             SseEvent(
-                data={"element": ElementUpdate.CONTAINER,
-                      "id": old_container_id},
+                data={"element": ElementUpdate.CONTAINER, "id": old_container_id},
                 event=Event.ELEMENT_UPDATE,
             )
         )
-    elif (old_container_id != item.container_id and item.container_id):
+    elif old_container_id != item.container_id and item.container_id:
         await event_handler.append_message_to_all_queues(
             SseEvent(
-                data={"element": ElementUpdate.CONTAINER,
-                      "id": item.container_id},
+                data={"element": ElementUpdate.CONTAINER, "id": item.container_id},
                 event=Event.ELEMENT_UPDATE,
             )
         )
@@ -220,8 +207,7 @@ async def get_item_parents(item: Item, session: AsyncSession, parents: list = No
     parent = await session.get(Item, item.container_id)
     if parent.id in [p.item_id for p in parents]:
         return parents
-    parents = [ContainerObject(
-        item_id=parent.id, short_name=parent.short_name)] + parents
+    parents = [ContainerObject(item_id=parent.id, short_name=parent.short_name)] + parents
     return await get_item_parents(parent, session, parents)
 
 
@@ -238,26 +224,22 @@ async def get_item_search(query: Query, session: SessionDep):
         term_fields = ["short_name"]
         # Term
         if query.term:
-            statement = statement.where(
-                or_(*[col(getattr(Item, key)).contains(query.term) for key in term_fields]))
+            statement = statement.where(or_(*[col(getattr(Item, key)).contains(query.term) for key in term_fields]))
 
         # Filters
         for filter in query.filters or []:
             if "." in filter.field:
                 relation_name, field_name = filter.field.split(".", 1)
                 if relation_name not in RELATION_MAP:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid filter relation: {relation_name}")
+                    raise HTTPException(status_code=400, detail=f"Invalid filter relation: {relation_name}")
                 related_model = RELATION_MAP[relation_name]
                 if not hasattr(related_model, field_name):
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid filter field: {filter.field}")
+                    raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
                 statement = statement.join(related_model)
                 column = getattr(related_model, field_name)
             else:
                 if filter.field not in Item.model_fields:
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid filter field: {filter.field}")
+                    raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
                 column = getattr(Item, filter.field)
 
             match filter.qualifier or Qualifier.EQUALS:
@@ -275,23 +257,19 @@ async def get_item_search(query: Query, session: SessionDep):
                     statement = statement.where(column < filter.value)
 
         # Offset & limits
-        statement = statement.offset(
-            query.offset or 0).limit(query.limit or 10)
+        statement = statement.offset(query.offset or 0).limit(query.limit or 10)
 
         # Order & sort
         if query.sort_by:
             if query.sort_desc:
-                statement = statement.order_by(
-                    getattr(Item, query.sort_by).desc())
+                statement = statement.order_by(getattr(Item, query.sort_by).desc())
             else:
                 statement = statement.order_by(getattr(Item, query.sort_by))
     except (ValidationError, ValueError) as e:
-        raise HTTPException(
-            status_code=422, detail=f"Validation error: {str(e)}") from e
+        raise HTTPException(status_code=422, detail=f"Validation error: {str(e)}") from e
     except (KeyError, AttributeError) as e:
         print(e)
-        raise HTTPException(
-            status_code=400, detail="Your query is bad and you should feel bad!") from None
+        raise HTTPException(status_code=400, detail="Your query is bad and you should feel bad!") from None
 
     print(statement)
     results = await session.execute(statement)

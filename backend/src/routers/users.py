@@ -29,6 +29,19 @@ async def create_user(
     return db_user
 
 
+@router.get("/search", response_model=list[UserPublic])
+async def search_users(term: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    return (
+        (
+            await session.execute(
+                select(User).where((User.username.ilike(f"%{term}%")) | (User.email.ilike(f"%{term}%")))
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
 @router.get("/{id}", response_model=UserPublic)
 async def get_user(id: int, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
     user = await session.get(User, id)

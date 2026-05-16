@@ -24,8 +24,8 @@ const props = defineProps({
     default: '',
   },
   value: {
-    type: String,
-    default: '',
+    type: Number,
+    default: null,
   },
   disabled: {
     type: Boolean,

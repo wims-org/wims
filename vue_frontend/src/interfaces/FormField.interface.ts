@@ -28,16 +28,15 @@ export enum SearchType {
 
 export const SearchTypeEndpoint: Record<SearchType, string> = {
   [SearchType.ITEM]: '/items/search',
-  [SearchType.USER]: '/users',
-  [SearchType.QUERY]: '/search',
-  [SearchType.CATEGORY]: '/categories/search/',
+  [SearchType.USER]: '/users/search',
+  [SearchType.CATEGORY]: '/categories/search',
 }
 export const formFields: Record<string, FormField> = {
   id: { label: 'ID', type: 'text', disabled: true, hidden: true, details: false, required: false },
   short_name: { label: 'Short Name', type: 'text', disabled: false, hidden: false, details: false, required: true },
   description: { label: 'Description', type: 'textarea', disabled: false, hidden: false, details: false, required: false },
   images: { label: 'Images', type: 'images', disabled: false, hidden: false, details: false, required: false },
-  item_type: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: false, search_type: SearchType.CATEGORY },
+  category: { label: 'Category', type: 'category', disabled: false, hidden: false, details: false, required: false, search_type: SearchType.CATEGORY },
   tags: { label: 'Tags', type: 'array', disabled: false, hidden: false, details: false, required: false },
   container_id: { label: 'Container UUID', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
   code: { label: 'Code (Barcode/RFID/Other)', type: 'uuid', disabled: false, hidden: false, details: false, required: false },
@@ -65,9 +64,9 @@ export const formFields: Record<string, FormField> = {
   documentation: { label: 'Documentation', type: 'array', disabled: false, hidden: false, details: true, required: false },
   related_items: { label: 'Related Items', type: 'array', disabled: false, hidden: false, details: true, required: false },
   current_location: { label: 'Current Location', type: 'text', disabled: false, hidden: false, details: true, required: false },
-  borrower_id: { label: 'Borrowed By', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
+  borrower: { label: 'Borrowed By', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
   borrowed_at: { label: 'Borrowed At', type: 'epoch', disabled: false, hidden: false, details: true, required: false },
   borrowed_until: { label: 'Borrowed Until', type: 'epoch', disabled: false, hidden: false, details: true, required: false },
-  owner_id: { label: 'Owner', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
+  owner: { label: 'Owner', type: 'user', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
   // owner: { label: 'Owner', type: 'object', disabled: false, hidden: false, details: true, required: false, search_type: SearchType.USER },
 };
