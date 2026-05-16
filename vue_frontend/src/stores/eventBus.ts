@@ -10,9 +10,10 @@ type Events = {
   [EventAction.IDENTIFICATION]: { data: { response: object } }
   [EventAction.ERROR]: { id: string; reader_id: string, data: { message: string } }
   [EventAction.ELEMENT_UPDATE_READERS]: { element: string }
-  [EventAction.ELEMENT_UPDATE_CONTAINER]: { element: string }
+  [EventAction.ELEMENT_UPDATE_CONTAINER]: { element: string; id?: number }
+  [EventAction.ELEMENT_UPDATE_ITEM]: { element: string; id?: number; code?: string }
   [EventAction.ELEMENT_UPDATE_USERS]: { element: string }
-  [EventAction.ELEMENT_UPDATE_CATEGORIES]: { element: string }
+  [EventAction.ELEMENT_UPDATE_CATEGORIES]: { element: string; id?: number }
 }
 
 const eventBus = mitt<Events>()

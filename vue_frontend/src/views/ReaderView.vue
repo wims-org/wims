@@ -36,6 +36,7 @@
             v-model="newDeviceReader.reader_name"
             id="registerReaderId"
             class="form-control"
+            data-testid="data-device-reader-name-input"
             required
             placeholder="Enter reader name to register this device"
           />
@@ -54,6 +55,7 @@
               v-model="newReader.reader_name"
               id="readerName"
               class="form-control"
+              data-testid="data-reader-name-input"
               required
             />
           </div>
@@ -64,6 +66,7 @@
               v-model="newReader.reader_id"
               id="readerId"
               class="form-control"
+              data-testid="data-reader-id-input"
               required
             />
           </div>

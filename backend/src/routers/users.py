@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from dependencies import database
+from models.api import Query, QueryReq
 from models.user import User, UserCreate, UserPublic, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
@@ -27,6 +28,20 @@ async def create_user(
         raise HTTPException(status_code=400, detail=str(e)) from e
     await session.refresh(db_user)
     return db_user
+
+
+@router.post("/search", response_model=list[UserPublic])
+async def search_users(query: Query, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    query = QueryReq.model_validate(query)
+    return (
+        (
+            await session.execute(
+                select(User).where((User.username.ilike(f"%{query.term}%")) | (User.email.ilike(f"%{query.term}%")))
+            )
+        )
+        .scalars()
+        .all()
+    )
 
 
 @router.get("/{id}", response_model=UserPublic)

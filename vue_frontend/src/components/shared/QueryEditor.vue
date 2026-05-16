@@ -26,7 +26,7 @@
               id="query"
               v-model="queryInput"
               required
-              placeholder="Enter MongoDB query as JSON"
+              placeholder="Enter Search query as JSON"
               rows="5"
             ></BFormTextarea>
           </BFormGroup>

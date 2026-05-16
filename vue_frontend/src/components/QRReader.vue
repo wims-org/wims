@@ -10,8 +10,8 @@
                 </BButton>
             </qrcode-stream>
             <div class="loading-indicator" v-if="loading">
-               <BSpinner />
-           </div>
+                <BSpinner />
+            </div>
         </div>
         <p class="decode-result">
             Last result: <b>{{ result }}</b>
@@ -25,8 +25,8 @@ import { QrcodeStream } from 'vue-qrcode-reader'
 
 import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { clientStore } from '@/stores/clientStore'
-import ScanService from '@/services/ScanService'
 import type { components } from '@/interfaces/api-types'
+import type { ScanResult } from '@/interfaces/reader.interface'
 
 type CodeFormat = components["schemas"]["CodeFormat"]
 
@@ -35,13 +35,15 @@ type CodeFormat = components["schemas"]["CodeFormat"]
 
 /*** detection handling ***/
 
-const result = ref('')
+
+
+const result = ref<ScanResult | null>(null)
 const loading = ref(true)
 const destroyed = ref(false)
 
 // Emits
 const emit = defineEmits<{
-    (event: 'scan', code: string): void
+    (event: 'scan', value: ScanResult): void
 }>()
 
 function onDetect(detectedCodes: { rawValue: string, format: CodeFormat }[]) {
@@ -50,17 +52,13 @@ function onDetect(detectedCodes: { rawValue: string, format: CodeFormat }[]) {
     if (!detectedCode) {
         throw new Error('No code detected')
     }
-    result.value = detectedCode?.rawValue
-    ScanService.sendScanResult({
+    result.value = {
         reader_id: clientStore().getClientId, // set client_id as reader_id since the client is the reader.
-        code_value: result.value,
-        code_format: detectedCode?.format 
-    }).catch((error) => {
-        console.error('Error sending scan result:', error)
-    })
-
+        code_value: detectedCode.rawValue,
+        code_format: detectedCode.format
+    }
     setTimeout(() => {
-        result.value = ''
+        result.value = null
     }, 2000)
     emit('scan', result.value)
 }

@@ -5,13 +5,21 @@ services:
       - ./integration/playwright-results:/workspaces/integration/playwright-results
     environment:
       - CI=true
-      - BACKEND_URL=http://proxy:80/api
+      - BACKEND_URL=http://backend:8000
     depends_on:
-      - proxy
       - frontend
       - backend
 
+  frontend:
+    build:
+      context: ./vue_frontend
+      args:
+        VITE_API_URL: http://backend:8000
+
   backend:
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - ./integration/config.backend.test.yml:/app/src/config.yml:ro
 
@@ -19,9 +27,12 @@ services:
     volumes:
       # Reset the volume each restart
       - type: tmpfs
-        target: /data/db
+        target: /var/lib/mysql
         tmpfs:
-          mode: 0777      
-      - ./.devcontainer/mongodb/init-mongo-db-with-items.js:/docker-entrypoint-initdb.d/f_init-mongo-db-with-items.js:ro
-    ports:
-      - 27017:27017
+          mode: 0777
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s

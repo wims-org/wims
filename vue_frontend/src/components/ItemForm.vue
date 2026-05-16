@@ -47,19 +47,26 @@
         class="rounded"
         :class="fieldIndex % 2 === 0 ? 'striped-bg' : ''"
         :searchType="field.search_type"
-        @update:value="updateFieldModel($event, String(key), field.type)"
-        v-show="!field.hidden && (!field.details || showDetails)">{{fieldIndex}}
+        :qrSearch="field.qrSearch"
+        :nfcSearch="field.nfcSearch"
+        :resolves="field.resolves"
+        :data-testid="`form-field-${String(key)}`"
+        @update:value="updateFieldModel($event, String(key), field.type, field.resolves)"
+        v-show="!field.hidden && (!field.details || showDetails)"
+        >{{ fieldIndex }}
       </component>
-      <BButton type="submit" variant="primary" class="mt-3">Submit</BButton>
-      <BButton
-        v-if="!props.isNewItem"
-        type="button"
-        variant="danger"
-        class="mt-3 ms-2 align-self-end"
-        @click="$emit('delete', props.item.id)"
-      >
-        Delete Item
-      </BButton>
+      <div class="d-flex">
+        <BButton type="submit" variant="primary" class="mt-3">Submit</BButton>
+        <BButton
+          v-if="!props.isNewItem"
+          type="button"
+          variant="danger"
+          class="mt-3 ms-2 ms-auto"
+          @click="$emit('delete', props.item.id)"
+        >
+          Delete Item
+        </BButton>
+      </div>
     </BForm>
     <div v-else>
       <p>Error loading item details. Please try again later.</p>
@@ -148,7 +155,7 @@ const getFieldComponent = (type: string) => {
   return fieldTypeToComponent(type)
 }
 
-const updateFieldModel = (value: unknown, key: string, type: string) => {
+const updateFieldModel = (value: unknown, key: string, type: string, resolves?: string) => {
   console.log(`Updating field '${key}' with value:`, value) // Debug log
   if (value === formData.value[key]) return // No change, do nothing
   if (type === 'checkbox') {
@@ -172,8 +179,14 @@ const updateFieldModel = (value: unknown, key: string, type: string) => {
       formData.value['container'] = null // Clear the field if no value
     }
     formData.value[key] = value as string
-  } else if (type === 'user') {
-    formData.value[key] = value
+  } else if (type === 'item' || type === 'category' || type === 'user') {
+    // value is an object from SearchInput; sync the _id FK field
+    const itemId = value && typeof value === 'object' ? (value as { id: number }).id : (value as number | null)
+    const idField = resolves ?? `${key}_id` // Use resolves if provided, otherwise default to key_id
+    if (idField in formData.value) {
+      formData.value[idField] = itemId ?? null
+    }
+    formData.value[key] = value ?? null
   } else {
     formData.value[key] = value
   }
@@ -211,7 +224,8 @@ const returnItem = () => {
 
 .striped-bg {
   background-color: var(--color-bg-light);
-  transition: color 0.3s, background-color 0.3s;
+  transition:
+    color 0.3s,
+    background-color 0.3s;
 }
-
 </style>

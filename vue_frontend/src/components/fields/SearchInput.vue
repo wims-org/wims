@@ -1,34 +1,95 @@
 <template>
   <BContainer class="search-input">
     <div class="form-group d-flex align-items-center justify-content-between flex-wrap p-2" data-testid="text-field">
-      <span v-if="!hideLabel || !label" :for="name">{{ label }}</span>
+      <span v-if="!hideLabel && label" :for="name">{{ label }}</span>
+      <div class="d-flex align-items-center gap-1 px-2  ms-auto">
+        <BButton v-if="nfcSearch && clientStore().getNFCCapability" class=" primary p-1 me-2" variant="success"
+          size="sm" @click="readNFC">
+          <IMaterialSymbolsNfc v-if="!showNFCModal" class="nfc-icon" />
+          <BSpinner v-else class="nfc-icon" animation="border" size="sm" />
+        </BButton>
+        <BButton v-if="qrSearch" class="primary p-1" variant="success" size="sm" @click="readQR">
+          <IMaterialSymbolsQrCodeScanner v-if="!showQRModal" class="qr-icon" />
+          <BSpinner v-else class="qr-icon" animation="border" size="sm" />
+        </BButton>
+      </div>
       <div class="dropdown">
         <input v-model="searchTerm" type="text" class="form-control" :placeholder="!disabled ? 'Search...' : 'No Value'"
-          :disabled="disabled" :name="name" :required="required"
+          :disabled="disabled" :name="name" :required="required" autocomplete="off"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
-          @focus="expanded = true" @blur="handleBlur()" @keydown.enter="handleEnter()" @keydown.esc="clearSearch()" />
+          @focus="expanded = true" @blur="handleBlur" @input="handleInput" @keydown.enter.prevent="handleEnter"
+          @keydown.esc="clearSearch" />
         <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu dropdown-menu-end show">
           <li v-for="option in dropdownOptions" :key="option.id">
             <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
-              {{ option.display_string }}
+              {{ option.displayString }}
             </a>
           </li>
         </ul>
       </div>
     </div>
+
+    <BModal v-model="showQRModal" title="Scan QR / Barcode" hide-footer centered>
+      <QRReaderComp v-if="showQRModal" @scan="handleScan" />
+    </BModal>
+
+    <BModal v-model="showNFCModal" title="Scan NFC Tag" hide-footer centered>
+      <NFCReaderComp v-if="showNFCModal" @scan="handleScan" />
+    </BModal>
   </BContainer>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import axios from 'axios'
-import { SearchType, SearchTypeEndpoint } from '@/interfaces/FormField.interface'
-
+import { SearchType } from '@/interfaces/FormField.interface'
+import type { ScanResult } from '@/interfaces/reader.interface'
+import type { PropType } from 'vue'
 import type { components } from '@/interfaces/api-types'
-type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
-type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
-type Query = components['schemas']['Query'] & { [key: string]: unknown }
-type Category = components['schemas']['CategoryPublic'] & { [key: string]: unknown }
+import { clientStore } from '@/stores/clientStore'
+import { BModal } from 'bootstrap-vue-next'
+
+// Lazy-loaded only when the respective modal is first opened
+const QRReaderComp = defineAsyncComponent(() => import('@/components/QRReader.vue'))
+const NFCReaderComp = defineAsyncComponent(() => import('@/components/NFCReader.vue'))
+
+type UserPublic = components['schemas']['UserPublic']
+type ItemPublic = components['schemas']['ItemPublic']
+type CategoryPublic = components['schemas']['CategoryPublic']
+type SearchResultType = UserPublic | ItemPublic | CategoryPublic
+
+interface SearchOption {
+  id: number
+  displayString: string
+  item: SearchResultType
+}
+
+interface SearchTypeConfig {
+  fetchById: (id: number) => string
+  search: string
+  getDisplayString: (item: SearchResultType) => string
+}
+
+const SEARCH_CONFIG: Record<SearchType, SearchTypeConfig> = {
+  [SearchType.USER]: {
+    fetchById: (id) => `/users/${id}`,
+    search: '/users/search',
+    getDisplayString: (item) => (item as UserPublic).username,
+  },
+  [SearchType.ITEM]: {
+    fetchById: (id) => `/items/${id}`,
+    search: '/items/search',
+    getDisplayString: (item) => (item as ItemPublic).short_name,
+  },
+  [SearchType.CATEGORY]: {
+    fetchById: (id) => `/categories/${id}`,
+    search: '/categories/search',
+    getDisplayString: (item) => (item as CategoryPublic).title,
+  },
+}
+
+const DEBOUNCE_MS = 300
+const MIN_LENGTH = 3
 
 const props = defineProps({
   searchType: {
@@ -43,12 +104,8 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  type: {
-    type: String,
-    default: 'text',
-  },
   value: {
-    type: [Number, String],
+    type: [Number, Object] as PropType<number | SearchResultType | null>,
     default: null,
   },
   disabled: {
@@ -67,187 +124,144 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  qrSearch: {
+    type: Boolean,
+    default: false,
+  },
+  nfcSearch: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const searchTerm = ref('')
-const dropdownOptions = ref<searchResult[]>([])
-const expanded = ref(false)
 const emit = defineEmits<{
-  (e: 'update:value', value: User | Item | Query | string): void
+  (e: 'update:value', value: SearchResultType | null): void
 }>()
-const debounceTimeout = ref<NodeJS.Timeout | null>(null)
-const minLength = 3
-const selection = ref(false)
-const firstFetch = ref(true)
 
-const fetchSearchResults = async (term: string) => {
+const searchTerm = ref('')
+const dropdownOptions = ref<SearchOption[]>([])
+const expanded = ref(false)
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+const showQRModal = ref(false)
+const showNFCModal = ref(false)
+
+const config = computed(() => SEARCH_CONFIG[props.searchType])
+
+const resolveDisplayString = async (value: number | SearchResultType): Promise<string> => {
+  if (typeof value === 'object') {
+    return config.value.getDisplayString(value)
+  }
+  const { data } = await axios.get<SearchResultType>(config.value.fetchById(value))
+  return config.value.getDisplayString(data)
+}
+
+const fetchSearchResults = async (term: string): Promise<void> => {
   try {
-    const response = await axios.get(SearchTypeEndpoint[props.searchType], {
-      params: { term },
-    })
-    dropdownOptions.value = getOptionsAndSelectorsFromSearchTypeQueryResult(response.data) || []
-  } catch (error) {
-    console.error('Error fetching search results:', error)
+    const { data } = await axios.post<SearchResultType[]>(config.value.search, { term })
+    dropdownOptions.value = data.map((item) => ({
+      id: (item as { id: number }).id,
+      displayString: config.value.getDisplayString(item),
+      item,
+    }))
+  } catch {
     dropdownOptions.value = []
   }
 }
 
 watch(
   () => props.value,
-  (newValue) => {
+  async (newValue) => {
     if (!newValue) {
       searchTerm.value = ''
       return
     }
-    getSearchTermFromValue(newValue).then((result) => {
-      selection.value = true
-      searchTerm.value = result
-      setTimeout(() => {
-        selection.value = false
-      }, 300)
-    })
+    try {
+      searchTerm.value = await resolveDisplayString(newValue)
+    } catch {
+      searchTerm.value = ''
+    }
   },
 )
 
-watch(searchTerm, (newTerm) => {
-  if (debounceTimeout.value) {
-    clearTimeout(debounceTimeout.value)
-  }
-  if (!firstFetch.value && !props.disabled && newTerm.length >= minLength && !selection.value) {
-    debounceTimeout.value = setTimeout(() => {
-      fetchSearchResults(newTerm).then(() => {
-        expanded.value = dropdownOptions.value.length > 0
-      })
-    }, 300)
-  } else {
-    dropdownOptions.value = []
-  }
-})
-
-onMounted(() => {
-  debounceTimeout.value = setTimeout(() => {firstFetch.value = false}, 300)
+onMounted(async () => {
   if (props.value) {
-    getSearchTermFromValue(props.value).then((result) => {
-      searchTerm.value = result
-    })
+    try {
+      searchTerm.value = await resolveDisplayString(props.value)
+    } catch {
+      searchTerm.value = ''
+    }
   }
 })
 
-const selectOption = (option: searchResult) => {
-  selection.value = true
-  searchTerm.value = option.display_string
-  expanded.value = false
-  emit('update:value', option.select)
-  setTimeout(() => {
-    selection.value = false
-  }, 300)
+const handleInput = (): void => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  if (searchTerm.value.length < MIN_LENGTH) {
+    dropdownOptions.value = []
+    expanded.value = false
+    return
+  }
+  debounceTimer = setTimeout(async () => {
+    await fetchSearchResults(searchTerm.value)
+    expanded.value = dropdownOptions.value.length > 0
+  }, DEBOUNCE_MS)
 }
 
-const handleBlur = () => {
+const selectOption = (option: SearchOption): void => {
+  searchTerm.value = option.displayString
+  expanded.value = false
+  dropdownOptions.value = []
+  emit('update:value', option.item)
+}
+
+const handleBlur = (): void => {
   expanded.value = false
 }
 
-const handleEnter = () => {
+const handleEnter = (): void => {
   if (dropdownOptions.value.length > 0) {
     selectOption(dropdownOptions.value[0])
+  } else {
+    clearSearch()
   }
-  clearSearch()
 }
 
-const clearSearch = () => {
+const clearSearch = (): void => {
   searchTerm.value = ''
   dropdownOptions.value = []
   expanded.value = false
-  emit('update:value', '')
+  emit('update:value', null)
 }
 
-interface searchResult {
-  id: number
-  display_string: string
-  select: User | Item | Query | string
+const readQR = (): void => {
+  showQRModal.value = true
 }
 
-const getOptionsAndSelectorsFromSearchTypeQueryResult = (result: unknown): searchResult[] => {
-  const options: searchResult[] = []
-  if (props.searchType === SearchType.USER) {
-    options.push(
-      ...(result as User[]).map((user) => ({
-        id: user.id,
-        display_string: user.username + (user.email ? ` <${user.email}>` : ''),
-        select: '' + user.id,
-      })),
-    )
-  } else if (props.searchType === SearchType.ITEM) {
-    return (result as Item[]).map(
-      (item) => ({ id: item.id, display_string: item.name, select: item }) as searchResult,
-    )
-  } else if (props.searchType === SearchType.QUERY) {
-    return (result as Query[]).map(
-      (query) => ({ id: query.name, display_string: query.name, select: query }) as searchResult,
-    )
-  } else if (props.searchType === SearchType.CATEGORY) {
-    return (result as Category[]).map(
-      (category) =>
-        ({
-          id: category.id,
-          display_string: category.title,
-          select: category.title,
-        }) as searchResult,
-    )
-  }
-
-  return options
+const readNFC = (): void => {
+  showNFCModal.value = true
 }
 
-const getSearchTermFromValue = (value: string | number) => {
-  return new Promise<string>((resolve) => {
-    switch (props.searchType) {
-      case SearchType.USER:
-        return axios
-          .get(`/users/${value}`)
-          .then((response) => {
-            resolve(response.data.username)
-          })
-          .catch(() => {
-            resolve(value as string)
-          })
-      case SearchType.ITEM:
-        return axios
-          .get(`/items/${value}`)
-          .then((response) => {
-            resolve(response.data.name)
-          })
-          .catch(() => {
-            resolve(value as string)
-          })
-      case SearchType.QUERY:
-        return axios
-          .get(`/queries/${value}`)
-          .then((response) => {
-            resolve(response.data.name)
-          })
-          .catch(() => {
-            resolve(value as string)
-          })
-      case SearchType.CATEGORY:
-        return axios
-          .get(`/categories/${value}`)
-          .then((response) => {
-            resolve(response.data.title)
-          })
-          .catch(() => {
-            resolve(value as string)
-          })
-      default:
-        resolve('')
+const handleScan = async (result: ScanResult): Promise<void> => {
+  showQRModal.value = false
+  showNFCModal.value = false
+  await axios.post<ItemPublic[]>('/items/search', {
+    filters: [{ field: 'code', qualifier: 'eq', value: result.code_value }],
+    limit: 1,
+  }).then(({ data }) => {
+    if (data.length > 0) {
+      const scannedItem = data[0]
+      selectOption({
+        id: scannedItem.id,
+        displayString: SEARCH_CONFIG[SearchType.ITEM].getDisplayString(scannedItem),
+        item: scannedItem,
+      })
     }
+  }).catch((e) => {
+    console.error('Scan result did not match any item', e)
   })
 }
 </script>
 
 <style scoped>
-.dropdown-menu {}
-
 .is-invalid {
   padding-right: 0.75rem;
 }
@@ -258,5 +272,10 @@ const getSearchTermFromValue = (value: string | number) => {
   z-index: 1000;
   scrollbar-width: thin;
   scrollbar-color: var(--bs-primary) var(--card-bg);
+}
+
+.qr-icon,
+.nfc-icon {
+  font-size: 1.2rem;
 }
 </style>

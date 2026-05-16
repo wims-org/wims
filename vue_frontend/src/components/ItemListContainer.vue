@@ -21,7 +21,7 @@ import ApiService from '@/services/ApiService'
 import { preloadItemView } from '@/router'
 const router = useRouter()
 
-type Query = components['schemas']['Query'] 
+type Query = components['schemas']['Query']
 type Item = components['schemas']['ItemPublic']
 
 // Props
@@ -91,12 +91,12 @@ onMounted(async () => {
   )
 })
 
-const fetchBatch = async (offset: number) => {
+const fetchBatch = async (offset: number, limit: number = batchSize.value) => {
   try {
     console.debug('Fetching items with query:', searchQuery.value, 'offset:', offset)
     searchQuery.value = {
       ...props.query,
-      limit: batchSize.value,
+      limit: limit,
       offset: offset,
     }
 
@@ -109,6 +109,11 @@ const fetchBatch = async (offset: number) => {
     canLoadMore.value = false
     return false
   }
+}
+
+const reloadResults = () => {
+  items.value = []
+  return fetchBatch(0, offset.value + batchSize.value)
 }
 
 const onLoadMore = async () => {
@@ -160,4 +165,8 @@ const handleSelect = (item: { id: number }) => {
     console.error('Navigation error:', err)
   })
 }
+
+defineExpose({
+  reloadResults,
+})
 </script>

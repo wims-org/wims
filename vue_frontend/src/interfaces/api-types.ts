@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search Users */
+        post: operations["search_users_users_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{id}": {
         parameters: {
             query?: never;
@@ -249,6 +266,23 @@ export interface paths {
         put?: never;
         /** Create Category */
         post: operations["create_category_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Search Categories */
+        post: operations["search_categories_categories_search_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -530,10 +564,23 @@ export interface components {
             short_name: string;
         };
         /**
+         * ElementUpdate
+         * @enum {string}
+         */
+        ElementUpdate: "READERS" | "ITEM" | "CONTAINER";
+        /** ElementUpdateData */
+        ElementUpdateData: {
+            element: components["schemas"]["ElementUpdate"];
+            /** Id */
+            id?: number | null;
+            /** Code */
+            code?: string | null;
+        };
+        /**
          * Event
          * @enum {string}
          */
-        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR";
+        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR" | "ELEMENT_UPDATE";
         /** FilePublic */
         FilePublic: {
             /** Item Id */
@@ -952,10 +999,11 @@ export interface components {
         /** SseEvent */
         SseEvent: {
             event: components["schemas"]["Event"];
-            data: components["schemas"]["SseEventData"];
+            /** Data */
+            data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default 00734ee9-3f3b-43f5-b73b-1da3998623a4
+             * @default f4720dfc-5479-473d-b9c1-5ea96e4f9e69
              */
             id: string;
             /**
@@ -1124,6 +1172,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_users_users_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Query"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserPublic"][];
                 };
             };
             /** @description Not found */
@@ -1990,6 +2078,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CategoryPublic"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_categories_categories_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Query"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryPublic"][];
                 };
             };
             /** @description Not found */

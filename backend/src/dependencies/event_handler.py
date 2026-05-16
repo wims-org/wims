@@ -31,6 +31,8 @@ class Event(enum.Enum):
 
 class ElementUpdate(enum.Enum):
     READERS = "READERS"
+    ITEM = "ITEM"
+    CONTAINER = "CONTAINER"
 
 
 class CodeFormat(enum.Enum):
@@ -77,6 +79,8 @@ class SseEventData(pydantic.BaseModel):
 
 class ElementUpdateData(pydantic.BaseModel):
     element: ElementUpdate
+    id: int | None = None
+    code: str | None = None
 
 
 class SseEvent(pydantic.BaseModel):

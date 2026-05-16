@@ -1,13 +1,13 @@
-import enum
-
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
+from dependencies.event_handler import ElementUpdate, Event, EventHandlerDep, SseEvent
+from models.api import Qualifier, Query, QueryReq
 from models.category import Category
 from models.item import File, Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
 
@@ -16,44 +16,6 @@ RELATION_MAP: dict[str, type] = {
 }
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
-
-
-class Qualifier(enum.Enum):
-    IN = "in"
-    NOT_IN = "not_in"
-    EQUALS = "eq"
-    NOT_EQUALS = "not_eq"
-    GREATER_THAN = "gt"
-    LESS_THAN = "lt"
-
-
-class FilterReq(BaseModel):
-    field: str
-    qualifier: Qualifier = Qualifier.EQUALS
-    value: str | int | list[str | int]
-
-
-class Filter(FilterReq):
-    # since pydantic does not allow for nullable defaults, this wrapper is used
-    qualifier: Qualifier | None = Field(default=None, description="If null, defaults to 'eq'.")
-
-
-class QueryReq(BaseModel):
-    term: str | None = None
-    filters: list[Filter] = []
-    offset: int = Field(default=0, ge=0)
-    limit: int = Field(default=10, ge=1)
-    sort_by: str | None = None
-    sort_desc: bool = False
-
-
-class Query(QueryReq):
-    # since pydantic does not allow for nullable defaults, this wrapper is used
-    filters: list[Filter] | None = Field(default=None, description="If null, defaults to empty list.")
-    offset: int | None = Field(default=None, ge=0, description="If null, defaults to 0.")
-    limit: int | None = Field(default=None, ge=1, description="If null, defaults to 10.")
-    sort_desc: bool | None = Field(default=None, description="If null, defaults to False.")
-
 
 class ContainerObject(BaseModel):
     item_id: int
@@ -82,7 +44,7 @@ async def _add_item_ids_to_files(item_id: int, item_data: ItemCreate | ItemUpdat
 
 
 @router.post("", response_model=ItemPublic)
-async def create_item(item: ItemCreate, session: SessionDep):
+async def create_item(item: ItemCreate, session: SessionDep, event_handler: EventHandlerDep):
     db_item = Item.model_validate(item.model_dump(exclude={"images", "files"}))
     session.add(db_item)
     try:
@@ -92,6 +54,12 @@ async def create_item(item: ItemCreate, session: SessionDep):
     await _add_item_ids_to_files(db_item.id, item, session)
     await session.commit()
     await session.refresh(db_item)
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.ITEM, "id": db_item.id, "code": db_item.code},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
     return db_item
 
 
@@ -121,8 +89,9 @@ async def get_all_item(session: SessionDep, offset: int = 0, limit: int = 10):
 
 
 @router.put("/{id}", response_model=ItemPublic)
-async def update_item(id: int, item: ItemUpdate, session: SessionDep):
+async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_handler: EventHandlerDep):
     db_item = await session.get(Item, id)
+    old_container_id = db_item.container_id
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     update = item.model_dump(exclude={"images", "files"})
@@ -142,16 +111,42 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep):
     await _add_item_ids_to_files(db_item.id, item, session)
     await session.commit()
     await session.refresh(db_item)
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.ITEM, "id": db_item.id, "code": db_item.code},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
+    if old_container_id != item.container_id and old_container_id:
+        await event_handler.append_message_to_all_queues(
+            SseEvent(
+                data={"element": ElementUpdate.CONTAINER, "id": old_container_id},
+                event=Event.ELEMENT_UPDATE,
+            )
+        )
+    elif old_container_id != item.container_id and item.container_id:
+        await event_handler.append_message_to_all_queues(
+            SseEvent(
+                data={"element": ElementUpdate.CONTAINER, "id": item.container_id},
+                event=Event.ELEMENT_UPDATE,
+            )
+        )
     return db_item
 
 
 @router.delete("/{id}")
-async def delete_item(id: int, session: SessionDep):
+async def delete_item(id: int, session: SessionDep, event_handler: EventHandlerDep):
     item = await session.get(Item, id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     await session.delete(item)
     await session.commit()
+    await event_handler.append_message_to_all_queues(
+        SseEvent(
+            data={"element": ElementUpdate.READERS},
+            event=Event.ELEMENT_UPDATE,
+        )
+    )
     return {"ok": True}
 
 
