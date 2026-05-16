@@ -6,9 +6,15 @@ esphome:
     name: esphome.web
     version: dev
   on_boot:
-    # include optional bootup sound
-    - priority: 200.0
+    - priority: 800.0
       then:
+      - display.page.show: page_info
+    - priority: -100.0
+      then:
+      - lambda: |-
+          id(rfid_message) = "Waiting for WiFi";
+      - wait_until:
+          wifi.connected:
       - http_request.post:
           url: ${wims_url}/readers
           capture_response: true
@@ -18,6 +24,8 @@ esphome:
           json:
             reader_id: ${reader_id}
             reader_name: ${reader_name}
+      - display.page.show: page_qrcode
+      - rtttl.play: "success:d=8,o=5,b=180:c,e,g,c6"
 
 # Enable logging
 logger:
@@ -33,6 +41,8 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
+  power_save_mode: none
+  output_power: 16 # Less connection problems if you reduce the power a bit
 
   # Fallback access point
   ap:
@@ -41,7 +51,9 @@ wifi:
 
 # In combination with the `ap` this allows the user
 # to provision wifi credentials to the device via WiFi AP.
-# captive_portal:
+captive_portal:
+
+web_server:
 
 # HTTP module
 http_request:
@@ -55,15 +67,10 @@ i2c:
   id: bus_a
 
 globals:
-  - id: device_name
-    type: std::string
-    restore_value: no
-    initial_value: '"${reader_name}"'
-
   - id: rfid_message
     type: std::string
     restore_value: no
-    initial_value: '"Reader init..."'
+    initial_value: '"Booting..."'
 
   - id: scanned_item_name
     type: std::string
@@ -84,10 +91,10 @@ pn532_i2c:
   update_interval: 1s
   on_tag:
     then:
-      - display.page.show: page_info
+      - rtttl.play: "success:d=4,o=5,b=180:16a5,16a6"
       - lambda: |-
           id(rfid_message) = "Loading...";
-      - rtttl.play: "scanner_beep:d=4,o=5,b=180:16a5,16a6"
+      - display.page.show: page_info
       - http_request.post:
           url: ${wims_url}/scan
           capture_response: true
@@ -96,7 +103,8 @@ pn532_i2c:
             Content-Type: application/json
           json:
             reader_id: ${reader_id}
-            tag_id: !lambda "return x;"
+            code_value: !lambda "return x;"
+            code_format: "uuid"
           on_response:
             - if:
                 condition:

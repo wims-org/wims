@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.11";
+    unstable.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -19,6 +20,7 @@
         system:
         let
           pkgs = inputs.nixpkgs.legacyPackages.${system};
+          unstable-pkgs = inputs.unstable.legacyPackages.${system};
           inherit (pkgs) lib;
         in
         {
@@ -59,14 +61,15 @@
 
               # backend
               uv
-              python314
+              python313
               mariadb.client
 
               # hardware
               python3Packages.pyserial
               esptool
-              esphome
+              unstable-pkgs.esphome
               picocom
+              platformio
             ];
 
           };
