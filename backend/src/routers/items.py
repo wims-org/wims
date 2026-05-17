@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, or_
 
 from dependencies.database import SessionDep
-from dependencies.event_handler import ElementUpdate, Event, EventHandlerDep, SseEvent
-from models.api import Qualifier, Query, QueryReq
+from dependencies.event_handler import EventHandlerDep
+from models.api import ElementUpdate, Event, Qualifier, Query, QueryReq, SseEvent
 from models.category import Category
 from models.item import File, Item, ItemBacklog, ItemCreate, ItemPublic, ItemUpdate
+from modules.webhook_handler import WebhookData, WebhookEvent, WebhookHandler
 
 RELATION_MAP: dict[str, type] = {
     "category": Category,
@@ -136,6 +137,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
                 event=Event.ELEMENT_UPDATE,
             )
         )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_UPDATE, data=db_item))
     return db_item
 
 

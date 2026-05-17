@@ -8,7 +8,8 @@ from loguru import logger
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from dependencies.event_handler import MESSAGE_STREAM_DELAY, Event, EventHandlerDep, SseEvent
+from dependencies.event_handler import EventHandlerDep
+from models.api import MESSAGE_STREAM_DELAY, Event, SseEvent
 
 router = APIRouter(prefix="/stream", tags=["stream"], responses={404: {"description": "Not found"}})
 
