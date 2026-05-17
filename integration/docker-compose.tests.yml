@@ -20,8 +20,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./integration/config.backend.test.yml:/app/src/config.yml:ro
 
   db:
     volumes:

@@ -31,7 +31,11 @@ WORKDIR /app
 COPY --from=build --chown=appuser:appgroup /app .
 RUN echo $COMMIT_HASH > /app/COMMIT_HASH
 
+RUN mkdir -p /data && chown appuser:appgroup /data
+
 USER appuser
+
+VOLUME [ "/data" ]
 
 WORKDIR /app
 ENTRYPOINT ["./run.sh"]

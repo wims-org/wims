@@ -22,7 +22,7 @@
         Borrow Item
       </button>
       <button
-        v-if="props.item?.borrowed_by && props.item?.borrowed_by === clientStore().user?.id"
+        v-if="clientStore().user && props.item?.borrower?.id === clientStore().user?.id"
         type="button"
         class="btn btn-danger p-2 ms-2"
         data-testid="return-item-button"
@@ -89,7 +89,7 @@ import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
 import { clientStore } from '@/stores/clientStore'
 
-type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic']
 
 // Props
 const props = defineProps({
@@ -161,7 +161,7 @@ const updateFieldModel = (value: unknown, key: string, type: string, resolves?: 
   if (type === 'checkbox') {
     formData.value[key] = Boolean(value)
   } else if (type === 'epoch') {
-    formData.value[key] = Math.floor(new Date(value as number).getTime() / 1000)
+    formData.value[key] = value === null ? null : Math.floor(new Date(value as number).getTime() / 1000)
   } else if (type === 'number') {
     formData.value[key] = Number(value)
   } else if (type === 'array') {
@@ -194,27 +194,27 @@ const updateFieldModel = (value: unknown, key: string, type: string, resolves?: 
 }
 
 const borrow_able = () => {
-  return !props.item?.borrowed_by && !props.item?.borrowed_until && clientStore().user?.id
+  return !props.item?.borrower && !props.item?.borrowed_until && clientStore().user?.id
 }
 
 const borrow = () => {
   if (clientStore().user) {
-    updateFieldModel(clientStore().user?.id, 'borrowed_by', 'user')
+    updateFieldModel(clientStore().user?.id, 'borrower', 'user')
     updateFieldModel(Date.now() + 604800000, 'borrowed_until', 'epoch') // 7 days from now
     handleSubmit()
   }
 }
 
 const returnItem = () => {
-  updateFieldModel(null, 'borrowed_by', 'user')
+  updateFieldModel(null, 'borrower', 'user')
   updateFieldModel(null, 'borrowed_until', 'epoch')
   handleSubmit()
 }
 </script>
 
 <style scoped>
-:deep(.form-control) {
-  width: unset;
+:deep(.form-control, .input-group) {
+  width: var(--form-input-width);
   min-width: 0;
 }
 

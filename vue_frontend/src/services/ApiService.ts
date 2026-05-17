@@ -6,7 +6,8 @@ import type { components } from '@/interfaces/api-types'
 
 
 type Query = components['schemas']['Query']
-type ItemUpdate = components['schemas']['ItemUpdate']
+type ItemPublic = components['schemas']['ItemPublic']
+type FilePublic = components['schemas']['FilePublic']
 
 type ItemContainer = components["schemas"]["ContainerObject"]
 class ApiService {
@@ -23,20 +24,23 @@ class ApiService {
         return ApiService.instance
     }
 
-    private addBaseUrlAndSplitByFileType(item: Item): Item {
-        // Adds asset_url based on asset_path if asset_url is not already a full URL
+    private filePublicToFile(filePub: FilePublic): File {
+        if (filePub.uri && !filePub.uri.startsWith('http')) {
+            const base = axios.defaults.baseURL ?? ''
+            return { ...filePub, asset_url: `${base}${filePub.uri.startsWith('/') ? '' : '/'}${filePub.uri}` }
+        }
+        return { ...filePub, asset_url: filePub.uri || '' }
+    }
+
+    itemPublicToItem(itemPub: ItemPublic): Item {
+        // Adds asset_url based on uri if asset_url is not already a full URL
+        const item = { ...itemPub } as Item
         if (Array.isArray(item.files) && item.files.length) {
             item.images = []
             item.attachments = []
-            item.files.map((file) => {
-                if (!file.asset_path) { return }
-                let f: File
-                if (!file.asset_path.startsWith('http')) {
-                    f = { ...file, asset_url: `${axios.defaults.baseURL}/${file.asset_path}` }
-                } else {
-                    f = { ...file, asset_url: file.asset_path }
-                }
-                if (f.filetype && f.filetype.startsWith('image')) {
+            itemPub.files?.map((file) => {
+                const f = this.filePublicToFile(file)
+                if (f.filetype && f.filetype === 'image') {
                     item.images?.push(f)
                 } else {
                     item.attachments?.push(f)
@@ -46,13 +50,22 @@ class ApiService {
         return item
     }
 
+    itemToItemPublic(item: Item): ItemPublic {
+        const itemPub = { ...item } as ItemPublic
+        if (Array.isArray(itemPub.files) && itemPub.files.length) {
+            itemPub.files = (item.images?.concat(item.attachments || []) || []).map((file) => {
+                return { ...file } as FilePublic
+            })
+        }
+        return itemPub
+    }
+
     public async getItem(itemId: number): Promise<Item> {
         try {
             return axios.get<Item>(`/items/${itemId}`).then((response) => {
                 // File paths in item data are relative to the backend, so we need to prepend the base URL to them
                 const item: Item = response.data
-                this.addBaseUrlAndSplitByFileType(item)
-                return item
+                return this.itemPublicToItem(item)
             })
         } catch (error) {
             console.error('Error fetching item:', error)
@@ -64,7 +77,7 @@ class ApiService {
         try {
             return axios.post('/items/search', searchQuery).then((response) => {
                 const items: Item[] = response.data
-                items.forEach((item) => this.addBaseUrlAndSplitByFileType(item))
+                items.forEach((item, index) => { items[index] = this.itemPublicToItem(item) })
                 return items
             })
         } catch (error) {
@@ -75,10 +88,9 @@ class ApiService {
 
     public async createItem(itemData: Item): Promise<Item> {
         try {
-            return axios.post<Item>('/items', itemData).then((response) => {
+            return axios.post<Item>('/items', this.itemToItemPublic(itemData)).then((response) => {
                 const item: Item = response.data
-                this.addBaseUrlAndSplitByFileType(item)
-                return item
+                return this.itemPublicToItem(item)
             })
         } catch (error) {
             console.error('Error creating item:', error)
@@ -86,11 +98,9 @@ class ApiService {
         }
     }
 
-    public async updateItem(itemId: number, item: ItemUpdate): Promise<void> {
-        //        for (const fileArray of ['files', 'images']) { if (Array.isArray(item[fileArray]) && item[fileArray].length) { this.removeBaseUrlFromFilePaths(item[fileArray] as File[]) } }
+    public async updateItem(itemId: number, item: Item): Promise<void> {
         try {
-            console.log('Updating item with ID:', itemId, 'and data:', item)
-            await axios.put(`/items/${itemId}`, item)
+            await axios.put(`/items/${itemId}`, this.itemToItemPublic(item))
         } catch (error) {
             console.error('Error updating item:', error)
             throw error
@@ -114,10 +124,12 @@ class ApiService {
                 }
             }).then((response) => {
                 const file: File = response.data
-                if (file.asset_path && !file.asset_path.startsWith('http')) {
-                    file.asset_url = `${axios.defaults.baseURL}/${file.asset_path}`
+                return this.filePublicToFile(file)
+            }).catch((error) => {
+                if (error.response && error.response.status === 413) {
+                    console.error('File size too large:', error)
                 }
-                return file
+                throw error
             })
         } catch (error) {
             console.error('Error creating file:', error)
