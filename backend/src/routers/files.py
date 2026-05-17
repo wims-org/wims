@@ -4,7 +4,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, UploadFile
 from fastapi.exceptions import HTTPException
-from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -21,28 +20,30 @@ async def create_file(
     file: UploadFile, session: Annotated[AsyncSession, Depends(database.get_db_session)], settings: SettingsDep
 ):
     data = file.file.read()
-    asset_path = md5(data).hexdigest() + "." + file.filename.split(".")[-1]
-    asset_path: Path = settings.asset_path / asset_path
-    asset_path.write_bytes(data)
-
-    # Check if we already have a file with this hash.
-    # e.g. from a failed
-    db_file = await session.execute(select(File).where(File.asset_path == str(asset_path)))
-    db_file = db_file.scalar_one_or_none()
+    hash_name = md5(data).hexdigest() + "." + file.filename.split(".")[-1]
+    asset_uri = "/" + settings.asset_uri_prefix.strip("/") + "/" + hash_name
+    fs_path: Path = settings.data_path / settings.asset_uri_prefix.lstrip("/") / hash_name
+    db_file = (await session.execute(select(File).where(File.uri == asset_uri))).scalar_one_or_none()
     if db_file:
         return db_file
 
+    fs_path.write_bytes(data)
+
     db_file = File(
         filename=file.filename,
-        asset_path="/data/assets/" + asset_path.name,
+        uri=asset_uri,
         filetype="image",
     )
     session.add(db_file)
     try:
         await session.commit()
     except IntegrityError as e:
-        logger.warning("Failed to create image")
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        # Race condition: another request inserted the same file between our check and insert
+        await session.rollback()
+        db_file = (await session.execute(select(File).where(File.uri == asset_uri))).scalar_one_or_none()
+        if not db_file:
+            raise HTTPException(status_code=500, detail="Failed to create file and no existing file found") from e
+        return db_file
     await session.refresh(db_file)
     return db_file
 

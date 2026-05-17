@@ -1,4 +1,3 @@
-
 import enum
 
 from pydantic import BaseModel, Field
@@ -23,6 +22,7 @@ class Filter(FilterReq):
     # since pydantic does not allow for nullable defaults, this wrapper is used
     qualifier: Qualifier | None = Field(default=None, description="If null, defaults to 'eq'.")
 
+
 class QueryReq(BaseModel):
     term: str | None = None
     filters: list[Filter] = []
@@ -38,4 +38,3 @@ class Query(QueryReq):
     offset: int | None = Field(default=None, ge=0, description="If null, defaults to 0.")
     limit: int | None = Field(default=None, ge=1, description="If null, defaults to 10.")
     sort_desc: bool | None = Field(default=None, description="If null, defaults to False.")
-

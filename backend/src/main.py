@@ -67,16 +67,15 @@ if wims_config.sentry_dsn:
 
 if os.environ.get("RUN_MODE", "") == "production":
     logger.info("Started in production mode")
-    root_path = "/api"
 else:
     logger.info("Started in development mode")
-    root_path = "/"
 
 
 def check_asset_path():
-    if not wims_config.asset_path.exists():
+    asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
+    if not asset_dir.exists():
         try:
-            wims_config.asset_path.mkdir(parents=True)
+            asset_dir.mkdir(parents=True, exist_ok=True)
         except (FileNotFoundError, OSError) as e:
             raise e
 
@@ -94,14 +93,14 @@ app = FastAPI(
         # Depends(backend_service.BackendService()),
     ],
     redirect_slashes=False,
-    root_path=root_path,
     lifespan=lifespan,
 )
 
 # Ensure asset directory exists before mounting
 check_asset_path()
-app.mount("/data/assets", StaticFiles(directory=str(wims_config.asset_path)), name="data")
-logger.info(f"Mounted static files at /data/assets from {wims_config.asset_path}")
+asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
+app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(asset_dir)), name="data")
+logger.info(f"Mounted static files at /data/assets from {wims_config.data_path}")
 
 app.include_router(routers.users.router)
 app.include_router(routers.items.router)

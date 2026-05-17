@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     log_level: str = "WARN"
     sentry_dsn: str = ""
     features_openai_api_key: str = ""
-    asset_path: Path = "/data/assets"
+    data_path: Path = "/data"
+    asset_uri_prefix: str = "/assets"
     commit_hash: str = "unknown"
 
     model_config = SettingsConfigDict(env_file=pathlib.Path(__file__).parent.parent / ".env")

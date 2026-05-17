@@ -26,7 +26,9 @@ class ContainerObject(BaseModel):
 async def _add_item_ids_to_files(item_id: int, item_data: ItemCreate | ItemUpdate, session: AsyncSession) -> None:
     """Link uploaded files/images to an item by setting File.item_id."""
     """Why is this necessary? How to implicitly link existing files to items?"""
-    requested_ids = sorted({f.id for f in item_data.files})
+    if item_data.files is None:
+        return
+    requested_ids = sorted([f.id for f in item_data.files])
     # delete old links
     old_files = (await session.execute(select(File).where(File.item_id == item_id))).scalars().all()
     for old_file in old_files:

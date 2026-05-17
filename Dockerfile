@@ -13,6 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 COPY backend/src/ src/
+COPY backend/schemas/ schemas/
 COPY backend/alembic/ alembic/
 COPY backend/alembic.ini .
 COPY backend/run.sh .
