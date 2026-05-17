@@ -52,11 +52,9 @@ class ApiService {
 
     itemToItemPublic(item: Item): ItemPublic {
         const itemPub = { ...item } as ItemPublic
-        if (Array.isArray(itemPub.files) && itemPub.files.length) {
-            itemPub.files = (item.images?.concat(item.attachments || []) || []).map((file) => {
-                return { ...file } as FilePublic
-            })
-        }
+        itemPub.files = (item.images?.concat(item.attachments || []) || []).map((file) => {
+            return { ...file } as FilePublic
+        })
         return itemPub
     }
 

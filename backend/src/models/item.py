@@ -47,7 +47,9 @@ class ItemBase(SQLModel):
     container_id: int | None = Field(default=None, foreign_key="item.id")
 
     # UUID of the RFID tag, unique
-    code: str | None = Field(unique=True, index=True)  # ToDo multiple codes/code formats per item
+    code: str | None = Field(
+        unique=True, index=True, nullable=True, default=None
+    )  # ToDo multiple codes/code formats per item
     amount: int | None = None
     # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
     category_id: int | None = Field(default=None, foreign_key="category.id")
