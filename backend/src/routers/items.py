@@ -83,7 +83,7 @@ async def get_item(session: SessionDep, id: int):
     return item
 
 
-@router.get("/", response_model=list[ItemPublic])
+@router.get("", response_model=list[ItemPublic])
 async def get_all_item(session: SessionDep, offset: int = 0, limit: int = 10):
     return (await session.execute(select(Item).offset(offset).limit(limit))).scalars().all()
 
