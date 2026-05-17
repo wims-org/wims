@@ -8,13 +8,7 @@ services:
     volumes:
       - ..:/workspaces:cached
 
-  frontend:
-    profiles:
-      - skip
-    deploy:
-      replicas: 0
-
-  backend:
+  wims:
     profiles:
       - skip
     deploy:

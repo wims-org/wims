@@ -17,6 +17,7 @@ RELATION_MAP: dict[str, type] = {
 
 router = APIRouter(prefix="/items", tags=["items"], responses={404: {"description": "Not found"}})
 
+
 class ContainerObject(BaseModel):
     item_id: int
     short_name: str
@@ -25,11 +26,16 @@ class ContainerObject(BaseModel):
 async def _add_item_ids_to_files(item_id: int, item_data: ItemCreate | ItemUpdate, session: AsyncSession) -> None:
     """Link uploaded files/images to an item by setting File.item_id."""
     """Why is this necessary? How to implicitly link existing files to items?"""
-    payload_files = (item_data.images or []) + (item_data.files or [])
-    if not payload_files:
+    if item_data.files is None:
         return
-
-    requested_ids = sorted({f.id for f in payload_files})
+    requested_ids = sorted([f.id for f in item_data.files])
+    # delete old links
+    old_files = (await session.execute(select(File).where(File.item_id == item_id))).scalars().all()
+    for old_file in old_files:
+        if old_file.id not in requested_ids:
+            old_file.item_id = None
+            session.add(old_file)
+    # add new links
     db_files = (await session.execute(select(File).where(File.id.in_(requested_ids)))).scalars().all()
     db_file_by_id = {db_file.id: db_file for db_file in db_files}
 
@@ -51,7 +57,6 @@ async def create_item(item: ItemCreate, session: SessionDep, event_handler: Even
         await session.commit()
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    await _add_item_ids_to_files(db_item.id, item, session)
     await session.commit()
     await session.refresh(db_item)
     await event_handler.append_message_to_all_queues(
@@ -94,7 +99,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
     old_container_id = db_item.container_id
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-    update = item.model_dump(exclude={"images", "files"})
+    update = item.model_dump(exclude={"images", "attachments"})
     db_item.sqlmodel_update(update)
     if db_item.container_id:
         if db_item.id is db_item.container_id:
