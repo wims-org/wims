@@ -5,7 +5,6 @@ services:
       - ./integration/playwright-results:/workspaces/integration/playwright-results
     environment:
       - CI=true
-      - BACKEND_URL=http://backend:8000
     depends_on:
       - frontend
       - backend
@@ -13,8 +12,6 @@ services:
   frontend:
     build:
       context: ./vue_frontend
-      args:
-        VITE_API_URL: http://backend:8000
 
   backend:
     depends_on:

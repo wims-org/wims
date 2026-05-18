@@ -18,6 +18,11 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 const app = createApp(App)
 const pinia = createPinia()
+
+
+axios.defaults.baseURL = import.meta.env.VITE_API_URL
+console.log(axios.defaults.baseURL)
+
 axios.get('/config/').then((response) => {
   const backend_config: ConfigResponseModel = response.data
 
@@ -42,5 +47,3 @@ app.use(createBootstrap()) // Important
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.mount('#app')
 
-axios.defaults.baseURL = import.meta.env.VITE_API_URL
-console.log(axios.defaults.baseURL)
