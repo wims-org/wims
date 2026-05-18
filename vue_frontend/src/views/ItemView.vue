@@ -1,222 +1,204 @@
 <template>
-  <BContainer fluid class="d-flex row" data-testid="item-view">
-    <BCol class="col-1 p-0 text-end">
-      <router-link
-        v-show="previousItemId"
-        :to="`/items/${previousItemId}?query=${encodeURIComponent(query_param)}&offset=${offset - 1}`"
-        class="text-decoration-none arrow-button"
-      >
-        <IFaArrowLeft />
-      </router-link>
-    </BCol>
-    <BCol>
-      <div v-if="saveError" class="sticky-note sticky-note-error">Error saving changes</div>
-      <div v-if="saveSuccess" class="sticky-note sticky-note-success">{{ saveSuccess }}</div>
-      <h1 class="m-4">{{ item?.short_name }}</h1>
-      <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
-        <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
-          <ContainerListComponent
-            v-if="item?.tag_uuid"
-            :itemId="typeof item?.tag_uuid === 'string' ? item?.tag_uuid : ''"
-            @update:value="handleContainerSelect"
-          />
-          <button
-            @click="() => (showModal = true)"
-            class="btn btn-primary my-3"
-            data-testid="add-content-button"
-          >
-            Add content now
-          </button>
-          <ItemListContainer
-            :settingsId="'item-view-container'"
-            :query="{
-              query: { container_tag_uuid: itemId },
-            }"
-            @select="handleItemSelect"
-            :title="`Items in ${item?.short_name}`"
-          />
-        </BTab>
-        <BTab title="Item Data" id="itemData" data-testid="item-data">
-          <button
-            v-if="completion"
-            @click="() => (isComparing = !isComparing)"
-            class="btn btn-secondary mb-3"
-          >
-            Toggle Comparison
-          </button>
-          <ItemCompare
-            v-if="isComparing && completion && item"
-            :item_org="item"
-            :item_new="completion"
-            :newItem="newItem"
-            @submit="handleFormSubmit"
-            :key="item?.tag_uuid"
-          />
-          <ItemForm v-else :item="item" :isNewItem="newItem" @submit="handleFormSubmit" />
-        </BTab>
-        <BTab
-          v-if="clientStore.backend_config?.llm_enabled"
-          title="Object Identification"
-          id="objectIdentification"
-          data-testid="object-identification"
-        >
-          <LLMCompletion :images="item?.images" :key="item?.tag_uuid" />
-        </BTab>
-      </BTabs>
-    </BCol>
-    <BCol class="col-1 p-0">
-      <router-link
-        v-show="nextItemId"
-        :to="`/items/${nextItemId}?query=${encodeURIComponent(query_param)}&offset=${offset + 1}`"
-        class="text-decoration-none arrow-button"
-      >
-        <IFaArrowRight />
-      </router-link>
+  <BContainer fluid data-testid="item-view">
+    <router-link v-show="previousItemId"
+      :to="`/items/${previousItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset - 1 }))}`"
+      class="text-decoration-none arrow-button arrow-button-prev">
+      <IFaArrowLeft />
+    </router-link>
+    <router-link v-show="nextItemId"
+      :to="`/items/${nextItemId}?query=${encodeURIComponent(JSON.stringify({ ...query, offset: offset + 1 }))}`"
+      class="text-decoration-none arrow-button arrow-button-next">
+      <IFaArrowRight />
+    </router-link>
+    <BCol class="p-0">
+      <div v-if="errorMessage" class="sticky-note sticky-note-error">{{ errorMessage }}</div>
+      <div v-if="successMessage" class="sticky-note sticky-note-success">{{ successMessage }}</div>
+      <template v-if="!itemNotFound">
+        <h1>{{ item?.short_name }}</h1>
+        <BTabs class="mt-3" content-class="mt-3" v-model="activeTab" data-testid="item-tabs">
+          <BTab title="Container Tree" id="containerTree" data-testid="item-container-tree">
+            <ContainerListComponent v-if="item?.id" :itemId="item?.id" @update:value="handleContainerSelect" />
+            <button @click="() => (showModal = true)" class="btn btn-primary my-3" data-testid="add-content-button">
+              Add content now
+            </button>
+            <ItemListContainer ref="containerContentListRef" v-if="item?.id" :settingsId="'item-view-container'"
+              :query="{ filters: [{ field: 'container_id', value: item.id }] }" @select="handleItemSelect"
+              :title="`Items in ${item?.short_name}`" />
+          </BTab>
+          <BTab title="Item Data" id="itemData" data-testid="item-data">
+            <details closed class="mb-1" v-if="clientStore.backend_config?.llm_enabled">
+              <summary>Identify this item</summary>
+              <LLMIdentification class="mt-2 mb-2" :images="item?.images || []" :description="item?.short_name
+                ? item?.short_name + (item?.description ? '; ' + item?.description : '')
+                : ''
+                " :key="item?.id" />
+            </details>
+            <button v-if="identification" @click="() => (isComparing = !isComparing)" class="btn btn-secondary mb-3">
+              Toggle Comparison
+            </button>
+            <ItemCompare v-if="isComparing && identification && item" :item_org="item" :item_new="identification"
+              :newItem="false" @submit="handleFormSubmit" :key="item?.id" />
+            <ItemForm v-else :item="item" :isNewItem="false" @submit="handleFormSubmit" @delete="deleteItem" />
+          </BTab>
+        </BTabs>
+      </template>
     </BCol>
     <SearchModal :show="showModal" @close="closeModal" @select="handleContentSelect" />
   </BContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { defineAsyncComponent, ref, onMounted, onUnmounted, watch, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import eventBus from '../stores/eventBus'
-import { type Events } from '../stores/eventBus'
+import eventBus from '@/stores/eventBus'
+import { type Events } from '@/stores/eventBus'
 import { EventAction } from '@/interfaces/EventAction'
 import { clientStore as useClientStore } from '@/stores/clientStore'
 import type { components } from '@/interfaces/api-types'
-import LLMCompletion from '@/components/LLMCompletion.vue'
-import ItemForm from '../components/ItemForm.vue'
-import ItemCompare from '../components/ItemComparison.vue'
-import ContainerListComponent from '@/components/shared/ContainerListComponent.vue'
-import SearchModal from '@/components/shared/SearchModal.vue'
+import type { Item } from '@/interfaces/items.interface'
+import ApiService from '@/services/ApiService'
 
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+const LLMIdentification = defineAsyncComponent(() => import('@/components/LLMIdentification.vue'))
+const ItemForm = defineAsyncComponent(() => import('../components/ItemForm.vue'))
+const ItemCompare = defineAsyncComponent(() => import('../components/ItemComparison.vue'))
+const ContainerListComponent = defineAsyncComponent(
+  () => import('@/components/shared/ContainerListComponent.vue'),
+)
+const SearchModal = defineAsyncComponent(() => import('@/components/shared/SearchModal.vue'))
+
+type SearchQuery = components['schemas']['Query']
+type ItemPublic = components['schemas']['ItemPublic']
+
+
+/*
+Use Cases:
+1. When navigating to /items/:id, the component should fetch and display the item data for the given id.
+2. If the item is not found (404) the user should be forwarded to the /items/new view with the code and format pre-filled if they were provided as query parameters.
+
+Component Lifecycle and Logic:
+
+- The component listens to events from the event bus, particularly for identification results and redirects, to update the view accordingly.
+- The component provides methods to handle form submission for creating/updating items, selecting items from the container tree, 
+  and navigating to previous/next items based on search queries.
+- The component uses watchers to react to changes in route parameters and query parameters to fetch data and update the view as needed.   
+*/
 
 // Reactive State
 const route = useRoute()
 const router = useRouter()
-const itemId = ref<string>(
-  typeof route.params.tag_uuid === 'string'
-    ? route.params.tag_uuid
-    : Array.isArray(route.params.tag_uuid)
-      ? route.params.tag_uuid[0]
-      : '',
+const itemId = ref<number | undefined>(
+  typeof route.params.id === 'string' ? +route.params.id : undefined,
 )
-const item = ref<Item>()
-const newItem = ref(false)
+const item = ref<Item>({} as Item)
 const isComparing = ref(false)
-const completion = ref<Item>()
-const saveError = ref('')
-const saveSuccess = ref('')
+const identification = ref<Item>()
+const errorMessage = ref('')
+const successMessage = ref('')
 const items = ref<Item[]>([])
 const showModal = ref(false)
-const query_param = ref<string>(decodeURIComponent((route.query.query as string) || '')) // contains query object
-const previousItemId = ref<string>('')
-const nextItemId = ref<string>('')
+const query = ref<SearchQuery | undefined>(undefined)
+const previousItemId = ref<number | undefined>(undefined)
+const nextItemId = ref<number | undefined>(undefined)
 const offset = ref<number>(0)
 const activeTab = ref<string>('itemData')
 const tabCheck = ref(0)
-
+const itemNotFound = ref(false)
+const containerContentListRef = useTemplateRef('containerContentListRef')
 // Stores
 const clientStore = useClientStore()
 
-// Methods
 const fetchItem = async () => {
   try {
-    const response = await axios.get(`/items/${itemId.value}`)
-    console.log('Fetched item:', response.data)
-    item.value = response.data
-    newItem.value = false
+    if (!itemId.value || isNaN(itemId.value)) {
+      throw new Error('Invalid item ID')
+    }
+    const data = await ApiService.getItem(itemId.value as number)
+    item.value = data
     isComparing.value = false
+    itemNotFound.value = false
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
-      newItem.value = true
-      item.value = { tag_uuid: itemId.value } as Item
-      console.warn('Item not found, display empty item form')
+      router.push(
+        `/items/new?${route.query ? new URLSearchParams(route.query as Record<string, string>).toString() : ''}`,
+      )
     } else {
-      item.value = { tag_uuid: itemId.value } as Item
+      item.value = { id: itemId.value } as Item
       console.error('Error fetching item:', error)
     }
   }
   // for testing comparison view
-  // completion.value = item.value
+  // identification.value = item.value
   // isComparing.value = true
-  tabCheck.value++
 }
 
 const fetchPrevNextItems = async () => {
-  previousItemId.value = ''
-  nextItemId.value = ''
-  if (!query_param.value) return
-  const parsedQuery: SearchQuery = JSON.parse(query_param.value.trim().toLowerCase())
-  try {
-    if (offset.value > 0) {
-      const prevItem = await axios.post('/items/search', {
-        ...parsedQuery,
-        offset: offset.value - 1,
-        limit: 1,
-      })
-      if (prevItem.data.length > 0) {
-        previousItemId.value = (prevItem.data.pop() as Item).tag_uuid
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching previous items:', error)
-  }
-  try {
-    const nextItem = await axios.post('/items/search', {
-      ...parsedQuery,
+  previousItemId.value = undefined
+  nextItemId.value = undefined
+  if (!query.value) return
+  const prevRequest =
+    offset.value > 0
+      ? axios
+        .post('/items/search', {
+          ...query.value,
+          offset: offset.value - 1,
+          limit: 1,
+        })
+        .catch(() => null)
+      : Promise.resolve(null)
+
+  const nextRequest = axios
+    .post('/items/search', {
+      ...query.value,
       offset: offset.value + 1,
       limit: 1,
     })
-    if (nextItem.data.length > 0) {
-      nextItemId.value = (nextItem.data.pop() as Item).tag_uuid
-    }
-  } catch {
-    nextItemId.value = ''
+    .catch(() => null)
+
+  const [prevItem, nextItem] = await Promise.all([prevRequest, nextRequest])
+
+  if (prevItem?.data?.length) {
+    previousItemId.value = (prevItem.data.pop() as Item).id
+  }
+  if (nextItem?.data?.length) {
+    nextItemId.value = (nextItem.data.pop() as Item).id
   }
 }
 
-const handleFormSubmit = async (formData: Record<string, unknown>) => {
-  saveError.value = ''
+const handleFormSubmit = async (formData: Item) => {
+  errorMessage.value = ''
   try {
     isComparing.value = false
-    const requestData = buildItemRequest(formData)
-    if (newItem.value) {
-      await axios.post('/items', requestData)
-      saveSuccess.value = 'Item created successfully'
-      setTimeout(() => {
-        saveSuccess.value = ''
-      }, 5000)
-    } else {
-      await axios.put(`/items/${itemId.value}`, requestData)
-      saveSuccess.value = 'Item updated successfully'
-      setTimeout(() => {
-        saveSuccess.value = ''
-      }, 5000)
-    }
-    fetchItem()
+    await ApiService.updateItem(itemId.value as number, formData).then(fetchItem)
+    successMessage.value = 'Item updated successfully'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
   } catch (error) {
-    saveError.value = 'Could not save changes. Please try again.'
+    errorMessage.value = 'Could not save changes. Please try again.'
     console.error('Error submitting form:', error)
   }
   tabCheck.value++
 }
 
-const buildItemRequest = (formData: Record<string, unknown>): Record<string, unknown> => {
-  // Transform the formData into the format expected by the API
-  return {
-    ...formData,
-    owner: null,
+const deleteItem = async (id: number) => {
+  errorMessage.value = ''
+  try {
+    await ApiService.deleteItem(id)
+    successMessage.value = 'Item deleted successfully'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
+    router.push('/items/new')
+  } catch (error) {
+    errorMessage.value = 'Could not delete item. Please try again.'
+    console.error('Error deleting item:', error)
   }
 }
 
-const handleCompletion = (result: { data: { response: object } }) => {
+const handleIdentification = (result: { data: { response: object } }) => {
   if (result?.data?.response) {
-    completion.value = result.data.response as Item
+    identification.value = ApiService.itemPublicToItem(result.data.response as ItemPublic)
     isComparing.value = true
   } else {
     isComparing.value = false
@@ -225,36 +207,38 @@ const handleCompletion = (result: { data: { response: object } }) => {
 }
 
 const handleItemSelect = (item: Item) => {
-  const tag = item.tag_uuid
-  console.log('Selected tag:', tag)
-  const offset = items.value.findIndex((i) => i.tag_uuid === item.tag_uuid)
+  const id = item.id
+  console.log('Selected item with id:', id)
+  const offset = items.value.findIndex((i) => i.id === item.id)
   const query = {
-    query: {
-      container_tag_uuid: itemId.value,
+    filters: {
+      container_id: itemId.value,
     },
   }
   router.push(
-    `/items/${tag}` +
-      (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    `/items/${id}` +
+    (query ? `?query=${encodeURIComponent(JSON.stringify({ ...query, offset }))}` : ''),
   )
 }
 
-const handleContentSelect = async (tag: string) => {
+const handleContentSelect = async (id: number | undefined) => {
+  if (!id) {
+    return
+  }
   try {
-    const selectedItem = await axios.get(`/items/${tag}`)
-    selectedItem.data['container_tag_uuid'] = itemId.value
-    selectedItem.data['container_name'] = item.value?.short_name
-
-    await axios.put(`/items/${tag}`, selectedItem.data)
+    const selectedItem = await ApiService.getItem(id)
+    selectedItem.container_id = itemId.value
+    selectedItem.container_name = item.value?.short_name
+    await ApiService.updateItem(id, selectedItem)
   } catch (error) {
-    saveError.value = 'Could not save changes. Please try again.'
+    errorMessage.value = 'Could not save changes. Please try again.'
     console.error(error)
-  } 
+  }
 }
 
-const handleContainerSelect = (tag: string) => {
+const handleContainerSelect = (tag: number) => {
   if (!item.value) return
-  item.value.container_tag_uuid = tag
+  item.value.container_id = tag
 }
 
 const closeModal = () => {
@@ -265,7 +249,7 @@ const closeModal = () => {
 const handle_item_prev = () => {
   if (previousItemId.value) {
     router.push(
-      `/items/${previousItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value - 1}`,
+      `/items/${previousItemId.value}?query=${encodeURIComponent(JSON.stringify({ ...query.value, offset: offset.value - 1 }))}`,
     )
   }
 }
@@ -273,21 +257,29 @@ const handle_item_prev = () => {
 const handle_item_next = () => {
   if (nextItemId.value) {
     router.push(
-      `/items/${nextItemId.value}?query=${encodeURIComponent(query_param.value)}&offset=${offset.value + 1}`,
+      `/items/${nextItemId.value}?query=${encodeURIComponent(JSON.stringify({ ...query.value, offset: offset.value + 1 }))}`,
     )
   }
 }
 
 // Lifecycle Hooks
-onMounted(fetchItem)
 onMounted(() => {
-  query_param.value = decodeURIComponent((route.query.query as string) || '')
-  offset.value = parseInt(route.query.offset as string, 10) || 0
-  if (query_param.value) {
+  query.value = route.query.query
+    ? JSON.parse(decodeURIComponent((route.query.query as string) || ''))
+    : undefined
+  offset.value = query.value?.offset || 0
+  console.log('Mounted with query:', query.value, 'and offset:', offset.value, route.params)
+  eventBus.on(EventAction.ELEMENT_UPDATE_ITEM, (data) => data.id === itemId.value && fetchItem())
+  eventBus.on(
+    EventAction.ELEMENT_UPDATE_CONTAINER,
+    (data) => data.id === item.value?.id && containerContentListRef.value?.reloadResults(),
+  )
+  fetchItem().then(() => {
+    tabCheck.value++
+  })
+
+  if (query.value) {
     fetchPrevNextItems()
-  } else {
-    previousItemId.value = ''
-    nextItemId.value = ''
   }
   // Keyboard navigation: left/right arrows navigate prev/next item.
   const onKeyDown = (e: KeyboardEvent) => {
@@ -319,22 +311,28 @@ onMounted(() => {
   })
 })
 
-eventBus.on(EventAction.COMPLETION, (data: Events[EventAction.COMPLETION]) => {
+onUnmounted(() => {
+  eventBus.off(EventAction.ELEMENT_UPDATE_CONTAINER, fetchItem)
+})
+eventBus.on(EventAction.IDENTIFICATION, (data: Events[EventAction.IDENTIFICATION]) => {
   if (data) {
-    handleCompletion(data)
+    handleIdentification(data)
   }
 })
 
 // Watchers
 watch(
-  () => route.params.tag_uuid,
-  async (newId) => {
-    if (itemId.value !== newId) {
-      itemId.value = typeof newId === 'string' ? newId : ''
-      items.value = []
-      item.value = undefined
-      completion.value = undefined
-      newItem.value = false
+  () => route.params.id,
+  async (_newId) => {
+    itemNotFound.value = false
+    errorMessage.value = ''
+
+    items.value = []
+
+    if (!Number.isNaN(_newId) && itemId.value !== Number(_newId)) {
+      itemId.value = Number(_newId)
+      item.value = {} as Item
+      identification.value = undefined
       isComparing.value = false
       await fetchItem()
       await fetchPrevNextItems()
@@ -343,16 +341,30 @@ watch(
 )
 
 watch(
-  () => [route.query.query, route.query.offset],
-  async ([newQuery, newOffset]) => {
+  () => [route.query.query],
+  async ([newQuery]) => {
+    console.log('Updated query:', query.value, newQuery)
     if (newQuery && typeof newQuery === 'string') {
-      query_param.value = decodeURIComponent(newQuery || '')
-      offset.value = parseInt(newOffset as string, 10) || 0
+      query.value = JSON.parse(decodeURIComponent(newQuery || ''))
+      offset.value = query.value?.offset || 0
       await fetchPrevNextItems()
     } else {
-      query_param.value = ''
-      previousItemId.value = ''
-      nextItemId.value = ''
+      query.value = {} as SearchQuery
+      previousItemId.value = undefined
+      nextItemId.value = undefined
+    }
+  },
+)
+
+watch(
+  () => [route.query.code, route.query.format],
+  async ([code, newFormat]) => {
+    console.log('new values ', code, newFormat)
+    if (item.value !== undefined && (typeof code === 'string' || typeof code === 'number')) {
+      item.value.code = code
+      // item.value.code_format = typeof newFormat === 'string' ? newFormat : undefined // ToDo define formats and codes
+    } else {
+      item.value.code = null
     }
   },
 )
@@ -362,8 +374,6 @@ watch(
   () => {
     if (isComparing.value) {
       activeTab.value = 'itemData'
-    } else if (newItem.value && clientStore.backend_config.llm_enabled) {
-      activeTab.value = 'objectIdentification'
     } else if (item.value?.is_container) {
       activeTab.value = 'containerTree'
     } else {
@@ -375,12 +385,22 @@ watch(
 
 <style scoped>
 .arrow-button {
+  font-size: 1.5rem;
   position: fixed;
-  top: 45vh;
-  font-size: 1.2rem;
-  transform: translateX(-50%);
+  bottom: 1.5rem;
+  z-index: 50;
+  padding: 0.5rem;
+
   &:hover {
     background-color: unset;
   }
+}
+
+.arrow-button-prev {
+  left: calc(50% - 2.5rem);
+}
+
+.arrow-button-next {
+  left: calc(50% + 0.5rem);
 }
 </style>

@@ -12,7 +12,13 @@ A 3d printed RFID scanner to use with WIMS.
 
 ## Installation
 ```shell
-cp esphome/example_secrets.yaml esphome/secrets.yaml
-# modify your secrets.yaml
-esphome run esphome/firmware.yaml
+cd esphome/
+
+cp example_secrets.yaml secrets.yaml
+cp example_reader.yaml reader.yaml
+
+< Modify the two yaml files>
+
+esphome run esphome/reader.yaml
+
 ```

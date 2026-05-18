@@ -4,124 +4,53 @@
     "schema": {
       "type": "object",
       "title": "Item",
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "version": "0.1.0",
       "required": [
         "short_name",
-        "item_type",
         "consumable",
         "description",
         "tags",
-        "cost_new",
-        "cost_used",
+        "price_new",
+        "price_used",
         "manufacturer",
-        "model_number",
-        "upc",
-        "asin",
-        "serial_number",
-        "vendors",
-        "shop_url",
-        "documentation"
+        "model_number"
       ],
       "properties": {
-        "upc": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Universal Product Code"
+        "short_name": {
+          "type": "string",
+          "description": "Short descriptive name of the item (e.g. 'DHT22 Temperature Sensor', 'M3x10 Hex Bolt')"
         },
-        "asin": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Amazon Standard Identification Number"
+        "consumable": {
+          "type": "boolean",
+          "description": "True if the item is used up during normal use (e.g. solder, screws, zip ties, filament). False for reusable tools and equipment."
+        },
+        "description": {
+          "type": ["string", "null"],
+          "description": "Concise description of the item, its purpose and typical use cases in a makerspace context"
         },
         "tags": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Custom tags for categorization"
+          "description": "Lowercase categorisation tags relevant to the item (e.g. ['electronics', 'sensor', 'i2c', 'temperature'])"
         },
-        "vendors": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of vendors"
+        "price_new": {
+          "type": ["integer", "null"],
+          "description": "Current retail price in euro cents (e.g. 1999 for \u20ac19.99). Null if unknown."
         },
-        "cost_new": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "description": "Cost per item in Euros when bought new"
-        },
-        "shop_url": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "List of URLs to shops"
-        },
-        "cost_used": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "description": "Cost per item in Euros, for e.g. selling"
-        },
-        "item_type": {
-          "type": "string",
-          "description": "Item type"
-        },
-        "consumable": {
-          "type": "boolean",
-          "description": "Indicates if the item is consumable"
-        },
-        "short_name": {
-          "type": "string",
-          "description": "Short name of the item"
-        },
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Concise description of the item and general use"
+        "price_used": {
+          "type": ["integer", "null"],
+          "description": "Approximate second-hand value in euro cents. Null if unknown."
         },
         "manufacturer": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Manufacturer of the item"
+          "type": ["string", "null"],
+          "description": "Manufacturer or brand name (e.g. 'Bosch', 'Adafruit', 'AOSONG')"
         },
         "model_number": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Model number of the item"
-        },
-        "documentation": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "URL to documentation or more text"
-        },
-        "serial_number": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Serial number of the item"
+          "type": ["string", "null"],
+          "description": "Manufacturer model or part number visible on the item or packaging"
         }
       },
-      "description": "Schema for an item",
       "additionalProperties": false
     }
   }

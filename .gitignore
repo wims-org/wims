@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 .envrc
 shell.nix
 .direnv/
@@ -8,3 +7,4 @@ config.yml
 volar.config.js
 Inventory\ -\ Items.csv
 /.pre-commit-config.yaml
+data/

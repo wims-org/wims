@@ -1,10 +1,11 @@
 <template>
-  <div class="h-100">
+  <div>
     <TitleComponent />
     <div class="title-liner"></div>
     <BContainer class="content">
       <RouterView />
     </BContainer>
+    <FooterComponent class="footer" />
   </div>
 </template>
 
@@ -14,7 +15,7 @@ import { useRouter, useRoute } from 'vue-router'
 import TitleComponent from './components/TitleComponent.vue'
 import eventBus, { type Events } from './stores/eventBus'
 import { EventAction } from './interfaces/EventAction'
-import { setReaderId, setUserFromSessionStorage } from './utils'
+import { setReaderId, setUserFromSessionStorage, setCameraConstraintsFromSessionStorage, setShowHomeInstructionsFromSessionStorage, setNFCCapability } from './utils'
 import { clientStore } from '@/stores/clientStore'
 
 // Router and Route
@@ -26,10 +27,20 @@ onMounted(async () => {
   await router.isReady()
   setReaderId(router)
   setUserFromSessionStorage()
+  setCameraConstraintsFromSessionStorage()
+  setShowHomeInstructionsFromSessionStorage()
+  setNFCCapability()
 
   // Handle scan event from event bus
   eventBus.on(EventAction.REDIRECT, (data: Events[EventAction.REDIRECT]) => {
-    router.push('/items/' + data.rfid)
+    if (data.id) {
+      router.push('/items/' + data.id)
+    } else {
+      router.push('/items/new?' + data.code_format + '=' + data.code_value)
+    }
+  })
+  eventBus.on(EventAction.NEW_ITEM, (data: Events[EventAction.NEW_ITEM]) => {
+    router.push('/items/new?code=' + data.code_value) //data.code_format + '=' + data.code_value
   })
 
   clientStore().fetchBackendConfig()
@@ -45,9 +56,6 @@ watch(
 </script>
 
 <style scoped>
-.h-100 {
-  min-height: 100vh !important;
-}
 .title-liner {
   box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
   -webkit-box-shadow: 0 40px 230px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
@@ -56,15 +64,16 @@ watch(
 
 .content {
   flex-grow: 1;
-  margin: 1.5rem auto;
-  padding: 0 0;
+  margin: 1rem auto;
+  padding: 0 0.5rem !important;
   max-width: var(--content-max-width) !important;
 }
 
 @media (max-width: var(--content-max-width)) {
   .content {
     max-width: var(--content-max-width-small) !important;
-    margin: 0 0 !important;
+    margin: 0.5rem 0.5rem !important;
+    padding: 0 0.5rem !important;
   }
 }
 </style>

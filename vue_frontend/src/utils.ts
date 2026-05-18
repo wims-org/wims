@@ -80,11 +80,32 @@ const setUserFromSessionStorage = () => {
   const stored_user_id = sessionStorage.getItem('user_id')
   const stored_user_id_time = sessionStorage.getItem('user_id_time')
   if (stored_user_id && stored_user_id_time && Date.now() - parseInt(stored_user_id_time) < stored_user_id_ttl) {
-    client_store.setUser(stored_user_id)
+    client_store.setUser(+stored_user_id)
   } else {
     sessionStorage.removeItem('user_id')
     sessionStorage.removeItem('user_id_time')
   }
 }
 
-export { formatDate, getFieldModel, updateFieldModel, setReaderId, setUserFromSessionStorage  }
+const setCameraConstraintsFromSessionStorage = () => {
+  const camera_constraints = sessionStorage.getItem('camera_constraints')
+  if (camera_constraints) { clientStore().setCameraConstraints( JSON.parse(camera_constraints)) }
+}
+
+const setShowHomeInstructionsFromSessionStorage = () => {
+  const show_home_instructions = sessionStorage.getItem('show_home_instructions')
+  if (show_home_instructions) { clientStore().setShowHomeInstructions(show_home_instructions === 'true') }
+}
+
+const setNFCCapability = () => {
+  const client_store = clientStore()
+  if ('NDEFReader' in window) {
+    console.log('NFC supported, setting client store accordingly')
+    client_store.setNFCCapable(true)
+  } else {
+    console.log('NFC not supported, setting client store accordingly')
+    client_store.setNFCCapable(false)
+  }
+}
+
+export { formatDate, getFieldModel, updateFieldModel, setReaderId, setUserFromSessionStorage, setCameraConstraintsFromSessionStorage, setShowHomeInstructionsFromSessionStorage, setNFCCapability }

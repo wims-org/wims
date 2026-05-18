@@ -1,65 +1,82 @@
-from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends
+from fastapi.exceptions import HTTPException
+from loguru import logger
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
-from db import db_users
-from models.database import User
-from routers.utils import get_bs
+from dependencies import database
+from models.api import Query, QueryReq
+from models.user import User, UserCreate, UserPublic, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
 
-class UserRequest(BaseModel):
-    username: str = Field(validate_default=True, min_length=3, max_length=50)
-    tag_uuids: list[str] = Field(default_factory=list)
-    email: str | None = None
-    date_created: str | datetime = Field(default_factory=datetime.now)
+@router.post("", response_model=UserPublic)
+async def create_user(
+    user: UserCreate,
+    session: Annotated[AsyncSession, Depends(database.get_db_session)],
+):
+    db_user = User.model_validate(user)
+    session.add(db_user)
+    try:
+        await session.commit()
+    except IntegrityError as e:
+        logger.warning(f"Attempt to create user with existing email: {user.email}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    await session.refresh(db_user)
+    return db_user
 
 
-@router.post("", response_model=User)
-async def create_user(request: Request, user: UserRequest) -> Response | dict:
-    db = get_bs(request).dbc.db
-    existing_user = db_users.get_user_by_name(user.username, db)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User with this name already exists.")
-    created_user = db_users.create_user(user, db)
-    return created_user
+@router.post("/search", response_model=list[UserPublic])
+async def search_users(query: Query, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    query = QueryReq.model_validate(query)
+    return (
+        (
+            await session.execute(
+                select(User).where((User.username.ilike(f"%{query.term}%")) | (User.email.ilike(f"%{query.term}%")))
+            )
+        )
+        .scalars()
+        .all()
+    )
 
 
-@router.get("/{id}", response_model=User)
-async def get_user(request: Request, id: str) -> Response | dict:
-    db = get_bs(request).dbc.db
-    user = db_users.get_user_by_id(id, db)
+@router.get("/{id}", response_model=UserPublic)
+async def get_user(id: int, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    user = await session.get(User, id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
+        raise HTTPException(status_code=400, detail="User id not found")
     return user
 
 
-@router.get("", response_model=list[User])
-async def get_all_users(request: Request, term: str | None = None) -> Response | list[User]:
-    db = get_bs(request).dbc.db
-    if not term:
-        users = db_users.get_all_users(db)
-        return users
-    query = {"$or": [{"username": {"$regex": term, "$options": "i"}}, {"email": {"$regex": term, "$options": "i"}}]}
-    users = db_users.search_users(db, query)
-    return users
+@router.get("", response_model=list[UserPublic])
+async def get_all_users(
+    session: Annotated[AsyncSession, Depends(database.get_db_session)], offset: int = 0, limit: int = 100
+):
+    return (await session.execute(select(User).offset(offset).limit(limit))).scalars().all()
 
 
-@router.put("/{id}", response_model=User)
-async def update_user(request: Request, id: str, user: User) -> Response | dict:
-    db = get_bs(request).dbc.db
-    updated_user = db_users.update_user(id, user, db)
-    if not updated_user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return updated_user
+@router.put("/{id}", response_model=UserPublic)
+async def update_user(id: int, user: UserUpdate, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    db_user = await session.get(User, id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_data = user.model_dump(exclude_unset=True)
+    db_user.sqlmodel_update(user_data)
+    session.add(db_user)
+    await session.commit()
+    await session.refresh(db_user)
+    return db_user
 
 
 @router.delete("/{id}")
-async def delete_user(request: Request, id: str):
-    db = get_bs(request).dbc.db
-    deleted = db_users.delete_user(id, db)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return {"detail": "User deleted successfully."}
+async def delete_user(id: int, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
+    user = await session.get(User, id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    session.delete(user)
+    await session.commit()
+    return {"ok": True}

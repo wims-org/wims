@@ -3,7 +3,7 @@
     <div class="d-flex justify-content align-items-center p-2">
       <span :for="name">{{ label }}</span>
       <a
-        :href="`/items/${formData['tag_uuid']}`"
+        :href="`/items/${formData['id']}`"
         target="_blank"
         v-if="formData['short_name']"
       >
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch } from 'vue'
 import { fieldTypeToComponent } from '@/utils/form.helper'
 import { formFields } from '@/interfaces/FormField.interface'
 

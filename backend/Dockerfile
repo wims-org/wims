@@ -10,15 +10,17 @@ ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY uv.lock pyproject.toml ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-install-project --no-dev
-
-COPY . .
-
-RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
+
+COPY src/ src/
+COPY alembic/ alembic/
+COPY alembic.ini .
+COPY run.sh .
 
 FROM python:3.14-slim AS runtime
 
+ARG COMMIT_HASH=unknown
+ENV COMMIT_HASH=${COMMIT_HASH}
 ENV PATH="/app/.venv/bin:$PATH"
 
 RUN groupadd -g 1001 appgroup && \
@@ -27,8 +29,13 @@ RUN groupadd -g 1001 appgroup && \
 WORKDIR /app
 
 COPY --from=build --chown=appuser:appgroup /app .
+RUN echo $COMMIT_HASH > /app/COMMIT_HASH
+
+RUN mkdir -p /data && chown appuser:appgroup /data
 
 USER appuser
 
-WORKDIR /app/src
-ENTRYPOINT ["python", "-m","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+VOLUME [ "/data" ]
+
+WORKDIR /app
+ENTRYPOINT ["./run.sh"]

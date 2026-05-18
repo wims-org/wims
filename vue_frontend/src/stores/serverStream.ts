@@ -25,15 +25,37 @@ export const serverStream = defineStore('ServerStream', {
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         eventBus.emit(clientStore().expected_event_action, parsedData)
       })
-      this.eventSource.addEventListener(StreamEvent.COMPLETION, (event) => {
-        console.log(StreamEvent.COMPLETION, event.data)
+      this.eventSource.addEventListener(StreamEvent.SCAN_NEW, (event) => {
+        console.log(StreamEvent.SCAN_NEW, event.data)
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
-        eventBus.emit(EventAction.COMPLETION, parsedData)
+        eventBus.emit(EventAction.NEW_ITEM, parsedData)
+      })
+      this.eventSource.addEventListener(StreamEvent.IDENTIFICATION, (event) => {
+        console.log(StreamEvent.IDENTIFICATION, event.data)
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
+        eventBus.emit(EventAction.IDENTIFICATION, parsedData)
       })
       this.eventSource.addEventListener(StreamEvent.ERROR, (event) => {
         console.error(StreamEvent.ERROR, event.data)
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
         eventBus.emit(EventAction.ERROR, parsedData)
+      })
+      this.eventSource.addEventListener(StreamEvent.ELEMENT_UPDATE, (event) => {
+        console.log(StreamEvent.ELEMENT_UPDATE, event.data)
+        const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
+        if (parsedData.element === 'READERS') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_READERS, parsedData)
+        } else if (parsedData.element === 'ITEM') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_ITEM, parsedData)
+        } else if (parsedData.element === 'CONTAINER') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_CONTAINER, parsedData)
+        } else if (parsedData.element === 'USERS') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_USERS, parsedData)
+        } else if (parsedData.element === 'CATEGORIES') {
+          eventBus.emit(EventAction.ELEMENT_UPDATE_CATEGORIES, parsedData)
+        } else {
+          console.warn('Unknown element update', parsedData)
+        }
       })
       this.eventSource.addEventListener(StreamEvent.ALIVE, () => {
         // event data contains all subscriptions but setting them is quite flaky

@@ -4,12 +4,14 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Search Container</h5>
-          <button type="button" class="close" @click="closeModal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          
         </div>
         <div class="modal-body">
           <p>Search or scan RFID tag of container</p>
+          <div class="d-flex justify-content-center mb-3">
+          <NFCReader class="cam-view" v-if="clientStore().getNFCCapability" @scan="closeModal"/>
+          <QRReader class="cam-view" @scan="closeModal"/>
+        </div>
           <SearchComponent @select="handleSelect" />
         </div>
         <div class="modal-footer">
@@ -34,7 +36,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'select', tag: string): void
+  (e: 'select', id: number|undefined): void
 }>()
 
 const saved_action = ref(EventAction.REDIRECT)
@@ -49,12 +51,12 @@ function listenToScanEvent() {
       clientStore().expected_event_action,
       clientStore().expected_event_action === EventAction.CONTAINER_SCAN,
     )
-    handleSelect(data.rfid)
+    handleSelect(data.id)
   })
 }
 
 function returnNone() {
-  emit('select', '')
+  emit('select', undefined)
   closeModal()
 }
 
@@ -64,9 +66,9 @@ function closeModal() {
   emit('close')
 }
 
-function handleSelect(tag: string) {
-  console.log('SearchModal handleSelect called with tag:', tag)
-  emit('select', tag)
+function handleSelect(id: number) {
+  console.log('SearchModal handleSelect called with id:', id)
+  emit('select', id)
   closeModal()
 }
 
@@ -84,5 +86,10 @@ watch(() => props.show, (newVal) => {
 .modal {
   display: block;
   background: rgba(0, 0, 0, 0.5);
+}
+
+.cam-view {
+  width: 40%;
+  height: auto;
 }
 </style>

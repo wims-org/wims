@@ -4,14 +4,8 @@
       <div class="mb-2 d-flex justify-content-between align-items-center">
         <span class="text-nowrap mr-2">
           <font-awesome-icon icon="file-csv" />
-          Upload .CSV:</span
-        >
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          @change="handleCsvUpload"
-          class="form-control-file"
-        />
+          Upload .CSV:</span>
+        <input type="file" accept=".csv,text/csv" @change="handleCsvUpload" class="form-control-file" />
         <button type="button" class="btn btn-secondary btn-sm ml-2" @click="resetColumnWidths">
           <font-awesome-icon icon="trash" />
           Reset Columns
@@ -25,39 +19,25 @@
         <table class="table table-bordered table-sm">
           <thead>
             <tr>
-              <th
-                v-for="col in columns"
-                :key="col"
-                :style="{ width: columnWidths[col] + 'px' }"
-                class="draggable-th"
-              >
+              <th v-for="col in columns" :key="col" :style="{ width: columnWidths[col] + 'px' }" class="draggable-th">
                 <div class="th-content">
                   {{ formFields[col]?.label || col }}
                   <span class="resize-handle" @mousedown="startResize($event, col)"></span>
                 </div>
               </th>
               <th class="button-column">
-                <button
-                  type="button"
-                  class="btn btn-success btn-sm"
-                  @click="toggleColumnDropdown()"
-                >
+                <button type="button" class="btn btn-success btn-sm" @click="toggleColumnDropdown()">
                   Add Column
                 </button>
                 <div v-if="columnDropDown" class="dropdown-menu">
-                  <button
-                    v-for="(field, key) in formFields"
-                    :key="key"
-                    class="dropdown-item"
-                    @click="
-                      () => {
-                        columns.indexOf(key) === -1
-                          ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
-                          : columns.splice(columns.indexOf(key), 1)
-                        columnDropDown = false
-                      }
-                    "
-                  >
+                  <button v-for="(field, key) in formFields" :key="key" class="dropdown-item" @click="
+                    () => {
+                      columns.indexOf(key) === -1
+                        ? columns.splice(Object.keys(formFields).indexOf(key), 0, key)
+                        : columns.splice(columns.indexOf(key), 1)
+                      columnDropDown = false
+                    }
+                  ">
                     <font-awesome-icon v-if="columns.indexOf(key) !== -1" icon="check" />
                     {{ field.label || key }}
                   </button>
@@ -66,45 +46,25 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="(item, rowIdx) in items"
-              :key="item.tag_uuid || rowIdx"
-              :class="{ 'item-error': item.tag_uuid && errorItems.includes(item.tag_uuid) }"
-            >
-              <td
-                v-for="col in columns"
-                :key="col"
-                :class="{
-                  'invalid-cell':
-                    !rowEmpty(item) &&
-                    formFields[col]?.required &&
-                    (item[col] === undefined || item[col] === ''),
-                }"
-              >
-                <component
-                  v-if="formFields[col]"
-                  :is="getFieldComponent(formFields[col].type)"
-                  :name="col"
-                  :label="formFields[col].label"
-                  :value="item[col]"
-                  :disabled="false"
-                  :required="!rowEmpty(item) && formFields[col].required"
-                  hide-label
-                  borderless
-                  @update:value="
+            <tr v-for="(item, rowIdx) in items" :key="item.id || rowIdx"
+              :class="{ 'item-error': item.id && errorItems.includes(item.id) }">
+              <td v-for="col in columns" :key="col" :class="{
+                'invalid-cell':
+                  !rowEmpty(item) &&
+                  formFields[col]?.required &&
+                  (item[col] === undefined || item[col] === ''),
+              }">
+                <component v-if="formFields[col]" :is="getFieldComponent(formFields[col].type)" :name="col"
+                  :label="formFields[col].label" :value="item[col]" :disabled="false"
+                  :required="!rowEmpty(item) && formFields[col].required" hide-label borderless @update:value="
                     (val: string | number | boolean | string[]) =>
                       updateField(val, rowIdx, col, formFields[col].type)
-                  "
-                />
+                  " />
                 <span v-else>-</span>
               </td>
               <td class="button-column">
-                <button
-                  v-if="items.length > 1 && rowIdx !== items.length - 1"
-                  type="button"
-                  class="btn btn-danger btn-sm"
-                  @click="removeRow(rowIdx)"
-                >
+                <button v-if="items.length > 1 && rowIdx !== items.length - 1" type="button"
+                  class="btn btn-danger btn-sm" @click="removeRow(rowIdx)">
                   Remove
                 </button>
               </td>
@@ -136,22 +96,25 @@ import { fieldTypeToComponent } from '@/utils/form.helper'
 import { clientStore } from '@/stores/clientStore'
 import { EventAction } from '../interfaces/EventAction'
 import type { components } from '@/interfaces/api-types'
+import ApiService from '@/services/ApiService'
 
-type Item = components['schemas']['Item'] & { [key: string]: unknown }
+type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type ScanEvent = components['schemas']['SseEvent']['data']
+
 
 const DEFAULT_COLUMNS = [
-  'tag_uuid',
+  'id',
   'short_name',
   'amount',
   'item_type',
-  'container_tag_uuid',
+  'container_id',
   'consumable',
 ]
 
 const columns = reactive([...DEFAULT_COLUMNS])
 const submitError = ref('')
 const submitErrorStatus = ref(null)
-const errorItems = ref<Array<string>>([])
+const errorItems = ref<Array<number>>([])
 const submitSuccess = ref(false)
 const saved_action = ref<EventAction | null>(null)
 const emptyItem: Partial<Item> = { consumable: false, amount: 1 }
@@ -307,21 +270,22 @@ const filterErrorUUIDs = () => {
   }
 
   errorItems.value.forEach((uuid) => {
-    const idx = items.findIndex((item) => item.tag_uuid === uuid)
+    const idx = items.findIndex((item) => item.id === uuid)
     if (idx !== -1) removeRow(idx)
   })
   errorItems.value = []
   submitErrorStatus.value = null
 }
 
-const fetchAndAddItemToTable = async (scanData: { rfid: string }) => {
+const fetchAndAddItemToTable = async (scanData: ScanEvent) => {
   if (clientStore().expected_event_action !== EventAction.FORM_SCAN_ADD) return
-  if (!scanData?.rfid) return
-  if (items.some((item) => item.tag_uuid === scanData.rfid)) return
+  if (!scanData?.id && !scanData?.code_value) return
+  if (items.some((item) => item.id === scanData.id || item.code === scanData.code_value)) return
   const newRow = Object.assign({}, emptyItem)
-  newRow.tag_uuid = scanData.rfid
+  newRow.id = scanData.id
+  newRow.code = scanData.code_value
   try {
-    const { data } = await axios.get<Item>(`/items/${scanData.rfid}`)
+    const data = await ApiService.getItem(scanData.id)
     Object.assign(newRow, data)
   } catch {
     // If not found, leave as new item
@@ -346,7 +310,7 @@ onMounted(() => {
   saved_action.value = clientStore().expected_event_action
   setColumnWidthsFromStorage()
   clientStore().setExpectedEventAction(EventAction.FORM_SCAN_ADD)
-  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: { rfid: string }) =>
+  eventBus.on(EventAction.FORM_SCAN_ADD, async (scanData: ScanEvent) =>
     fetchAndAddItemToTable(scanData),
   )
 })
@@ -386,8 +350,8 @@ const updateField = (
     items[rowIdx][col] = Number(value)
   } else if (type === 'array') {
     items[rowIdx][col] = value
-  } else if (col === 'container_tag_uuid') {
-    items[rowIdx][col] = '' + value
+  } else if (col === 'container_id') {
+    items[rowIdx][col] = +value
     if (value) {
       axios
         .get<Item>(`/items/${value}`)
@@ -526,6 +490,11 @@ const fallbackCopyTextToClipboard = (text: string) => {
   /* width: 92%;  enable for scrolling */
   width: unset;
   table-layout: fixed;
+  
+  .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -560,11 +529,11 @@ td .form-group {
   margin-bottom: 0 !important;
 }
 
-td .form-group > label {
+td .form-group>label {
   display: none !important;
 }
 
-td .form-group > input.form-control {
+td .form-group>input.form-control {
   border: none !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -606,13 +575,13 @@ td.invalid-cell {
   transition: background 0.2s;
 }
 
-  resize-handle:hover {
-    background-color: var(--border-color);
-  }
+resize-handle:hover {
+  background-color: var(--border-color);
+}
 
-  resize-handle:active {
-    background-color: var(--border-color);
-  }
+resize-handle:active {
+  background-color: var(--border-color);
+}
 
 .dropdown-menu {
   position: absolute;

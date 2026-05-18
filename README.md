@@ -49,10 +49,6 @@ The provided `docker-compose.yml` includes all necessary startup configurations.
 1. Start with `docker compose up`.
 2. Visit [localhost:8080](localhost:8080) 
 
-### Alternative: Helm Chart
-
-See [Helm Chart](chart) for setup information.
-
 ### Adapting Service Configuration
 
 There are several ways to configure the application. These are, ordered:
@@ -86,6 +82,9 @@ Then start the backend and frontend services using the provided profiles in `.vs
 + `backend` and `frontend` for a native environment, or
 + `build-services` for full docker setup 
 
+### Frontend development
+
+To test QR Code scanning over the local network using a phone, start both backend & frontend using `--host 0.0.0.0`, change the API path in vue_frontend/.env.development and configure your browser to accept insecure origins. Eg. Chrome: [chrome://flags](chrome://flags) > `Insecure origins treated as secure` > `http://<your-ip>:5173` & `enabled` > reload
 
 ## Backup/Restore
 For small database you can your the `/backup` endpoint of the API to quickly create json based backups of your database.

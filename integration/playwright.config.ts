@@ -4,7 +4,7 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const frontendURL = process.env.CI == "true" ? "http://proxy:80" : "http://localhost:5173";
+const frontendURL = process.env.CI == "true" ? "http://frontend:80" : "http://localhost:5173";
 
 console.log(`Running tests against frontend URL: ${frontendURL}, CI mode: ${process.env.CI}`);
 

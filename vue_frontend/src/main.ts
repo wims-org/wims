@@ -24,7 +24,9 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     dsn: import.meta.env.VITE_SENTRY_DSN,
     sendDefaultPii: true,
     integrations: [
+      Sentry.browserTracingIntegration({ router }),
     ],
+    environment: import.meta.env.MODE
   })
 }
 

@@ -7,8 +7,8 @@
     <div v-else>
       <div class="flex-row">
         <template v-if="containerChain.length > 0">
-          <template v-for="(item, index) in containerChain" :key="item.tag_uuid">
-            <router-link :to="`/items/${item.tag_uuid}`" class="pill mr-2">
+          <template v-for="(item, index) in containerChain" :key="item.item_id">
+            <router-link :to="`/items/${item.item_id}`" class="pill mr-2">
               {{ item.short_name }}
             </router-link>
             <font-awesome-icon
@@ -43,24 +43,22 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
-import type { ItemContainers } from '@/interfaces/items.interface'
+import eventBus from '@/stores/eventBus'
+import { EventAction } from '@/interfaces/EventAction'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
-interface ContainerItem {
-  tag_uuid: string
-  short_name: string
-}
-
+import type { components } from '@/interfaces/api-types'
+type ItemContainer = components['schemas']['ContainerObject']
 const props = defineProps<{
-  itemId: string | null
+  itemId: number | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string): void
+  (e: 'update:value', value: number): void
 }>()
 
 const loading = ref(true)
-const containerChain = ref<ContainerItem[]>([])
+const containerChain = ref<ItemContainer[]>([])
 const error = ref<string | null>(null)
 const showSearchModal = ref(false)
 
@@ -68,29 +66,16 @@ const fetchContainerChain = async () => {
   loading.value = true
   error.value = null
   containerChain.value = []
-  if (!props.itemId || typeof props.itemId !== 'string') {
+  if (!props.itemId || typeof props.itemId !== 'number') {
     containerChain.value = []
     return
   }
   try {
-    const { data } = await axios.get<ItemContainers>(`/items/${props.itemId}/containers`)
-    const flattenContainers = (item: ItemContainers | null): ContainerItem[] => {
-      const result: ContainerItem[] = []
-      while (item && item.container) {
-        item = item.container
-        if (item) {
-          result.unshift({
-            tag_uuid: item.tag_uuid,
-            short_name: item.short_name,
-          })
-        }
-      }
-      return result
-    }
-    if (!data || !data.container) {
+    const { data } = await axios.get<ItemContainer[]>(`/items/${props.itemId}/containers`)
+    if (!data) {
       containerChain.value = []
     } else {
-      containerChain.value = flattenContainers(data)
+      containerChain.value = data
     }
   } catch (err) {
     console.error('Error fetching container chain:', err)
@@ -100,15 +85,21 @@ const fetchContainerChain = async () => {
   }
 }
 
-const handleContainerSelect = async (tag: string) => {
+const handleContainerSelect = async (id: number | undefined) => {
   showSearchModal.value = false
-  if (tag && tag !== '') {
-    emit('update:value', tag)
+  if (id) {
+    emit('update:value', id)
     loading.value = true
   }
 }
 
-onMounted(fetchContainerChain)
+onMounted(() => {
+  fetchContainerChain()
+  eventBus.on(
+    EventAction.ELEMENT_UPDATE_CONTAINER,
+    async (data) => data.id === props.itemId && await fetchContainerChain()
+  )
+})
 watch(() => props.itemId, fetchContainerChain)
 </script>
 

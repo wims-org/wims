@@ -1,33 +1,26 @@
+import logging
 import os
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import sentry_sdk
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import Counter, Histogram, disable_created_metrics
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from dependencies.backend_service import BackendService
-from dependencies.config import read_config
-from routers import (
-    backup,
-    categories,
-    completion,
-    config,
-    healthz,
-    metrics,
-    openapi,
-    queries,
-    readers,
-    scan,
-    stream,
-    users,
-)
-from routers.items import items
-from utils import find
+import routers
+from dependencies import database, event_handler, settings
 
-configuration = read_config()
+wims_config = settings.get_settings()
+
+# Set log level
+logging.getLogger("uvicorn").setLevel(wims_config.log_level)
+
+# Use same logger als uvicorn
+logger = logging.getLogger("uvicorn")
 
 logger.info("Starting backend service")
 
@@ -36,11 +29,13 @@ REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total number of HTTP requests",
     ["method", "endpoint", "http_status"],
+    namespace="wims",
 )
 REQUEST_DURATION = Histogram(
     "request_duration_seconds",
     "Request duration in seconds",
     ["method", "endpoint", "http_status"],
+    namespace="wims",
 )
 disable_created_metrics()
 
@@ -62,38 +57,68 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return response
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.state.config = configuration
-    app.state.backend_service = BackendService(
-        db_config=configuration.get("database", {}),
-        config=configuration,
+if wims_config.sentry_dsn:
+    sentry_sdk.init(
+        dsn=wims_config.sentry_dsn,
+        send_default_pii=True,
+        integrations=[FastApiIntegration()],
+        environment=os.environ.get("RUN_MODE", "development"),
     )
-    yield
-
 
 if os.environ.get("RUN_MODE", "") == "production":
     logger.info("Started in production mode")
-    app = FastAPI(lifespan=lifespan, redirect_slashes=False, root_path="/api")
 else:
     logger.info("Started in development mode")
-    app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
-app.include_router(readers.router)
-app.include_router(items.router)
-app.include_router(stream.router)
-app.include_router(healthz.router)
-app.include_router(queries.router)
-app.include_router(users.router)
-app.include_router(scan.router)
-app.include_router(config.router)
-app.include_router(categories.router)
-app.include_router(backup.router)
-app.include_router(metrics.router)
-app.include_router(openapi.router)
 
-if find("features.openai", configuration):
-    app.include_router(completion.router)
+def check_asset_path():
+    asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
+    if not asset_dir.exists():
+        try:
+            asset_dir.mkdir(parents=True, exist_ok=True)
+        except (FileNotFoundError, OSError) as e:
+            raise e
+
+
+@asynccontextmanager
+async def lifespan(app_: FastAPI):
+    event_handler.EventHandlerFactory.get_instance()
+    yield
+
+
+app = FastAPI(
+    dependencies=[
+        Depends(database.get_db),
+        Depends(event_handler.get_event_handler),
+        # Depends(backend_service.BackendService()),
+    ],
+    redirect_slashes=False,
+    lifespan=lifespan,
+)
+
+# Ensure asset directory exists before mounting
+check_asset_path()
+asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
+app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(asset_dir)), name="data")
+logger.info(f"Mounted static files at /data/assets from {wims_config.data_path}")
+
+app.include_router(routers.users.router)
+app.include_router(routers.items.router)
+app.include_router(routers.readers.router)
+app.include_router(routers.files.router)
+app.include_router(routers.categories.router)
+
+# app.include_router(queries.router)
+app.include_router(routers.config.router)
+# app.include_router(backup.router)
+
+app.include_router(routers.stream.router)
+app.include_router(routers.healthz.router)
+app.include_router(routers.scan.router)
+app.include_router(routers.metrics.router)
+
+if settings.get_settings().features_openai_api_key:
+    app.include_router(routers.identification.router)
     logger.info("LLM features enabled")
 else:
     logger.info("LLM feature disabled. Handarbeit!")

@@ -1,0 +1,179 @@
+esphome:
+  name: ${reader_name}
+  min_version: 2025.4.0
+  name_add_mac_suffix: false
+  project:
+    name: esphome.web
+    version: dev
+  on_boot:
+    - priority: 800.0
+      then:
+      - display.page.show: page_info
+    - priority: -100.0
+      then:
+      - lambda: |-
+          id(rfid_message) = "Waiting for WiFi";
+      - wait_until:
+          wifi.connected:
+      - http_request.post:
+          url: ${wims_url}/readers
+          capture_response: true
+          # max_response_buffer_size: 200B
+          request_headers:
+            Content-Type: application/json
+          json:
+            reader_id: ${reader_id}
+            reader_name: ${reader_name}
+      - display.page.show: page_qrcode
+      - rtttl.play: "success:d=8,o=5,b=180:c,e,g,c6"
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+# api:
+
+# Allow Over-The-Air updates
+ota:
+  - platform: esphome
+
+wifi:
+  networks: !secret wifi_networks
+  power_save_mode: none
+  output_power: 16 # Less connection problems if you reduce the power a bit
+
+  # Fallback access point
+  ap:
+    ssid: "${reader_name}"
+    password: !secret fallback_psk
+
+# In combination with the `ap` this allows the user
+# to provision wifi credentials to the device via WiFi AP.
+captive_portal:
+
+web_server:
+
+# HTTP module
+http_request:
+  verify_ssl: false
+
+# I2C für RFID (PN532) und OLED-Display
+i2c:
+  sda: ${sda_pin}
+  scl: ${scl_pin}
+  scan: true
+  id: bus_a
+
+globals:
+  - id: rfid_message
+    type: std::string
+    restore_value: no
+    initial_value: '"Booting..."'
+
+  - id: scanned_item_name
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
+  - id: scanned_item_location
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
+qr_code:
+  - id: inventory_manager_url_qr
+    value: "${wims_url}?reader_id=${reader_id}"
+
+# RFID-Modul PN532
+pn532_i2c:
+  update_interval: 1s
+  on_tag:
+    then:
+      - rtttl.play: "success:d=4,o=5,b=180:16a5,16a6"
+      - lambda: |-
+          id(rfid_message) = "Loading...";
+      - display.page.show: page_info
+      - http_request.post:
+          url: ${wims_url}/scan
+          capture_response: true
+          # max_response_buffer_size: 200B
+          request_headers:
+            Content-Type: application/json
+          json:
+            reader_id: ${reader_id}
+            code_value: !lambda "return x;"
+            code_format: "uuid"
+          on_response:
+            - if:
+                condition:
+                  lambda: return response->status_code == 200;
+                then:
+                  - display.page.show: page_tag
+                  - lambda: |-
+                      json::parse_json(body, [](JsonObject root) -> bool {
+                          if (root["item_name"]) {
+                            id(scanned_item_name) = root["item_name"].as<std::string>();
+                          }
+                          if (root["item_storage_location"]) {
+                            id(scanned_item_location) = root["item_storage_location"].as<std::string>();
+                          }
+                          return true;
+                      });
+            - if:
+                condition:
+                  lambda: return response->status_code == 404;
+                then:
+                  - display.page.show: page_new
+            - if:
+                condition:
+                  lambda: return response->status_code != 200 && response->status_code != 404;
+                then:
+                  - display.page.show: page_info
+                  - lambda: |-
+                      id(rfid_message) = "Backend error";
+                  - logger.log:
+                      format: "Error: Response status: %d, message %s"
+                      args: ["response->status_code", "body.c_str()"]
+
+display:
+  - platform: ${display_platform}
+    model: ${display_model}
+    rotation: ${display_rotate}
+    flip_x: ${display_flip_x}
+    id: oled_display
+    update_interval: 1s
+    pages:
+      - id: page_info
+        lambda: |-
+          it.print(64, 24, id(rfid_font), TextAlign::CENTER, id(rfid_message).c_str());
+      - id: page_tag
+        lambda: |-
+          it.printf(64, 0, id(rfid_font), TextAlign::TOP_CENTER, "%s", id(scanned_item_name).c_str());
+          it.printf(64, 20, id(rfid_font), TextAlign::TOP_CENTER, "Lagerort:");
+          it.printf(64, 40, id(rfid_font), TextAlign::TOP_CENTER, "%s", id(scanned_item_location).c_str());
+          ESP_LOGD("RFID", "Scanned Item Value: %s", id(scanned_item_name).c_str());
+      - id: page_new
+        lambda: |-
+          it.printf(64, 0, id(rfid_font), TextAlign::TOP_CENTER, "New Item!");
+          it.printf(64, 40, id(rfid_font), TextAlign::TOP_CENTER, "Check Browser");
+          ESP_LOGD("RFID", "Scanned new item Value: %s", id(scanned_item_name).c_str());
+      - id: page_qrcode
+        lambda: |-
+          auto size = id(inventory_manager_url_qr).get_size() * 2;
+          auto x = (it.get_width() / 2) - (size / 2);
+          auto y = (it.get_height() / 2) - (size / 2);
+          it.qr_code(x, y, id(inventory_manager_url_qr), Color(255,255,255), 2);
+
+font:
+  - file: "arial.ttf"
+    id: rfid_font
+    size: 16
+
+output:
+  - platform: ledc
+    pin: ${rtttl_pin}
+    id: rtttl_out
+
+rtttl:
+  output: rtttl_out

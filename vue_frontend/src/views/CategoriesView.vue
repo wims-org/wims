@@ -2,7 +2,7 @@
   <div>
     <h1>Categories</h1>
 
-    <CategoryTreeView :categories="categories" :selectable="true" @add-child="fetchCategories" />
+    <CategoryTreeView :categories="categories" :selectable="true" @add-child="fetchCategories" :show-actions="true" />
   </div>
 </template>
 
@@ -11,7 +11,7 @@ import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import type { components } from '@/interfaces/api-types'
 
-type Categories = components['schemas']['CategoryReqRes'][]
+type Categories = components['schemas']['CategoryPublic'][]
 
 const categories = ref<Categories>([])
 

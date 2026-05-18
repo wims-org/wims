@@ -3,10 +3,10 @@
     <div v-if="saveError" class="sticky-note sticky-note-error">{{ saveError }}</div>
     <div v-if="saveSuccess" class="sticky-note sticky-note-success">{{ saveSuccess }}</div>
     <ul class="category-list">
-      <li v-for="category in categories" :key="getCategoryKey(category)" class="category-node">
+      <li v-for="category in categories" :key="category.id" class="category-node">
         <div class="d-flex align-items-center gap-2 py-1 flex-row category"
           @click.stop="hasChildren(category) && toggleExpanded(category)"
-          @mouseenter="hoveredKey = getCategoryKey(category)" @mouseleave="hoveredKey = null">
+          @mouseenter="hoveredKey = category.id" @mouseleave="hoveredKey = null">
           <div class="list-toggle">
             <span v-if="hasChildren(category)">
               <font-awesome-icon :icon="`fa-chevron-${isExpanded(category) ? 'down' : 'right'}`" />
@@ -18,11 +18,11 @@
           </span>
 
           <div v-if="selectable" class="actions"
-            :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) }">
+            :class="{ 'actions-visible': hoveredKey === category.id }">
             <button class="btn btn-sm btn-outline-secondary" type="button" @click.stop="
               $router.push({
                 name: 'category',
-                params: { categoryId: getCategoryKey(category) },
+                params: { categoryId: category.id },
               })
               ">
               <font-awesome-icon icon="fa-magnifying-glass" />
@@ -31,9 +31,9 @@
           </div>
 
           <div class="actions"
-            :class="{ 'actions-visible': hoveredKey === getCategoryKey(category) || formKey === getCategoryKey(category) }">
-            <button v-if="formKey != getCategoryKey(category)" class="btn btn-sm btn-outline-secondary" type="button"
-              @click.stop="formKey = getCategoryKey(category); expandedCategories.add(getCategoryKey(category))">
+            :class="{ 'actions-visible': hoveredKey === category.id || formKey === category.id }">
+            <button v-if="formKey != category.id" class="btn btn-sm btn-outline-secondary" type="button"
+              @click.stop="formKey = category.id; expandedCategories.add(category.id)">
               <span class="d-md-none">
                 <font-awesome-icon icon="fa-plus" />
               </span>
@@ -45,7 +45,7 @@
           </div>
         </div>
 
-        <div v-if="formKey === getCategoryKey(category)" class="add-form">
+        <div v-if="formKey === category.id" class="add-form">
           <form class="d-flex gap-2" @submit.prevent="submitAddChild(category)">
             <input v-model="newChildTitle" type="text" class="form-control form-control-sm"
               placeholder="New subcategory title" required />
@@ -53,19 +53,19 @@
           </form>
         </div>
 
-        <CategoryTreeView v-if="isExpanded(category) && hasChildren(category)" :categories="category.children || []"
+        <CategoryTreeView v-if="isExpanded(category) && hasChildren(category)" :categories="category.children"
           :expand-all="expandAll" :expanded-categories="expandedCategories" @add-child="$emit('add-child', $event)"
           :selectable="selectable" :parent="category" />
       </li>
     </ul>
 
-    <div v-if="formKey != 'root' && !parent" class="row text-center mt-3 gap-2 justify-content-center">
+    <div v-if="formKey !== 0 && !parent && showActions" class="row text-center mt-3 gap-2 justify-content-center">
       <button class="btn btn-sm btn-outline-primary rounded mx-auto add-category-button" type="button"
-        @click.stop="formKey = 'root'" title="Add Category">
+        @click.stop="formKey = 0" title="Add Category">
         +
       </button>
     </div>
-    <div v-if="formKey == 'root'" class="add-form">
+    <div v-if="formKey === 0 && showActions" class="add-form">
       <form class="d-flex gap-2" @submit.prevent="submitAddChild(parent || null)">
         <input v-model="newChildTitle" type="text" class="form-control form-control-sm"
           placeholder="New root category title" required />
@@ -86,34 +86,31 @@ import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-type Category = components['schemas']['CategoryReqRes']
-
-type CategoryNode = Category & {
-  _id?: string
-  children?: CategoryNode[]
-}
+type Category = components['schemas']['CategoryPublic']
 
 const props = defineProps<{
   categories: Category[]
   expandAll?: boolean
-  expandedCategories?: Set<string>
+  expandedCategories?: Set<number>
   selectable?: boolean
-  parent?: CategoryNode
+  parent?: Category
+  showActions?: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-child', payload: { parentKey: string | null; title: string }): void
+  (e: 'add-child', payload: { parentKey: number | null; title: string }): void
 }>()
 
-const hoveredKey = ref<string | null>(null)
-const expandedCategories = ref<Set<string>>(new Set(props.expandedCategories || []))
-const categories = ref<CategoryNode[]>([...props.categories || []])
+const hoveredKey = ref<number | null>(null)
+const expandedCategories = ref<Set<number>>(new Set(props.expandedCategories || []))
+const categories = ref<Category[]>([...props.categories || []])
 
-const formKey = ref<string>()
+const formKey = ref<number | null>(null)
 const newChildTitle = ref<string>('')
 
 const saveError = ref<string>('')
 const saveSuccess = ref<string>('')
+const showActions = ref<boolean>(props.showActions ?? true)
 
 watch(
   () => props.categories,
@@ -122,35 +119,31 @@ watch(
   },
 )
 
-const getCategoryKey = (category: CategoryNode): string => {
-  return category._id || category.title
-}
-
-const hasChildren = (category: CategoryNode): boolean => {
+const hasChildren = (category: Category): boolean => {
   return Array.isArray(category.children) && category.children.length > 0
 }
 
-const isExpanded = (category: CategoryNode) => {
-  return expandedCategories.value && expandedCategories.value.has(getCategoryKey(category))
+const isExpanded = (category: Category) => {
+  return expandedCategories.value && expandedCategories.value.has(category.id)
 }
 
-const toggleExpanded = (category: CategoryNode) => {
+const toggleExpanded = (category: Category) => {
   if (isExpanded(category)) {
-    expandedCategories.value.delete(getCategoryKey(category))
+    expandedCategories.value.delete(category.id)
   } else {
-    expandedCategories.value.add(getCategoryKey(category))
+    expandedCategories.value.add(category.id)
   }
 }
 
 const closeAddForm = () => {
-  formKey.value = ''
+  formKey.value = null
   newChildTitle.value = ''
 }
 
-const submitAddChild = (parent: CategoryNode | null) => {
+const submitAddChild = (parent: Category | null) => {
   const title = newChildTitle.value.trim()
   if (!title) return
-  const parentKey = parent ? getCategoryKey(parent) : null
+  const parentKey = parent ? parent.id : null
   createCategory(title, parentKey)
     .then((newCategory) => {
       if (newCategory) {
@@ -164,15 +157,13 @@ const submitAddChild = (parent: CategoryNode | null) => {
 
 const createCategory = async (
   title: string,
-  parentKey: string | null,
-): Promise<CategoryNode | null> => {
+  parentKey: number | null,
+): Promise<Category | null> => {
   return axios
-    .post('/categories/', {
+    .post('/categories', {
       title,
-      _id: null,
       parent_id: parentKey,
-      description: null,
-      children: [],
+      description: null
     } as Category)
     .then((response) => {
       console.log('Category created:', response.data)

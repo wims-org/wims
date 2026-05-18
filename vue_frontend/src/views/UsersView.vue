@@ -2,21 +2,17 @@
   <div class="users-view">
     <h1>Users</h1>
     <ul class="list-group block-item-list" data-testid="user-list">
-      <li
-        v-for="user in users"
-        data-testid="user-item"
-        :key="user._id"
-        @click="user._id === clientStoreInstance?.user?._id ? deselectUser() : selectUser(user._id)"
+      <li v-for="user in users" data-testid="user-item" :key="user.id"
+        @click="user.id === clientStoreInstance?.user?.id ? deselectUser() : selectUser(user.id)"
         class="list-group-item d-flex justify-content-between align-items-center"
-        :class="{ active: user?._id === (clientStoreInstance?.user?._id ?? '') }"
-      >
+        :class="{ active: user?.id === (clientStoreInstance?.user?.id ?? '') }">
         <div class="flex-grow-1">
           {{ user.username }}
           <br />
           <span class="text-muted">{{ user.email }}</span>
         </div>
-        <button @click.stop="router.push('/users/' + user._id)" class="btn btn-primary btn-sm me-2">View Profile</button>
-        <button @click.stop="deleteUser(user._id)" class="btn btn-danger btn-sm">Delete</button>
+        <button @click.stop="router.push('/users/' + user.id)" class="btn btn-primary btn-sm me-2">View Profile</button>
+        <button @click.stop="deleteUser(user)" class="btn btn-danger btn-sm">Delete</button>
       </li>
       <div v-if="users.length === 0" class="list-group-item">
         <div class="spinner-border spinner-border-sm" role="status"></div>
@@ -29,26 +25,15 @@
         <form @submit.prevent="submitUser" class="p-3 col">
           <div class="form-group col-md-5">
             <label for="userName">User Name</label>
-            <input
-              type="text"
-              v-model="newUser.username"
-              id="userName"
-              class="form-control"
-              required
-            />
+            <input type="text" v-model="newUser.username" id="userName" class="form-control" required />
           </div>
           <div class="form-group col-md-5">
             <label for="userId">E-Mail</label>
             <input type="text" v-model="newUser.email" id="userId" class="form-control" required />
           </div>
           <div class="form-group col-md-2 d-flex align-items-end mt-3">
-            <button
-              type="button"
-              :disabled="blockSubmission"
-              @click="submitUser"
-              v-on:keydown.enter.prevent="submitUser"
-              class="btn btn-primary w-100"
-            >
+            <button type="button" :disabled="blockSubmission" @click="submitUser"
+              v-on:keydown.enter.prevent="submitUser" class="btn btn-primary w-100">
               Add User
             </button>
           </div>
@@ -61,13 +46,13 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { components } from '@/interfaces/api-types'
-type User = components['schemas']['User'] & { [key: string]: unknown }
+type User = components['schemas']['UserPublic']
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const users = ref<User[]>([])
 const blockSubmission = ref(false)
-const newUser = ref<components['schemas']['UserRequest']>({
+const newUser = ref<components['schemas']['UserCreate']>({
   username: '',
   email: '',
 })
@@ -98,7 +83,7 @@ const submitUser = async () => {
     })
 }
 
-async function selectUser(userId: string) {
+async function selectUser(userId: number) {
   await clientStoreInstance.setUser(userId)
 }
 
@@ -106,9 +91,9 @@ async function deselectUser() {
   await clientStoreInstance.unsetUser()
 }
 
-const deleteUser = async (userId: string) => {
-  await axios.delete(`/users/${userId}`)
-  users.value = users.value.filter((user) => user._id !== userId)
+const deleteUser = async (user: User) => {
+  await axios.delete(`/users/${user.id}`)
+  users.value = users.value.filter((u) => u.id !== user.id)
 }
 </script>
 <style scoped></style>

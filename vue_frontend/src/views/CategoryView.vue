@@ -9,9 +9,8 @@
     </div>
     <CategoryTreeView :categories="category ? [category] : []" :selectable="true" :expand-all="true" />
     <ItemList :items="containers" :title="`Containers containing ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, containers_query, $event.offset)" />
-    <ItemList :items="items" :title="`Items in ${category?.title}`"
-      @select="handleSelect($event.tag_uuid, items_query, $event.offset)" />
+      @select="handleSelect($event.id, containers_query)" />
+    <ItemList :items="items" :title="`Items in ${category?.title}`" @select="handleSelect($event.id, items_query)" />
   </div>
 </template>
 
@@ -21,49 +20,52 @@ import { onMounted, ref, watch } from 'vue'
 import type { components } from '@/interfaces/api-types'
 import router from '@/router'
 import CategoryTreeView from '@/components/shared/CategoryTreeView.vue'
-type SearchQuery = components['schemas']['SearchQuery'] & { [key: string]: unknown }
+import { useRoute } from 'vue-router'
+type SearchQuery = components['schemas']['Query'] & { [key: string]: unknown }
 
-type Category = components['schemas']['CategoryReqRes']
+type Category = components['schemas']['CategoryPublic']
 
-const category = ref<Category | null>(null)
-const items = ref<components['schemas']['Item'][]>([])
-const containers = ref<components['schemas']['Item'][]>([])
+const route = useRoute()
+const category = ref<Category>()
+const items = ref<components['schemas']['ItemPublic'][]>([])
+const containers = ref<components['schemas']['ItemPublic'][]>([])
 const containers_query = ref<SearchQuery>({})
 const items_query = ref<SearchQuery>({})
 
 
 
 watch(
-  () => router.currentRoute.value.params.categoryId,
+  () => route.params.categoryId,
   async (newId) => {
     if (newId != null) {
       containers.value = []
       items.value = []
-      category.value = null
-      await fetchCategory(newId as string).then(async () => {
-        await fetchItemsByCategory(category.value?.title || '')
+      category.value = undefined
+      await fetchCategory(+newId as number).then(async (fetchedCategory) => {
+        category.value = fetchedCategory
+        await fetchItemsByCategory(fetchedCategory)
         await fetchContainersForItems(
-          items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
+          items.value.map((item) => item.container_id).filter((id) => id) as number[],
         )
       })
     }
   },
 )
 
-const fetchCategory = async (id: string): Promise<void> => {
+const fetchCategory = async (id: number): Promise<Category> => {
   return axios
-    .get('/categories/' + id + '/tree')
+    .get(`/categories/${id}`)
     .then((response) => {
-      console.log('Category fetched:', response.data)
-      category.value = response.data
+      return response.data
     })
     .catch((error) => {
       console.error('Error fetching category:', error)
     })
 }
 
-const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
-  items_query.value = { query: { item_type: { $regex: `^${categoryTitle}$`, $options: 'i' } } }
+const fetchItemsByCategory = async (category: Category): Promise<void> => {
+  items_query.value = { filters: [{ field: 'category_id', qualifier: 'eq', value: category.id }] }
+  console.log('Fetching items for category with query:', items_query.value)
   return axios
     .post('/items/search', items_query.value)
     .then((response) => {
@@ -75,8 +77,8 @@ const fetchItemsByCategory = async (categoryTitle: string): Promise<void> => {
     })
 }
 
-const fetchContainersForItems = async (container_tag_uuids: string[]): Promise<void> => {
-  containers_query.value = { query: { tag_uuid: { $in: container_tag_uuids } } }
+const fetchContainersForItems = async (container_ids: number[]): Promise<void> => {
+  containers_query.value = { filters: [{ field: 'id', qualifier: 'in', value: container_ids }] }
   return axios
     .post('/items/search', containers_query.value)
     .then((response) => {
@@ -89,21 +91,23 @@ const fetchContainersForItems = async (container_tag_uuids: string[]): Promise<v
 }
 
 onMounted(() => {
-  fetchCategory(router.currentRoute.value.params.categoryId as string).then(async () => {
-    await fetchItemsByCategory(category.value?.title || '')
+  console.log('Mounted CategoryView with categoryId:', route.params.categoryId)
+  fetchCategory(+route.params.categoryId).then(async (fetchedCategory) => {
+    category.value = fetchedCategory
+    await fetchItemsByCategory(fetchedCategory)
     await fetchContainersForItems(
-        items.value.map((item) => item.container_tag_uuid).filter((id) => id) as string[],
-      )
+      items.value.map((item) => item.container_id).filter((id) => id) as number[]
+    )
   }).catch((error) => {
     console.error('Error fetching category on mount:', error)
   })
 })
 
-const handleSelect = (tag: string, query: SearchQuery | null, offset: number | null) => {
-  console.log('Selected tag:', tag)
+const handleSelect = (id: number, query: SearchQuery | null) => {
+  console.log('Selected id:', id)
   router.push(
-    `/items/${tag}` +
-    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}&offset=${offset}` : ''),
+    `/items/${id}` +
+    (query ? `?query=${encodeURIComponent(JSON.stringify(query))}` : ''),
   )
 }
 </script>

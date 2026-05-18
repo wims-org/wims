@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref } from 'vue'
 import SearchModal from '@/components/shared/SearchModal.vue'
 
 const props = defineProps({
@@ -24,8 +24,8 @@ const props = defineProps({
     default: '',
   },
   value: {
-    type: String,
-    default: '',
+    type: Number,
+    default: null,
   },
   disabled: {
     type: Boolean,
@@ -46,14 +46,14 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'update:value', value: string): void
+  (e: 'update:value', value: number|undefined): void
 }>()
 
 const showModal = ref(false)
 
 function updateField(event: Event) {
   const target = event.target as HTMLInputElement
-  emit('update:value', target.value)
+  emit('update:value', +target.value)
 }
 
 function openModal() {
@@ -64,9 +64,9 @@ function closeModal() {
   showModal.value = false
 }
 
-function handleSelect(tag: string) {
+function handleSelect(id: number|undefined) {
   if (props.disabled) return
-  emit('update:value', tag)
+  emit('update:value', id)
   closeModal()
 }
 </script>
