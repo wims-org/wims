@@ -18,19 +18,22 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 const app = createApp(App)
 const pinia = createPinia()
-const backend_config: ConfigResponseModel = await axios.get('/config/').then((response) => response.data).catch(() => ({}))
+axios.get('/config/').then((response) => {
+  const backend_config: ConfigResponseModel = response.data
 
-if (backend_config.send_telemetry && (backend_config.sentry_dsn_frontend || import.meta.env.VITE_SENTRY_DSN)) {
-  Sentry.init({
-    app,
-    dsn: backend_config.sentry_dsn_frontend || import.meta.env.VITE_SENTRY_DSN,
-    sendDefaultPii: true,
-    integrations: [
-      Sentry.browserTracingIntegration({ router }),
-    ],
-    environment: import.meta.env.MODE
-  })
-}
+  if (backend_config.send_telemetry && (backend_config.sentry_dsn_frontend || import.meta.env.VITE_SENTRY_DSN)) {
+    Sentry.init({
+      app,
+      dsn: backend_config.sentry_dsn_frontend || import.meta.env.VITE_SENTRY_DSN,
+      sendDefaultPii: true,
+      integrations: [
+        Sentry.browserTracingIntegration({ router }),
+      ],
+      environment: import.meta.env.MODE
+    })
+  }
+}).catch(() => ({}))
+
 
 app.use(pinia)
 useThemeStore().applyTheme()
