@@ -2,6 +2,7 @@ from helper import print_pydantic_error
 import click
 import serial
 import requests
+import webbrowser
 from prettytable import PrettyTable
 from pprint import pprint
 
@@ -130,3 +131,10 @@ def search(query: str):
     resp = requests.post("http://localhost:5005/items/search", json=payload)
     if resp.status_code == 200:
         print_item_table(resp.json())
+
+@command_group.command()
+@click.pass_obj
+@click.argument("id")
+def open(config, id):
+    url = f"{config['wims']['url']}/items/{id}"
+    webbrowser.open(url, new=0, autoraise=True)
