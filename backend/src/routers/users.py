@@ -77,6 +77,6 @@ async def delete_user(id: int, session: Annotated[AsyncSession, Depends(database
     user = await session.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    session.delete(user)
+    await session.delete(user)
     await session.commit()
     return {"ok": True}
