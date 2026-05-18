@@ -1,13 +1,13 @@
 services:
   frontend:
-    image: kailus.dev/wims-org/wims-frontend:dev
-    build: ./vue_frontend
+    image: ghcr.io/wims-org/wims-frontend:dev
     depends_on:
       - backend
+    ports:
+      - "8080:80"
 
   backend:
-    image: kailus.dev/wims-org/wims-backend:dev
-    build: ./backend
+    image: ghcr.io/wims-org/wims-backend:dev
     depends_on:
       db:
         condition: service_healthy
@@ -15,10 +15,11 @@ services:
       - wims-data:/data # file/image asset path (optional)
     environment:
       - LOG_LEVEL=INFO
+      - SEND_TELEMETRY=False
       - DATABASE_URI=mysql+aiomysql://root:example@db:3306/wims
       - FEATURES_OPENAI_API_KEY=sthsth
-      - SENTRY_DSN=https://9f6b292159894c6983b61313779ad123@glitch.fleaz.me/4
-      - RUN_MODE=production
+      - SENTRY_DSN_BACKEND=https://9f6b292159894c6983b61313779ad123@glitch.fleaz.me/4
+      - SENTRY_DSN_FRONTEND=https://08b94672614847df87cac87c393f4a66@glitch.fleaz.me/5
 
   db:
     image: mariadb:latest

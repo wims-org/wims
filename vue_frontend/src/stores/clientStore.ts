@@ -6,7 +6,6 @@ import { EventAction } from '@/interfaces/EventAction'
 import type { components } from '@/interfaces/api-types'
 import axios from 'axios'
 import type { BarcodeFormats } from '@/interfaces/reader.interface'
-import { set } from '@vueuse/core'
 
 type User = components['schemas']['UserPublic'] & { [key: string]: unknown }
 

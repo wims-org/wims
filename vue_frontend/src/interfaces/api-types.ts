@@ -485,10 +485,7 @@ export interface components {
     schemas: {
         /** Body_create_file_files_post */
         Body_create_file_files_post: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
         };
         /** Category */
@@ -555,6 +552,10 @@ export interface components {
             llm_enabled: boolean;
             /** Commit Hash */
             commit_hash: string;
+            /** Send Telemetry */
+            send_telemetry: boolean;
+            /** Sentry Dsn Frontend */
+            sentry_dsn_frontend: string;
         };
         /** ContainerObject */
         ContainerObject: {
@@ -580,7 +581,7 @@ export interface components {
          * Event
          * @enum {string}
          */
-        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR" | "ELEMENT_UPDATE";
+        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR" | "ELEMENT_UPDATE" | "ALL";
         /** FilePublic */
         FilePublic: {
             /** Item Id */
@@ -650,7 +651,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -704,7 +705,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -752,7 +753,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -805,7 +806,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -999,7 +1000,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default 02d2e3e3-57cd-4c2d-8b56-7e520d9a9971
+             * @default a153d38e-51bf-4a01-98ea-e572f373737d
              */
             id: string;
             /**
@@ -1099,6 +1100,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
