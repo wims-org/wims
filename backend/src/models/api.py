@@ -114,6 +114,7 @@ class SseEvent(BaseModel):
     id: str = str(uuid.uuid4())
     retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
+
 class WebhookEvent(enum.Enum):
     ITEM_UPDATE = "ITEM_UPDATE"
     ITEM_CREATE = "ITEM_CREATE"
@@ -130,4 +131,3 @@ class WebhookEvent(enum.Enum):
     FILE_UPDATE = "FILE_UPDATE"
     FILE_CREATE = "FILE_CREATE"
     FILE_DELETE = "FILE_DELETE"
-
