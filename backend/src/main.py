@@ -57,9 +57,9 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return response
 
 
-if wims_config.sentry_dsn:
+if wims_config.send_telemetry and wims_config.sentry_dsn_backend:
     sentry_sdk.init(
-        dsn=wims_config.sentry_dsn,
+        dsn=wims_config.sentry_dsn_backend,
         send_default_pii=True,
         integrations=[FastApiIntegration()],
         environment=os.environ.get("RUN_MODE", "development"),

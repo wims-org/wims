@@ -50,26 +50,23 @@ The provided `docker-compose.yml` includes all necessary startup configurations.
 2. Visit [localhost:8080](localhost:8080) 
 
 ### Adapting Service Configuration
+Configure the backend environment variables: 
 
-There are several ways to configure the application. These are, ordered:
-
-1. Default configuration, *which should be left as is and is overwritten by*
-2. `config.yml`,  *which is overwritten by*
+```yml
+# mandatory:
+DATABASE_URI: the uri of the database connection
+SEND_TELEMETRY: send events to sentry endpoint, True/False, default is False
+# optional features:
+FEATURES_OPENAI_API_KEY: openai api key - for object identification 
+WEBHOOK_URL: webhook endpoint, called on all configured WEBHOOK_EVENTS, default empty
+WEBHOOK_EVENTS: list of , default all WEBHOOK_EVENTS
+# other settings:
+LOG_LEVEL: backend logging level (ERROR, WARN, INFO, DEBUG), default "WARN"
+DATA_PATH: container path for assets, default "/data" 
+SENTRY_DSN_BACKEND: backend telemetry endpoint for error reporting, controlled by SEND_TELEMETRY, default is ours :)
+SENTRY_DSN_FRONTEND: frontend telemetry endpoint for error reporting, controlled by SEND_TELEMETRY, default is ours :)
+```
    
-   + To make changes to the `config.yml`:
-
-      1. Copy the backend configuration: `cp docker/config.dist.yml docker/config.yml`.
-      2. Make changes to `config.yml`.
-      3. Use `config.yml` in the backend service mount. 
-3. Environment variables (ie. given in docker-compose.yml). These are dot-notated strings of their corresponding yml-paths, i.e.:
-    ```yml
-    server:
-      host:
-        port: 8080
-    ```
-    is overwritten by the env variable `server.host.port=1234`   
-
-
 Visit the frontend and check the backend connection (default: [localhost:8080]).
 
 ## Development
