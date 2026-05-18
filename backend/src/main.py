@@ -66,8 +66,10 @@ if wims_config.send_telemetry and wims_config.sentry_dsn_backend:
     )
 
 if os.environ.get("RUN_MODE", "") == "production":
+    root_path = "/api"
     logger.info("Started in production mode")
 else:
+    root_path = "/"
     logger.info("Started in development mode")
 
 
@@ -92,6 +94,7 @@ app = FastAPI(
         Depends(event_handler.get_event_handler),
         # Depends(backend_service.BackendService()),
     ],
+    root_path=root_path,
     redirect_slashes=False,
     lifespan=lifespan,
 )
