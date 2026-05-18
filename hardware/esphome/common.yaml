@@ -39,8 +39,7 @@ ota:
   - platform: esphome
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+  networks: !secret wifi_networks
   power_save_mode: none
   output_power: 16 # Less connection problems if you reduce the power a bit
 
