@@ -6,7 +6,8 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from sqlmodel import select
 
 from dependencies.database import SessionDep
-from dependencies.event_handler import CodeFormat, Event, EventHandlerDep, SseEvent, SseEventData
+from dependencies.event_handler import EventHandlerDep
+from models.api import CodeFormat, Event, SseEvent, SseEventData
 from models.item import Item
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})

@@ -12,7 +12,7 @@ from .user import User
 
 class FileBase(SQLModel):
     item_id: int | None = Field(default=None, foreign_key="item.id")
-    asset_path: str = Field(unique=True)
+    uri: str = Field(unique=True)
     filename: str = Field()
     filetype: str = Field()
 
@@ -47,7 +47,9 @@ class ItemBase(SQLModel):
     container_id: int | None = Field(default=None, foreign_key="item.id")
 
     # UUID of the RFID tag, unique
-    code: str | None = Field(unique=True, index=True)  # ToDo multiple codes/code formats per item
+    code: str | None = Field(
+        unique=True, index=True, nullable=True, default=None
+    )  # ToDo multiple codes/code formats per item
     amount: int | None = None
     # Item type, e.g. "tool", "consumable", "euro_container", "gridfinity_container"
     category_id: int | None = Field(default=None, foreign_key="category.id")
@@ -101,7 +103,7 @@ class Item(ItemBase, SQLModelBase, table=True):
         sa_relationship_kwargs=dict(foreign_keys="Item.owner_id", remote_side="User.id", lazy="selectin")
     )
 
-    # # files
+    # files
     files: list["File"] = Relationship(
         sa_relationship_kwargs=dict(lazy="selectin", back_populates="item", remote_side="File.item_id")
     )
@@ -128,7 +130,6 @@ class ItemPublic(ItemBase):
 
 class ItemCreate(ItemBase):
     tags: set[str] = []
-    images: list["FilePublic"] | None = None
     files: list["FilePublic"] | None = None
 
 
@@ -136,7 +137,6 @@ class ItemUpdate(ItemBase):
     tags: set[str] = []
     short_name: str | None = None
     code: str | None = None
-    images: list["FilePublic"] | None = None
     files: list["FilePublic"] | None = None
 
     @model_serializer(mode="wrap")  # noqa: F821

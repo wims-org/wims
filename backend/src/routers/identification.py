@@ -12,6 +12,7 @@ from sqlmodel import select
 from dependencies.database import SessionDep
 from dependencies.event_handler import Event, EventHandlerDep, SseEvent, SseEventData
 from dependencies.llm import LLMDep
+from dependencies.settings import SettingsDep
 from models.item import File, FilePublic
 
 router = APIRouter(prefix="/identification", tags=["identification"], responses={404: {"description": "Not found"}})
@@ -33,6 +34,7 @@ async def identification(
     event_handler: EventHandlerDep,
     llm_dep: LLMDep,
     session: SessionDep,
+    settings: SettingsDep,
 ):
     if not body.query and not body.file_ids:
         raise HTTPException(status_code=400, detail="query or file_ids is required")
@@ -44,7 +46,7 @@ async def identification(
         result = await session.execute(select(File).where(File.id.in_(body.file_ids)))
         db_files = result.scalars().all()
         for f in db_files:
-            path = Path(f.asset_path)
+            path = settings.data_path / settings.asset_uri_prefix.lstrip("/") / Path(f.uri).name
             if not path.exists():
                 continue
             mime = mimetypes.guess_type(str(path))[0] or "image/jpeg"

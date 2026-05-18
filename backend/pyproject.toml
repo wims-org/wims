@@ -16,6 +16,7 @@ dependencies = [
   "pydantic-settings>=2.13.1",
   "python-dotenv>=1.2.1",
   "python-multipart>=0.0.20",
+  "requests>=2.34.2",
   "sentry-sdk[fastapi]>=2.54.0",
   "sqlalchemy>=2.0.46",
   "sqlmodel>=0.0.37",

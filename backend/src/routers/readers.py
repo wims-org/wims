@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 
 from dependencies.database import SessionDep
-from dependencies.event_handler import ElementUpdate, Event, EventHandlerDep, SseEvent
+from dependencies.event_handler import EventHandlerDep
+from models.api import ElementUpdate, Event, SseEvent
 from models.reader import Reader, ReaderCreate, ReaderPublic
 
 router = APIRouter(prefix="/readers", tags=["readers"], responses={404: {"description": "Not found"}})

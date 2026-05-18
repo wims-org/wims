@@ -585,8 +585,8 @@ export interface components {
         FilePublic: {
             /** Item Id */
             item_id?: number | null;
-            /** Asset Path */
-            asset_path: string;
+            /** Uri */
+            uri: string;
             /** Filename */
             filename: string;
             /** Filetype */
@@ -598,8 +598,8 @@ export interface components {
         FileUpdate: {
             /** Item Id */
             item_id?: number | null;
-            /** Asset Path */
-            asset_path: string;
+            /** Uri */
+            uri: string;
             /** Filename */
             filename: string;
             /** Filetype */
@@ -795,8 +795,6 @@ export interface components {
             borrowed_until?: string | null;
             /** Owner Id */
             owner_id?: number | null;
-            /** Images */
-            images?: components["schemas"]["FilePublic"][] | null;
             /** Files */
             files?: components["schemas"]["FilePublic"][] | null;
         };
@@ -913,8 +911,6 @@ export interface components {
             borrowed_until?: string | null;
             /** Owner Id */
             owner_id?: number | null;
-            /** Images */
-            images?: components["schemas"]["FilePublic"][] | null;
             /** Files */
             files?: components["schemas"]["FilePublic"][] | null;
         };
@@ -1003,7 +999,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default f4720dfc-5479-473d-b9c1-5ea96e4f9e69
+             * @default 02d2e3e3-57cd-4c2d-8b56-7e520d9a9971
              */
             id: string;
             /**

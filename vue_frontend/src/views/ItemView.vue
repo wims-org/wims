@@ -68,7 +68,8 @@ const ContainerListComponent = defineAsyncComponent(
 const SearchModal = defineAsyncComponent(() => import('@/components/shared/SearchModal.vue'))
 
 type SearchQuery = components['schemas']['Query']
-type ItemUpdate = components['schemas']['ItemUpdate']
+type ItemPublic = components['schemas']['ItemPublic']
+
 
 /*
 Use Cases:
@@ -164,13 +165,11 @@ const fetchPrevNextItems = async () => {
   }
 }
 
-const handleFormSubmit = async (formData: ItemUpdate) => {
+const handleFormSubmit = async (formData: Item) => {
   errorMessage.value = ''
   try {
     isComparing.value = false
-    const requestData = buildItemRequest(formData)
-    console.log('Request data:', requestData)
-    await ApiService.updateItem(itemId.value as number, requestData as ItemUpdate).then(fetchItem)
+    await ApiService.updateItem(itemId.value as number, formData).then(fetchItem)
     successMessage.value = 'Item updated successfully'
     setTimeout(() => {
       successMessage.value = ''
@@ -197,16 +196,9 @@ const deleteItem = async (id: number) => {
   }
 }
 
-const buildItemRequest = (formData: ItemUpdate): Item | ItemUpdate => {
-  // Transform the formData into the format expected by the API
-  return {
-    ...formData,
-  }
-}
-
 const handleIdentification = (result: { data: { response: object } }) => {
   if (result?.data?.response) {
-    identification.value = result.data.response as Item
+    identification.value = ApiService.itemPublicToItem(result.data.response as ItemPublic)
     isComparing.value = true
   } else {
     isComparing.value = false
@@ -237,8 +229,7 @@ const handleContentSelect = async (id: number | undefined) => {
     const selectedItem = await ApiService.getItem(id)
     selectedItem.container_id = itemId.value
     selectedItem.container_name = item.value?.short_name
-
-    await ApiService.updateItem(id, selectedItem as ItemUpdate)
+    await ApiService.updateItem(id, selectedItem)
   } catch (error) {
     errorMessage.value = 'Could not save changes. Please try again.'
     console.error(error)

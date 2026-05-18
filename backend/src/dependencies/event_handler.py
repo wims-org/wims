@@ -1,6 +1,4 @@
 import asyncio
-import enum
-import uuid
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
@@ -8,86 +6,14 @@ import pydantic
 from fastapi import Depends, Request
 
 from dependencies import settings
+from models.api import Event, SseEvent, SseEventData
 
 settings = settings.get_settings()
-
-MESSAGE_STREAM_DELAY = 0.3  # second
-MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # millisecond
 
 
 class MessageQueue(pydantic.BaseModel):
     subscriptions: set[str] = pydantic.Field(default_factory=set)
     message_queue: list = pydantic.Field(default_factory=list)
-
-
-class Event(enum.Enum):
-    SCAN = "SCAN"
-    SCAN_NEW = "SCAN_NEW"
-    IDENTIFICATION = "IDENTIFICATION"
-    ALIVE = "ALIVE"
-    ERROR = "ERROR"
-    ELEMENT_UPDATE = "ELEMENT_UPDATE"
-
-
-class ElementUpdate(enum.Enum):
-    READERS = "READERS"
-    ITEM = "ITEM"
-    CONTAINER = "CONTAINER"
-
-
-class CodeFormat(enum.Enum):
-    # All bar code formats supported by the frontend library
-    # https://www.npmjs.com/package/vue-qrcode-reader
-    # https://en.wikipedia.org/wiki/Barcode#Types_of_barcodes
-    DATA_MATRIX = "data_matrix"  # https://en.wikipedia.org/wiki/Data_Matrix
-    AZTEC = "aztec"  # https://en.wikipedia.org/wiki/Aztec_Code
-    CODE_128 = "code_128"  # https://en.wikipedia.org/wiki/Code_128
-    CODE_39 = "code_39"  # https://en.wikipedia.org/wiki/Code_39
-    CODE_93 = "code_93"  # https://en.wikipedia.org/wiki/Code_93
-    CODABAR = "codabar"  # https://en.wikipedia.org/wiki/Codabar
-    DATABAR = "databar"  # https://en.wikipedia.org/wiki/GS1_DataBar
-    # https://en.wikipedia.org/wiki/GS1_DataBar -> Expanded
-    DATABAR_EXPANDED = "databar_expanded"
-    # https://en.wikipedia.org/wiki/Barcode#Film_edge_barcode
-    DX_FILM_EDGE = "dx_film_edge"
-    # https://en.wikipedia.org/wiki/International_Article_Number_(EAN)
-    EAN_13 = "ean_13"
-    EAN_8 = "ean_8"  # https://en.wikipedia.org/wiki/EAN-8
-    ITF = "itf"  # https://en.wikipedia.org/wiki/Interleaved_2_of_5
-    MAXI_CODE = "maxi_code"  # https://en.wikipedia.org/wiki/MaxiCode
-    MICRO_QR_CODE = "micro_qr_code"  # https://en.wikipedia.org/wiki/QR_code#micro
-    PDF417 = "pdf417"  # https://en.wikipedia.org/wiki/PDF417
-    QR_CODE = "qr_code"  # https://en.wikipedia.org/wiki/QR_code
-    RM_QR_CODE = "rm_qr_code"  # https://en.wikipedia.org/wiki/RMQR_Code
-    UPC_A = "upc_a"  # https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-A
-    UPC_E = "upc_e"  # https://en.wikipedia.org/wiki/Universal_Product_Code#UPC-E
-    LINEAR_CODES = "linear_codes"  # https://en.wikipedia.org/wiki/Linear_barcode
-    MATRIX_CODES = "matrix_codes"  # https://en.wikipedia.org/wiki/Matrix_barcode
-    UNKNOWN = "unknown"
-    # All other formats:
-    UUID = "uuid"  # for nfc tags
-
-
-class SseEventData(pydantic.BaseModel):
-    reader_id: str | None = None
-    id: str | int | None = None
-    code_value: str | None = None
-    code_format: CodeFormat | None = None
-    data: dict | None = None
-    stream_id: str | None = None
-
-
-class ElementUpdateData(pydantic.BaseModel):
-    element: ElementUpdate
-    id: int | None = None
-    code: str | None = None
-
-
-class SseEvent(pydantic.BaseModel):
-    event: Event
-    data: SseEventData | ElementUpdateData
-    id: str = str(uuid.uuid4())
-    retry: int = MESSAGE_STREAM_RETRY_TIMEOUT
 
 
 class EventHandler:

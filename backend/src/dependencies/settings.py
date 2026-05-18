@@ -8,14 +8,23 @@ from fastapi import Depends
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from models.api import WebhookEvent
+
 
 class Settings(BaseSettings):
-    frontend_host: str = "localhost"
+    data_path: Path = "/data"
     database_uri: str
+    features_openai_api_key: str = ""
+    frontend_host: str = "localhost"
     log_level: str = "WARN"
     sentry_dsn: str = ""
-    features_openai_api_key: str = ""
-    asset_path: Path = "./data/assets"
+
+    # Webhook settings
+    webhook_url: str = ""
+    webhook_events: list[WebhookEvent] = [x.value for x in WebhookEvent]
+
+    # usually no need to change
+    asset_uri_prefix: str = "/assets"
     commit_hash: str = "unknown"
 
     model_config = SettingsConfigDict(env_file=pathlib.Path(__file__).parent.parent / ".env")

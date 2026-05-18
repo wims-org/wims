@@ -25,15 +25,16 @@ import src.models.reader
 # ruff: noqa: F403, I001, F401
 import src.models.user
 
-from src.dependencies.settings import get_settings
-
 from alembic import context
-
-wims_config = get_settings()
 
 SRC_PATH = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
+
+# ruff: noqa: E402
+from src.dependencies.settings import get_settings
+
+wims_config = get_settings()
 
 
 # this is the Alembic Config object, which provides
