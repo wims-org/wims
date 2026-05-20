@@ -3,27 +3,17 @@
     <BRow align-v="center">
       <BCol>
         <BInputGroup class="borderless-input flex-nowrap">
-          <BButton
-            :disabled="!searchQuery.trim()"
-            @click="fetchSearchTerm(searchQuery)"
-            title="Add items"
-          >
+          <BButton :disabled="!searchQuery.trim()" @click="fetchSearchTerm(searchQuery)" title="Add items">
             <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
           </BButton>
-          <BInput
-            v-if="!selectedSavedQuery"
-            ref="searchInput"
-            type="text"
-            placeholder="Search..."
-            v-model="searchQuery"
-          />
+          <BInput v-if="!selectedSavedQuery" ref="searchInput" type="text" placeholder="Search..."
+            v-model="searchQuery" />
           <BInput v-else disabled class="secondary" type="text" v-model="selectedSavedQuery.name" />
           <BButton v-if="selectedSavedQuery" @click="selectedSavedQuery = null" title="Add items">
             <font-awesome-icon icon="fa-solid fa-xmark" />
           </BButton>
-          <BDropdown class="mt-2" end @show="fetchQueries()" v-b-color-mode="'dark'">
-            <BDropdownItem v-for="query in queries" :key="query._id" @click="selectQuery(query)"
-              >{{ query.name }}
+          <BDropdown class="mt-2" end v-b-color-mode="'dark'">
+            <BDropdownItem v-for="query in queries" :key="query._id" @click="selectQuery(query)">{{ query.name }}
             </BDropdownItem>
             <BDropdownDivider />
             <BDropdownItem @click="isEditing = !isEditing">
@@ -36,19 +26,12 @@
     </BRow>
     <BRow class="mt-2">
       <BCol>
-        <QueryEditor
-          v-if="isEditing"
-          :existingQuery="selectedSavedQuery"
-          @update:query="selectQuery($event)"
-        />
+        <QueryEditor v-if="isEditing" :existingQuery="selectedSavedQuery" @update:query="selectQuery($event)" />
       </BCol>
     </BRow>
     <BRow align-v="center">
       <BCol align-h="center" class="mt-3">
-        <div
-          v-if="items.length === 0 && !noResults"
-          class="d-flex align-items-center justify-content-center"
-        >
+        <div v-if="items.length === 0 && !noResults" class="d-flex align-items-center justify-content-center">
           <div class="spinner-border spinner-border-sm me-2" role="status"></div>
           Start typing...
         </div>
@@ -63,14 +46,16 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ItemList from '@/components/ItemList.vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'
 type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
-type SearchQuery = components['schemas']['Query'] 
+type SearchQuery = components['schemas']['Query']
 
+const route = useRoute()
 const searchQuery = ref('')
 const searchedQuery = ref<Record<string, unknown>>({})
 const items = ref<Item[]>([])
@@ -79,12 +64,14 @@ const isEditing = ref(false)
 let debounceTimeout: ReturnType<typeof setTimeout>
 const selectedSavedQuery = ref<Query | null>(null)
 const queries = ref<Query[]>([
-  { _id: '1',
+  {
+    _id: '1',
     name: 'Tools',
     query: { filters: [{ field: 'category_id', qualifier: 'in', value: [1] }] },
     description: null,
   },
-  { _id: '2',
+  {
+    _id: '2',
     name: 'Tools by title',
     query: { filters: [{ field: 'category.title', qualifier: 'in', value: ['Tools'] }] },
     description: null,
@@ -93,9 +80,33 @@ const queries = ref<Query[]>([
 
 const searchInput = ref<HTMLElement | null>(null)
 
+const triggerSearchFromQueryParams = () => {
+  const queryParam = route.params.query as string | undefined
+  const search = route.query.search as string | undefined
+  let query = undefined
+  if (queryParam) {
+    try {
+      query = JSON.parse(decodeURIComponent(queryParam))
+    } catch (error) {
+      console.error('Failed to parse query from URL:', error)
+      return
+    }
+  } else if (search) {
+    query = { term: search }
+    searchQuery.value = search
+  } else {
+    console.log('No search query found in URL parameters.')
+    return
+  }
+  console.log('Triggering search with query from URL:', query)
+  fetchSearchQuery(query).catch((error) => {
+    console.error('Failed to parse query from URL:', error)
+  })
+}
+
 onMounted(() => {
+  triggerSearchFromQueryParams()
   searchInput.value?.focus()
-  fetchQueries()
 })
 
 const fetchSearchTerm = async (term: string) => {
@@ -107,7 +118,7 @@ const fetchSearchTerm = async (term: string) => {
 }
 
 const fetchSearchQuery = async (query: SearchQuery) => {
-  await axios.post('/items/search', query ).then((response) => {
+  await axios.post('/items/search', query).then((response) => {
     items.value = response.data
     noResults.value = items.value.length === 0
   })
@@ -115,14 +126,6 @@ const fetchSearchQuery = async (query: SearchQuery) => {
 }
 
 
-const fetchQueries = async () => {
-  try {
-    const response = await axios.get('/queries')
-    queries.value = response.data as Query[]
-  } catch (error) {
-    console.error('Error fetching queries:', error)
-  }
-}
 
 watch(searchQuery, (newQuery: string) => {
   clearTimeout(debounceTimeout)
@@ -136,6 +139,12 @@ watch(searchQuery, (newQuery: string) => {
     items.value = []
   }
 })
+
+watch(
+  () => route.params.search,
+  triggerSearchFromQueryParams,
+  { immediate: true },
+)
 
 const emit = defineEmits(['select'])
 

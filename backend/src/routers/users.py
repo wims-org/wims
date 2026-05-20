@@ -8,8 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from dependencies import database
-from models.api import Query, QueryReq
+from models.api import Query, QueryReq, WebhookEvent
 from models.user import User, UserCreate, UserPublic, UserUpdate
+from modules.webhook_handler import WebhookData, WebhookHandler
 
 router = APIRouter(prefix="/users", tags=["users"], responses={404: {"description": "Not found"}})
 
@@ -27,6 +28,7 @@ async def create_user(
         logger.warning(f"Attempt to create user with existing email: {user.email}")
         raise HTTPException(status_code=400, detail=str(e)) from e
     await session.refresh(db_user)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.USER_CREATE, data=db_user))
     return db_user
 
 
@@ -69,14 +71,16 @@ async def update_user(id: int, user: UserUpdate, session: Annotated[AsyncSession
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.USER_UPDATE, data=db_user))
     return db_user
 
 
 @router.delete("/{id}")
 async def delete_user(id: int, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
-    user = await session.get(User, id)
-    if not user:
+    db_user = await session.get(User, id)
+    if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    session.delete(user)
+    session.delete(db_user)
     await session.commit()
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.USER_DELETE, data=db_user))
     return {"ok": True}

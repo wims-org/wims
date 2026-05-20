@@ -15,6 +15,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY src/ src/
 COPY alembic/ alembic/
 COPY alembic.ini .
+COPY schemas/ schemas/
 COPY run.sh .
 
 FROM python:3.14-slim AS runtime

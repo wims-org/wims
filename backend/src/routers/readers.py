@@ -3,8 +3,9 @@ from sqlmodel import select
 
 from dependencies.database import SessionDep
 from dependencies.event_handler import EventHandlerDep
-from models.api import ElementUpdate, Event, SseEvent
+from models.api import ElementUpdate, Event, SseEvent, WebhookEvent
 from models.reader import Reader, ReaderCreate, ReaderPublic
+from modules.webhook_handler import WebhookData, WebhookHandler
 
 router = APIRouter(prefix="/readers", tags=["readers"], responses={404: {"description": "Not found"}})
 
@@ -39,6 +40,7 @@ async def create_reader(session: SessionDep, reader: ReaderCreate, event_handler
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.READER_CREATE, data=db_reader))
     return db_reader
 
 
@@ -55,4 +57,5 @@ async def delete_reader(session: SessionDep, id: int, event_handler: EventHandle
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.READER_DELETE, data=reader))
     return {"ok": True}

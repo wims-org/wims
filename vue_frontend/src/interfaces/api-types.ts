@@ -689,6 +689,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -743,6 +745,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -794,6 +798,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -801,6 +807,18 @@ export interface components {
         };
         /** ItemPublic */
         ItemPublic: {
+            /** Id */
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Short Name */
             short_name: string;
             /** Container Id */
@@ -844,10 +862,10 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
-            /** Id */
-            id: number;
             category?: components["schemas"]["Category"] | null;
             container?: components["schemas"]["Item"] | null;
             /** Content */
@@ -910,6 +928,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -1000,7 +1020,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default a153d38e-51bf-4a01-98ea-e572f373737d
+             * @default 1b13642d-233f-4b01-902e-eaac4089dde7
              */
             id: string;
             /**

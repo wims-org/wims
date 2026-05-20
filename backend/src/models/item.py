@@ -74,6 +74,7 @@ class ItemBase(SQLModel):
     borrower_id: int | None = Field(default=None, foreign_key="user.id")  # ToDo make table
     borrowed_at: datetime | None = None
     borrowed_until: datetime | None = None
+    last_scanned: datetime | None = None
     owner_id: int | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
 
 
@@ -109,11 +110,10 @@ class Item(ItemBase, SQLModelBase, table=True):
     )
 
 
-class ItemPublic(ItemBase):
-    id: int
+class ItemPublic(ItemBase, SQLModelBase):
     category: Category | None = None  # Todo account for new Categories by allowing string?
-    container: Item | None = None
-    content: list[Item] | None = None
+    container: Item | None = None 
+    content: list[Item] | None = None 
     borrower: User | None = None
     author: User | None = None
     owner: User | None = None  # Todo account for new users by allowing string?

@@ -66,6 +66,7 @@ async def create_item(item: ItemCreate, session: SessionDep, event_handler: Even
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_CREATE, data=db_item))
     return db_item
 
 
@@ -130,6 +131,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
                 event=Event.ELEMENT_UPDATE,
             )
         )
+        WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CONTAINER_REMOVE, data=db_item))
     elif old_container_id != item.container_id and item.container_id:
         await event_handler.append_message_to_all_queues(
             SseEvent(
@@ -137,6 +139,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
                 event=Event.ELEMENT_UPDATE,
             )
         )
+        WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CONTAINER_ADD, data=db_item))
     WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_UPDATE, data=db_item))
     return db_item
 
@@ -154,6 +157,7 @@ async def delete_item(id: int, session: SessionDep, event_handler: EventHandlerD
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_DELETE, data=item))
     return {"ok": True}
 
 

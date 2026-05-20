@@ -5,8 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from dependencies.database import SessionDep
-from models.api import Query, QueryReq
+from models.api import Query, QueryReq, WebhookEvent
 from models.category import Category, CategoryCreate, CategoryPublic, CategoryUpdate
+from modules.webhook_handler import WebhookData, WebhookHandler
 
 router = APIRouter(prefix="/categories", tags=["categories"], responses={404: {"description": "Not found"}})
 
@@ -20,6 +21,7 @@ async def create_category(category: CategoryCreate, session: SessionDep):
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     await session.refresh(db_category)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CATEGORY_CREATE, data=db_category))
     return db_category
 
 
@@ -68,14 +70,16 @@ async def update_category(id: int, category: CategoryUpdate, session: SessionDep
     session.add(db_category)
     await session.commit()
     await session.refresh(db_category)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CATEGORY_UPDATE, data=db_category))
     return db_category
 
 
 @router.delete("/{id}")
 async def delete_category(id: int, session: SessionDep):
-    category = await session.get(Category, id)
-    if not category:
+    db_category = await session.get(Category, id)
+    if not db_category:
         raise HTTPException(status_code=404, detail="Category not found")
-    await session.delete(category)
+    await session.delete(db_category)
     await session.commit()
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CATEGORY_DELETE, data=db_category))
     return {"ok": True}
