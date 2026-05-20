@@ -11,7 +11,7 @@ from sqlmodel import select
 from dependencies import database
 from dependencies.settings import SettingsDep
 from models.api import WebhookEvent
-from models.item import File, FilePublic, FileType, FileUpdate
+from models.item import File, FilePublic, FileUpdate
 from modules.webhook_handler import WebhookData, WebhookHandler
 
 router = APIRouter(prefix="/files", tags=["files"], responses={404: {"description": "Not found"}})
@@ -19,10 +19,7 @@ router = APIRouter(prefix="/files", tags=["files"], responses={404: {"descriptio
 
 @router.post("", response_model=FilePublic)
 async def create_file(
-    file: UploadFile,
-    session: Annotated[AsyncSession, Depends(database.get_db_session)],
-    settings: SettingsDep,
-    item_id: int | None = None,
+    file: UploadFile, session: Annotated[AsyncSession, Depends(database.get_db_session)], settings: SettingsDep
 ):
     data = file.file.read()
     hash_name = md5(data).hexdigest() + "." + file.filename.split(".")[-1]
@@ -39,8 +36,7 @@ async def create_file(
     db_file = File(
         filename=file.filename,
         uri=asset_uri,
-        filetype=FileType.IMAGE,
-        item_id=item_id,
+        filetype="image",
     )
     session.add(db_file)
     try:
