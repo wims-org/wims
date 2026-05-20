@@ -10,7 +10,9 @@ from sqlmodel import select
 
 from dependencies import database
 from dependencies.settings import SettingsDep
+from models.api import WebhookEvent
 from models.item import File, FilePublic, FileUpdate
+from modules.webhook_handler import WebhookData, WebhookHandler
 
 router = APIRouter(prefix="/files", tags=["files"], responses={404: {"description": "Not found"}})
 
@@ -25,6 +27,8 @@ async def create_file(
     fs_path: Path = settings.data_path / settings.asset_uri_prefix.lstrip("/") / hash_name
     db_file = (await session.execute(select(File).where(File.uri == asset_uri))).scalar_one_or_none()
     if db_file:
+        if not fs_path.exists():
+            fs_path.write_bytes(data)
         return db_file
 
     fs_path.write_bytes(data)
@@ -45,6 +49,7 @@ async def create_file(
             raise HTTPException(status_code=500, detail="Failed to create file and no existing file found") from e
         return db_file
     await session.refresh(db_file)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.FILE_CREATE, data=db_file))
     return db_file
 
 
@@ -73,14 +78,16 @@ async def update_file(id: int, file: FileUpdate, session: Annotated[AsyncSession
     session.add(db_file)
     await session.commit()
     await session.refresh(db_file)
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.FILE_UPDATE, data=db_file))
     return db_file
 
 
 @router.delete("/{id}")
 async def delete_file(id: str, session: Annotated[AsyncSession, Depends(database.get_db_session)]):
-    file = await session.get(File, id)
-    if not file:
+    db_file = await session.get(File, id)
+    if not db_file:
         raise HTTPException(status_code=404, detail="File not found")
-    session.delete(file)
+    session.delete(db_file)
     await session.commit()
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.FILE_DELETE, data=db_file))
     return {"ok": True}

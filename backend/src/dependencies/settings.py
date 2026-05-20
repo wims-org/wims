@@ -31,8 +31,7 @@ class Settings(BaseSettings):
     asset_uri_prefix: str = "/assets"
     commit_hash: str = "unknown"
 
-    model_config = SettingsConfigDict(
-        env_file=pathlib.Path(__file__).parent.parent / ".env")
+    model_config = SettingsConfigDict(env_file=pathlib.Path(__file__).parent.parent / ".env")
 
 
 @lru_cache

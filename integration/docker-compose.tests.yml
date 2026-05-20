@@ -3,8 +3,10 @@ services:
     build: ./integration/
     volumes:
       - ./integration/playwright-results:/workspaces/integration/playwright-results
+      - ./integration/playwright-report:/workspaces/integration/playwright-report
     environment:
       - CI=true
+      - BACKEND_URL=http://backend:8000
     depends_on:
       - frontend
       - backend

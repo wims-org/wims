@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException
@@ -7,8 +8,9 @@ from sqlmodel import select
 
 from dependencies.database import SessionDep
 from dependencies.event_handler import EventHandlerDep
-from models.api import CodeFormat, Event, SseEvent, SseEventData
+from models.api import CodeFormat, Event, SseEvent, SseEventData, WebhookEvent
 from models.item import Item
+from modules.webhook_handler import WebhookData, WebhookEventCodeScan, WebhookHandler
 
 router = APIRouter(prefix="/scan", responses={404: {"description": "Not found"}})
 
@@ -45,6 +47,11 @@ async def scan_event(body: ScanRequest, session: SessionDep, event_handler: Even
 
     item_res = await session.execute(select(Item).where(Item.code == body.code_value))
     item = item_res.scalars().first()
+    if item:
+        item.last_scanned = datetime.now()
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
 
     await event_handler.append_message_to_all_queues_with_reader(
         reader=body.reader_id,
@@ -59,9 +66,18 @@ async def scan_event(body: ScanRequest, session: SessionDep, event_handler: Even
             event=Event.SCAN if item else Event.SCAN_NEW,
         ),
     )
-
     if not item:
+        WebhookHandler.send_webhook(
+            WebhookData(
+                event_type=WebhookEvent.CODE_SCAN_NEW,
+                data=WebhookEventCodeScan(item={"code": body.code_value}, reader_id=body.reader_id),
+            )
+        )
         raise HTTPException(status_code=404, detail="Item not found")
+
+    WebhookHandler.send_webhook(
+        WebhookData(event_type=WebhookEvent.CODE_SCAN, data=WebhookEventCodeScan(item=item, reader_id=body.reader_id))
+    )
 
     return ScanResponse(
         msg="Found",

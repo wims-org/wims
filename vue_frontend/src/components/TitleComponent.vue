@@ -52,7 +52,7 @@
       <BNav class="d-flex d-lg-none ms-auto">
         <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state">{{
           connection_msg
-          }}</BNavItem>
+        }}</BNavItem>
       </BNav>
 
       <!-- Desktop Navigation -->
@@ -61,7 +61,7 @@
         <BNav>
           <BNavItem to="/readers" class="text-nowrap" data-testid="sse-connection-state-lg">{{
             connection_msg
-            }}</BNavItem>
+          }}</BNavItem>
           <BNavItem v-if="user" :to="`/users/${user?.id}`">{{ user?.username }}</BNavItem>
           <BNavItem v-else to="/users">Sign In</BNavItem>
         </BNav>
@@ -84,8 +84,10 @@
             </BNavItemDropdown>
           </BNavbarNav>
         </BCollapse>
-        <BNavForm @onSubmit.prevent="search" class="mx-2">
-          <BFormInput placeholder="Search" />
+        <BNavForm class="mx-2">
+          <SearchInput v-model="searchQuery" placeholder="Search items..." name="Search"
+            @search-term="search($event)"
+            @update:value="v => gotoItem(v?.id)" :search-type="SearchType.ITEM" />
         </BNavForm>
         <IMaterialSymbolsSunny v-if="isDark" @click="toggleTheme" aria-label="Toggle dark theme" />
         <IMaterialSymbolsMoonStarsOutline v-else @click="toggleTheme" aria-label="Toggle dark theme" />
@@ -149,6 +151,8 @@ import { clientStore } from '@/stores/clientStore'
 import { serverStream } from '@/stores/serverStream'
 import { useThemeStore } from '@/stores/themeStore'
 import { ref } from 'vue'
+import router from '@/router'
+import { SearchType } from '@/interfaces/FormField.interface'
 
 // State and Stores
 const client_store = clientStore()
@@ -156,6 +160,7 @@ const server_stream = serverStream()
 const msg = 'WIMS?!'
 const menuOpen = ref(false)
 const api_url = import.meta.env.VITE_API_URL || ''
+const searchQuery = ref('')
 
 // Computed Properties
 
@@ -201,8 +206,15 @@ function toggleTheme() {
   themeStore.toggle()
 }
 
-function search() {
+function gotoItem(id: number | undefined) {
+  if (id !== undefined) {
+    router.push(`/items/${id}`)
+  }
+}
+
+function search(term: string) {
   // Implement search functionality here
-  console.log('Search triggered')
+  console.log('Search triggered:', term)
+  router.push(`/items?search=${term}`) // Example search route
 }
 </script>

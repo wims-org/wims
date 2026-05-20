@@ -370,6 +370,9 @@ watch(
 )
 
 watch(
+
+  // TODO FIX DEFAULT TAB
+
   () => tabCheck.value,
   () => {
     if (isComparing.value) {

@@ -47,6 +47,7 @@ const props = defineProps<{
   images?: Array<File>
 }>()
 
+// Todo update on route change
 const stringInput = ref(props.description || '')
 const uploadedImages = ref<File[]>([])
 const selectedImages = ref<File[]>([])

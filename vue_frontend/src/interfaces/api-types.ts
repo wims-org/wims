@@ -590,11 +590,15 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
             /** Id */
             id: number;
         };
+        /**
+         * FileType
+         * @enum {string}
+         */
+        FileType: "image" | "manual" | "driver" | "firmware";
         /** FileUpdate */
         FileUpdate: {
             /** Item Id */
@@ -603,8 +607,7 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
         };
         /** Filter */
         Filter: {
@@ -689,6 +692,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -743,6 +748,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -794,6 +801,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -801,6 +810,18 @@ export interface components {
         };
         /** ItemPublic */
         ItemPublic: {
+            /** Id */
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Short Name */
             short_name: string;
             /** Container Id */
@@ -844,10 +865,10 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
-            /** Id */
-            id: number;
             category?: components["schemas"]["Category"] | null;
             container?: components["schemas"]["Item"] | null;
             /** Content */
@@ -910,6 +931,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -1000,7 +1023,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default a153d38e-51bf-4a01-98ea-e572f373737d
+             * @default 4c9d4c19-8fbb-4b8f-9691-88df04ef20a2
              */
             id: string;
             /**
@@ -1864,7 +1887,9 @@ export interface operations {
     };
     create_file_files_post: {
         parameters: {
-            query?: never;
+            query?: {
+                item_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
