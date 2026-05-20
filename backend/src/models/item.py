@@ -1,7 +1,8 @@
+import enum
 from datetime import datetime
 from typing import Optional
 
-from pydantic import computed_field, field_validator, model_serializer
+from pydantic import computed_field, model_serializer
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -10,17 +11,18 @@ from .category import Category
 from .user import User
 
 
+class FileType(enum.Enum):
+    IMAGE = "image"
+    MANUAL = "manual"
+    DRIVER = "driver"
+    FIRMWARE = "firmware"
+
+
 class FileBase(SQLModel):
     item_id: int | None = Field(default=None, foreign_key="item.id")
     uri: str = Field(unique=True)
     filename: str = Field()
-    filetype: str = Field()
-
-    @field_validator("filetype")
-    def check_known_filetypes(cls, v):
-        if v not in ["image", "manual", "driver", "firmware"]:
-            raise ValueError("Invalid file type")
-        return v
+    filetype: FileType = Field()
 
 
 class File(FileBase, SQLModelBase, table=True):
@@ -112,8 +114,8 @@ class Item(ItemBase, SQLModelBase, table=True):
 
 class ItemPublic(ItemBase, SQLModelBase):
     category: Category | None = None  # Todo account for new Categories by allowing string?
-    container: Item | None = None 
-    content: list[Item] | None = None 
+    container: Item | None = None
+    content: list[Item] | None = None
     borrower: User | None = None
     author: User | None = None
     owner: User | None = None  # Todo account for new users by allowing string?

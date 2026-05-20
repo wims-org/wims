@@ -590,11 +590,15 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
             /** Id */
             id: number;
         };
+        /**
+         * FileType
+         * @enum {string}
+         */
+        FileType: "image" | "manual" | "driver" | "firmware";
         /** FileUpdate */
         FileUpdate: {
             /** Item Id */
@@ -603,8 +607,7 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
         };
         /** Filter */
         Filter: {
@@ -1020,7 +1023,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default 1b13642d-233f-4b01-902e-eaac4089dde7
+             * @default 4c9d4c19-8fbb-4b8f-9691-88df04ef20a2
              */
             id: string;
             /**
@@ -1884,7 +1887,9 @@ export interface operations {
     };
     create_file_files_post: {
         parameters: {
-            query?: never;
+            query?: {
+                item_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
