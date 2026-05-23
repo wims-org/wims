@@ -99,9 +99,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+class DebugStaticFiles(StaticFiles):
+    def get_response(self, path, scope):
+        full_path, stat_result = self.lookup_path(path)
+
+        print("Requested URL path:", path)
+        print("Resolved file path:", full_path)
+        print("Exists:", stat_result is not None)
+
+        return super().get_response(path, scope)
+
 # Ensure asset directory exists before mounting
 check_asset_path()
-app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(wims_config.data_path)), name="data")
+app.mount(wims_config.asset_uri_prefix, DebugStaticFiles(directory=str(wims_config.data_path)), name="data")
 logger.info(f"Mounted static files at {wims_config.asset_uri_prefix} from {wims_config.data_path}")
 
 app.include_router(routers.users.router)
