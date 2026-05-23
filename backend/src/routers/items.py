@@ -243,7 +243,6 @@ async def get_item_search(query: Query, session: SessionDep):
         print(e)
         raise HTTPException(status_code=400, detail="Your query is bad and you should feel bad!") from None
 
-    print(statement)
     results = await session.execute(statement)
     return results.scalars().all()
 
