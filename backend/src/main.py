@@ -102,7 +102,8 @@ app = FastAPI(
 class DebugStaticFiles(StaticFiles):
     def get_response(self, path, scope):
         full_path, stat_result = self.lookup_path(path)
-
+        print("scope['root_path']:", scope.get("root_path"))
+        print("scope['path']:", scope.get("path"))
         print("Requested URL path:", path)
         print("Resolved file path:", full_path)
         print("Exists:", stat_result is not None)
