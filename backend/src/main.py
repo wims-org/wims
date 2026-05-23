@@ -101,8 +101,7 @@ app = FastAPI(
 
 # Ensure asset directory exists before mounting
 check_asset_path()
-asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
-app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(asset_dir)), name="data")
+app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(wims_config.data_path)), name="data")
 logger.info(f"Mounted static files at {wims_config.asset_uri_prefix} from {wims_config.data_path}")
 
 app.include_router(routers.users.router)
