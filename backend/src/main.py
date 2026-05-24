@@ -69,15 +69,14 @@ if os.environ.get("RUN_MODE", "") == "production":
     root_path = "/api"
     logger.info("Started in production mode")
 else:
-    root_path = "/"
+    root_path = ""
     logger.info("Started in development mode")
 
 
 def check_asset_path():
-    asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
-    if not asset_dir.exists():
+    if not wims_config.data_path.exists():
         try:
-            asset_dir.mkdir(parents=True, exist_ok=True)
+            wims_config.data_path.mkdir(parents=True, exist_ok=True)
         except (FileNotFoundError, OSError) as e:
             raise e
 

@@ -24,7 +24,7 @@ async def create_file(
     data = file.file.read()
     hash_name = md5(data).hexdigest() + "." + file.filename.split(".")[-1]
     asset_uri = "/" + settings.asset_uri_prefix.strip("/") + "/" + hash_name
-    fs_path: Path = settings.data_path / settings.asset_uri_prefix.lstrip("/") / hash_name
+    fs_path: Path = settings.data_path / hash_name
     db_file = (await session.execute(select(File).where(File.uri == asset_uri))).scalar_one_or_none()
     if db_file:
         if not fs_path.exists():
