@@ -232,11 +232,11 @@ async def get_item_search(query: Query, session: SessionDep):
         statement = statement.offset(query.offset or 0).limit(query.limit or 10)
 
         # Order & sort
-        if query.sort_by:
-            if query.sort_desc:
-                statement = statement.order_by(getattr(Item, query.sort_by).desc())
-            else:
-                statement = statement.order_by(getattr(Item, query.sort_by))
+        query.sort_by = query.sort_by or "id"
+        if query.sort_desc:
+            statement = statement.order_by(getattr(Item, query.sort_by).desc())
+        else:
+            statement = statement.order_by(getattr(Item, query.sort_by))
     except (ValidationError, ValueError) as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {str(e)}") from e
     except (KeyError, AttributeError) as e:
