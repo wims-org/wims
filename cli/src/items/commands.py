@@ -45,6 +45,7 @@ def print_item_table(items):
 @click.pass_obj
 def list(config):
     resp = requests.get(f"{config['wims']['url']}/items")
+    print(resp)
     if resp.status_code == 200:
         print_item_table(resp.json())
 

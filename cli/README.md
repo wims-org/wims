@@ -1,9 +1,9 @@
-# cli
+# CLI
 
 This is a CLI client for WIMS
 
 ## Usage
 
 ```bash
-uv run cli.py
+uv run wims
 ```

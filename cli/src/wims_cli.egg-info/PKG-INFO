@@ -1,0 +1,22 @@
+Metadata-Version: 2.4
+Name: wims-cli
+Version: 0.1.0
+Summary: A cli client for WIMS
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: click>=8.4.1
+Requires-Dist: prettytable>=3.17.0
+Requires-Dist: pyserial>=3.5
+Requires-Dist: pyyaml>=6.0.3
+Requires-Dist: requests>=2.34.2
+Requires-Dist: xdg>=6.0.0
+
+# cli
+
+This is a CLI client for WIMS
+
+## Usage
+
+```bash
+uv run cli.py
+```

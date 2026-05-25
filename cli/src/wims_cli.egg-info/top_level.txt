@@ -1,0 +1,7 @@
+categories
+cli
+helper
+items
+readers
+usb_reader
+users
