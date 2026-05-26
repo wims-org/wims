@@ -46,7 +46,7 @@ async def identification(
         result = await session.execute(select(File).where(File.id.in_(body.file_ids)))
         db_files = result.scalars().all()
         for f in db_files:
-            path = settings.data_path / settings.asset_uri_prefix.lstrip("/") / Path(f.uri).name
+            path = settings.data_path / Path(f.uri).name
             if not path.exists():
                 continue
             mime = mimetypes.guess_type(str(path))[0] or "image/jpeg"

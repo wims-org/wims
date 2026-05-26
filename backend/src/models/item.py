@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from typing import Optional
 
-from pydantic import computed_field, model_serializer
+from pydantic import computed_field, field_validator, model_serializer
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -22,7 +22,15 @@ class FileBase(SQLModel):
     item_id: int | None = Field(default=None, foreign_key="item.id")
     uri: str = Field(unique=True)
     filename: str = Field()
-    filetype: FileType = Field()
+    filetype: str = Field()
+
+    # Because we can't use ENUMs in the database, we use a validator
+    @field_validator("filetype")
+    def valid_filetype(cls, value: str) -> str:
+        allowed_filetypes = [x.value for x in FileType]
+        if value not in allowed_filetypes:
+            raise ValueError("invalid filetype")
+        return value
 
 
 class File(FileBase, SQLModelBase, table=True):
