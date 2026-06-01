@@ -28,6 +28,8 @@ export const serverStream = defineStore('ServerStream', {
       this.eventSource.addEventListener(StreamEvent.SCAN_NEW, (event) => {
         console.log(StreamEvent.SCAN_NEW, event.data)
         const parsedData = JSON.parse(event.data.replace(/'/g, '"'))
+        
+        // TODO: parse clientStore().expected_event_action so new redirect 
         eventBus.emit(EventAction.NEW_ITEM, parsedData)
       })
       this.eventSource.addEventListener(StreamEvent.IDENTIFICATION, (event) => {

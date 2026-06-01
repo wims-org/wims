@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 from typing import Optional
 
@@ -10,17 +11,26 @@ from .category import Category
 from .user import User
 
 
+class FileType(enum.Enum):
+    IMAGE = "image"
+    MANUAL = "manual"
+    DRIVER = "driver"
+    FIRMWARE = "firmware"
+
+
 class FileBase(SQLModel):
     item_id: int | None = Field(default=None, foreign_key="item.id")
     uri: str = Field(unique=True)
     filename: str = Field()
     filetype: str = Field()
 
+    # Because we can't use ENUMs in the database, we use a validator
     @field_validator("filetype")
-    def check_known_filetypes(cls, v):
-        if v not in ["image", "manual", "driver", "firmware"]:
-            raise ValueError("Invalid file type")
-        return v
+    def valid_filetype(cls, value: str) -> str:
+        allowed_filetypes = [x.value for x in FileType]
+        if value.lower() not in allowed_filetypes:
+            raise ValueError("invalid filetype")
+        return value.lower()
 
 
 class File(FileBase, SQLModelBase, table=True):
@@ -74,6 +84,7 @@ class ItemBase(SQLModel):
     borrower_id: int | None = Field(default=None, foreign_key="user.id")  # ToDo make table
     borrowed_at: datetime | None = None
     borrowed_until: datetime | None = None
+    last_scanned: datetime | None = None
     owner_id: int | None = Field(default=None, foreign_key="user.id")  # UUID of the user owning the item
 
 
@@ -109,8 +120,7 @@ class Item(ItemBase, SQLModelBase, table=True):
     )
 
 
-class ItemPublic(ItemBase):
-    id: int
+class ItemPublic(ItemBase, SQLModelBase):
     category: Category | None = None  # Todo account for new Categories by allowing string?
     container: Item | None = None
     content: list[Item] | None = None

@@ -18,10 +18,11 @@
           :disabled="disabled" :name="name" :required="required" autocomplete="off"
           :class="[{ 'is-invalid': required && !searchTerm }, { 'borderless-input': borderless }]"
           @focus="expanded = true" @blur="handleBlur" @input="handleInput" @keydown.enter.prevent="handleEnter"
-          @keydown.esc="clearSearch" />
+          @keydown="handleKeyDown" @keydown.esc="clearSearch" />
         <ul v-if="!disabled && expanded && dropdownOptions.length" class="dropdown-menu dropdown-menu-end show">
-          <li v-for="option in dropdownOptions" :key="option.id">
-            <a class="dropdown-item" href="#" @mousedown.prevent="selectOption(option)">
+          <li v-for="(option, index) in dropdownOptions" :key="option.id">
+            <a class="dropdown-item" :class="{ 'selected-dropdown-item': selectedDropdownIndex === index }" href="#"
+              @mousedown.prevent="selectOption(option)">
               {{ option.displayString }}
             </a>
           </li>
@@ -136,11 +137,13 @@ const props = defineProps({
 
 const emit = defineEmits<{
   (e: 'update:value', value: SearchResultType | null): void
+  (e: 'search-term', value: string): void
 }>()
 
 const searchTerm = ref('')
 const dropdownOptions = ref<SearchOption[]>([])
 const expanded = ref(false)
+const selectedDropdownIndex = ref<number | null>(null)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 const showQRModal = ref(false)
 const showNFCModal = ref(false)
@@ -195,6 +198,7 @@ onMounted(async () => {
 
 const handleInput = (): void => {
   if (debounceTimer) clearTimeout(debounceTimer)
+  selectedDropdownIndex.value = null
   if (searchTerm.value.length < MIN_LENGTH) {
     dropdownOptions.value = []
     expanded.value = false
@@ -210,6 +214,7 @@ const selectOption = (option: SearchOption): void => {
   searchTerm.value = option.displayString
   expanded.value = false
   dropdownOptions.value = []
+  selectedDropdownIndex.value = null
   emit('update:value', option.item)
 }
 
@@ -217,18 +222,50 @@ const handleBlur = (): void => {
   expanded.value = false
 }
 
-const handleEnter = (): void => {
-  if (dropdownOptions.value.length > 0) {
-    selectOption(dropdownOptions.value[0])
-  } else {
-    clearSearch()
+const updateSelectedDropdownItem = (key: string): void => {
+  if (!expanded.value || dropdownOptions.value.length === 0) return
+
+  if (key === 'ArrowDown') {
+    if (selectedDropdownIndex.value === null) {
+      selectedDropdownIndex.value = 0
+      return
+    }
+    selectedDropdownIndex.value = (selectedDropdownIndex.value + 1) % dropdownOptions.value.length
   }
+
+  if (key === 'ArrowUp') {
+    if (selectedDropdownIndex.value === null) {
+      selectedDropdownIndex.value = dropdownOptions.value.length - 1
+      return
+    }
+    selectedDropdownIndex.value =
+      (selectedDropdownIndex.value - 1 + dropdownOptions.value.length) % dropdownOptions.value.length
+  }
+
+  console.log('Selected index:', selectedDropdownIndex.value)
+}
+
+const handleKeyDown = (event: KeyboardEvent): void => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault()
+  }
+  updateSelectedDropdownItem(event.key)
+}
+
+const handleEnter = (): void => {
+  if (selectedDropdownIndex.value === null) {
+    emit('search-term', searchTerm.value)
+    return
+  }
+  const selected = dropdownOptions.value[selectedDropdownIndex.value]
+  if (selected) selectOption(selected)
 }
 
 const clearSearch = (): void => {
   searchTerm.value = ''
   dropdownOptions.value = []
   expanded.value = false
+  selectedDropdownIndex.value = null
   emit('update:value', null)
 }
 
@@ -277,5 +314,9 @@ const handleScan = async (result: ScanResult): Promise<void> => {
 .qr-icon,
 .nfc-icon {
   font-size: 1.2rem;
+}
+
+.selected-dropdown-item {
+  background-color: var(--bs-primary) !important;
 }
 </style>

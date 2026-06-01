@@ -11,9 +11,14 @@ from models.user import User
 settings = settings.get_settings()
 
 
+class WebhookEventCodeScan(pydantic.BaseModel):
+    item: Item | dict
+    reader_id: str
+
+
 class WebhookData(pydantic.BaseModel):
     event_type: WebhookEvent
-    data: Item | Category | User | Reader | File
+    data: Item | Category | User | Reader | File | WebhookEventCodeScan
 
 
 class WebhookHandler:

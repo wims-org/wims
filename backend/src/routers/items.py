@@ -66,6 +66,7 @@ async def create_item(item: ItemCreate, session: SessionDep, event_handler: Even
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_CREATE, data=db_item))
     return db_item
 
 
@@ -130,6 +131,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
                 event=Event.ELEMENT_UPDATE,
             )
         )
+        WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CONTAINER_REMOVE, data=db_item))
     elif old_container_id != item.container_id and item.container_id:
         await event_handler.append_message_to_all_queues(
             SseEvent(
@@ -137,6 +139,7 @@ async def update_item(id: int, item: ItemUpdate, session: SessionDep, event_hand
                 event=Event.ELEMENT_UPDATE,
             )
         )
+        WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.CONTAINER_ADD, data=db_item))
     WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_UPDATE, data=db_item))
     return db_item
 
@@ -154,6 +157,7 @@ async def delete_item(id: int, session: SessionDep, event_handler: EventHandlerD
             event=Event.ELEMENT_UPDATE,
         )
     )
+    WebhookHandler.send_webhook(WebhookData(event_type=WebhookEvent.ITEM_DELETE, data=item))
     return {"ok": True}
 
 
@@ -228,18 +232,17 @@ async def get_item_search(query: Query, session: SessionDep):
         statement = statement.offset(query.offset or 0).limit(query.limit or 10)
 
         # Order & sort
-        if query.sort_by:
-            if query.sort_desc:
-                statement = statement.order_by(getattr(Item, query.sort_by).desc())
-            else:
-                statement = statement.order_by(getattr(Item, query.sort_by))
+        query.sort_by = query.sort_by or "id"
+        if query.sort_desc:
+            statement = statement.order_by(getattr(Item, query.sort_by).desc())
+        else:
+            statement = statement.order_by(getattr(Item, query.sort_by))
     except (ValidationError, ValueError) as e:
         raise HTTPException(status_code=422, detail=f"Validation error: {str(e)}") from e
     except (KeyError, AttributeError) as e:
         print(e)
         raise HTTPException(status_code=400, detail="Your query is bad and you should feel bad!") from None
 
-    print(statement)
     results = await session.execute(statement)
     return results.scalars().all()
 

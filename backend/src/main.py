@@ -57,25 +57,26 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return response
 
 
-if wims_config.sentry_dsn:
+if wims_config.send_telemetry and wims_config.sentry_dsn_backend:
     sentry_sdk.init(
-        dsn=wims_config.sentry_dsn,
+        dsn=wims_config.sentry_dsn_backend,
         send_default_pii=True,
         integrations=[FastApiIntegration()],
         environment=os.environ.get("RUN_MODE", "development"),
     )
 
 if os.environ.get("RUN_MODE", "") == "production":
+    root_path = "/api"
     logger.info("Started in production mode")
 else:
+    root_path = ""
     logger.info("Started in development mode")
 
 
 def check_asset_path():
-    asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
-    if not asset_dir.exists():
+    if not wims_config.data_path.exists():
         try:
-            asset_dir.mkdir(parents=True, exist_ok=True)
+            wims_config.data_path.mkdir(parents=True, exist_ok=True)
         except (FileNotFoundError, OSError) as e:
             raise e
 
@@ -92,15 +93,15 @@ app = FastAPI(
         Depends(event_handler.get_event_handler),
         # Depends(backend_service.BackendService()),
     ],
+    root_path=root_path,
     redirect_slashes=False,
     lifespan=lifespan,
 )
 
 # Ensure asset directory exists before mounting
 check_asset_path()
-asset_dir = wims_config.data_path / wims_config.asset_uri_prefix.lstrip("/")
-app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(asset_dir)), name="data")
-logger.info(f"Mounted static files at /data/assets from {wims_config.data_path}")
+app.mount(wims_config.asset_uri_prefix, StaticFiles(directory=str(wims_config.data_path)), name="data")
+logger.info(f"Mounted static files at {wims_config.asset_uri_prefix} from {wims_config.data_path}")
 
 app.include_router(routers.users.router)
 app.include_router(routers.items.router)

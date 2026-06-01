@@ -485,10 +485,7 @@ export interface components {
     schemas: {
         /** Body_create_file_files_post */
         Body_create_file_files_post: {
-            /**
-             * File
-             * Format: binary
-             */
+            /** File */
             file: string;
         };
         /** Category */
@@ -555,6 +552,10 @@ export interface components {
             llm_enabled: boolean;
             /** Commit Hash */
             commit_hash: string;
+            /** Send Telemetry */
+            send_telemetry: boolean;
+            /** Sentry Dsn Frontend */
+            sentry_dsn_frontend: string;
         };
         /** ContainerObject */
         ContainerObject: {
@@ -580,7 +581,7 @@ export interface components {
          * Event
          * @enum {string}
          */
-        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR" | "ELEMENT_UPDATE";
+        Event: "SCAN" | "SCAN_NEW" | "IDENTIFICATION" | "ALIVE" | "ERROR" | "ELEMENT_UPDATE" | "ALL";
         /** FilePublic */
         FilePublic: {
             /** Item Id */
@@ -589,11 +590,15 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
             /** Id */
             id: number;
         };
+        /**
+         * FileType
+         * @enum {string}
+         */
+        FileType: "image" | "manual" | "driver" | "firmware";
         /** FileUpdate */
         FileUpdate: {
             /** Item Id */
@@ -602,8 +607,7 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            /** Filetype */
-            filetype: string;
+            filetype: components["schemas"]["FileType"];
         };
         /** Filter */
         Filter: {
@@ -650,7 +654,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -688,6 +692,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -704,7 +710,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -742,6 +748,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
         };
@@ -752,7 +760,7 @@ export interface components {
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -793,6 +801,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -800,12 +810,24 @@ export interface components {
         };
         /** ItemPublic */
         ItemPublic: {
+            /** Id */
+            id?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
             /** Short Name */
             short_name: string;
             /** Container Id */
             container_id?: number | null;
             /** Code */
-            code: string | null;
+            code?: string | null;
             /** Amount */
             amount?: number | null;
             /** Category Id */
@@ -843,10 +865,10 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
-            /** Id */
-            id: number;
             category?: components["schemas"]["Category"] | null;
             container?: components["schemas"]["Item"] | null;
             /** Content */
@@ -909,6 +931,8 @@ export interface components {
             borrowed_at?: string | null;
             /** Borrowed Until */
             borrowed_until?: string | null;
+            /** Last Scanned */
+            last_scanned?: string | null;
             /** Owner Id */
             owner_id?: number | null;
             /** Files */
@@ -999,7 +1023,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default 02d2e3e3-57cd-4c2d-8b56-7e520d9a9971
+             * @default 4c9d4c19-8fbb-4b8f-9691-88df04ef20a2
              */
             id: string;
             /**
@@ -1099,6 +1123,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -1859,7 +1887,9 @@ export interface operations {
     };
     create_file_files_post: {
         parameters: {
-            query?: never;
+            query?: {
+                item_id?: number | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;

@@ -130,6 +130,7 @@ const fetchItem = async () => {
   // for testing comparison view
   // identification.value = item.value
   // isComparing.value = true
+  tabCheck.value++
 }
 
 const fetchPrevNextItems = async () => {
@@ -370,6 +371,9 @@ watch(
 )
 
 watch(
+
+  // TODO FIX DEFAULT TAB
+
   () => tabCheck.value,
   () => {
     if (isComparing.value) {

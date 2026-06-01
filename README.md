@@ -32,6 +32,27 @@ _**W**here **I**s **M**y **S**tuff_ (*German: Wo is' mein Scheiß?*) is a makers
 > 
 > This project is quite young and depends on your input, please consider contributing! :heart:
 
+## Features
+
+- Scan items with a reader / phone and display them in a connected frontend (mobile & desktop)
+- CLI Client
+- ESP32 Hardware reader with display and battery pack
+- Webhooks for important events (item creation, updates, scans)
+- OpenAI API integration for object identification (optional)
+- and more..
+
+### Multiple Readers & Clients
+In WIMS each client may subscribe to a reader and each reader may have multiple clients. A reader can be [a physical reader](hardware) or a virtual one (eg. a phone scanning a qr code or nfc tag). A subscribed web session on eg. a desktop computer will receive the scanned item details and display them / fill in the container and more.
+
+#### Scan: Redirect to an Item
+To create a new item or go to an existing one, simply scan the item with a reader. Subscribed clients will redirect to the respective item page, where you can edit details, add a description, upload photos and more.
+
+#### Scan: Place Item in Container
+If a subscribed client is editing a container field of an item, the scanned item will be inserted as the container.
+
+### Webhooks
+WIMS supports webhooks for important events, such as item creation, updates and scans. You can configure a custom webhook URL and select which events to receive. This allows you to integrate WIMS with other tools and automate workflows.
+
 ## Components
 
 Since this is a monorepo, so here is an overview:
@@ -39,7 +60,7 @@ Since this is a monorepo, so here is an overview:
 * [Vue Frontend](vue_frontend)
 The frontend is the accessed via mobile devices by scanning the displayed qr code on the reader or on a desktop
 * [FastAPI Backend](backend)
-The backend mainly acts as a link between the frontend, database and mqtt broker. It has minimal logic. 
+The backend mainly acts as a link between the frontend and the database. It has minimal logic. 
 * [Reader](hardware)
 The 3D printed reader features a rfid reader and display and is a minimal frontend on its own. It sends scanned rfid tags to the broker to forward the client to the scanned item page. Powered by battery pack of a popular drill brand. 
 
@@ -50,26 +71,23 @@ The provided `docker-compose.yml` includes all necessary startup configurations.
 2. Visit [localhost:8080](localhost:8080) 
 
 ### Adapting Service Configuration
+Configure the backend environment variables: 
 
-There are several ways to configure the application. These are, ordered:
-
-1. Default configuration, *which should be left as is and is overwritten by*
-2. `config.yml`,  *which is overwritten by*
+```yml
+# mandatory:
+DATABASE_URI: the uri of the database connection
+SEND_TELEMETRY: send events to sentry endpoint, True/False, default is False
+# optional features:
+FEATURES_OPENAI_API_KEY: openai api key - for object identification 
+WEBHOOK_URL: webhook endpoint, called on all configured WEBHOOK_EVENTS, default empty
+WEBHOOK_EVENTS: list of , default all WEBHOOK_EVENTS
+# other settings:
+LOG_LEVEL: backend logging level (ERROR, WARN, INFO, DEBUG), default "WARN"
+DATA_PATH: container path for assets, default "/data" 
+SENTRY_DSN_BACKEND: backend telemetry endpoint for error reporting, controlled by SEND_TELEMETRY, default is ours :)
+SENTRY_DSN_FRONTEND: frontend telemetry endpoint for error reporting, controlled by SEND_TELEMETRY, default is ours :)
+```
    
-   + To make changes to the `config.yml`:
-
-      1. Copy the backend configuration: `cp docker/config.dist.yml docker/config.yml`.
-      2. Make changes to `config.yml`.
-      3. Use `config.yml` in the backend service mount. 
-3. Environment variables (ie. given in docker-compose.yml). These are dot-notated strings of their corresponding yml-paths, i.e.:
-    ```yml
-    server:
-      host:
-        port: 8080
-    ```
-    is overwritten by the env variable `server.host.port=1234`   
-
-
 Visit the frontend and check the backend connection (default: [localhost:8080]).
 
 ## Development
@@ -99,8 +117,6 @@ curl -X POST  -F 'file=@/tmp/backup.json' -v http://wims/api/backup/load
 
 The restore endpoint has a safe-guard and will only work on empty databases. So there is no way to accidentially
 importing a backup and loosing files.
-
-For bigger datbases, please directly use `mongodump` and `mongorestore` with the MongoDB database.
 
 ### Running Tests
 
@@ -140,6 +156,7 @@ graph TD
     subgraph Docker
         subgraph Frontend
             A[Vue Frontend]
+            E[nginx]
         end
 
         subgraph Backend
@@ -147,21 +164,13 @@ graph TD
         end
 
         subgraph Database
-            C[MongoDB]
-        end
-
-        subgraph MQTT
-            D[MQTT Broker]
-        end
-
-        subgraph Proxy
-            E[nginx]
+            C[MariaDB / PostgreSQL]
         end
     end
 
 
     subgraph Reader
-        M[MQTT Client]
+        M[ESP32 Client]
     end
 
     subgraph Client
@@ -170,9 +179,8 @@ graph TD
 
 
     A --> |HTTP| B
-    B --> |MongoDB| C
-    B <--> |MQTT| D
-    M <--> |MQTT| D
+    B --> C
+    M <--> |HTTP /api| E
     N --> |HTTP| E
     E -.-> |HTTP| A
     E -.-> |HTTP| B
@@ -184,9 +192,8 @@ graph TD
 ```mermaid
 sequenceDiagram
     participant Reader as Reader Device
-    participant MQTT as MQTT Broker
     participant Backend as FastAPI Backend
-    participant DB as MongoDB
+    participant DB
     participant Frontend as Vue Frontend
 
     Reader-->>Frontend: QR Code Scan   
@@ -194,12 +201,10 @@ sequenceDiagram
     Backend-->>Frontend: Server Stream
     Frontend->>Backend: Request Reader SSE /stream/{reader-id}
     Backend-->>Frontend: Server Stream    
-    Reader->>MQTT: Scan Tag and Send Data
-    MQTT->>Backend: Forward Tag Data
+    Reader->>Backend: Scan Tag and Send Data
     Backend->>DB: Query Item Details by Tag
     DB-->>Backend: Return Item Details
-    Backend->>MQTT: Send Item Details
-    MQTT->>Reader: Display Item Details
+    Backend->>Reader: Send Item Details
     Backend->>Frontend: Send Server Stream Event with Scan Event
     Frontend->>Backend: Request /items/{rfid}
     Backend->>DB: Query Item Details by Tag
