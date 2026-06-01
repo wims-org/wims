@@ -28,9 +28,9 @@ class FileBase(SQLModel):
     @field_validator("filetype")
     def valid_filetype(cls, value: str) -> str:
         allowed_filetypes = [x.value for x in FileType]
-        if value not in allowed_filetypes:
+        if value.lower() not in allowed_filetypes:
             raise ValueError("invalid filetype")
-        return value
+        return value.lower()
 
 
 class File(FileBase, SQLModelBase, table=True):
