@@ -64,8 +64,6 @@ class Settings(BaseSettings):
         return value
 
 
-
-
 @lru_cache
 def get_settings() -> Settings:
     """

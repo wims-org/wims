@@ -3,9 +3,11 @@
     <div v-if="!items.length && canLoadMore" class="d-flex justify-content-center">
       <BSpinner />
     </div>
-    <ItemList :title="title" v-if="items.length" :items="items" @select="handleSelect"
+    <ItemList :title="title" :description="description" v-if="items.length" :items="items" @select="handleSelect"
       @update:view-mode="updateViewMode" @update:imageSize="updateImageSize" :view-mode="activeViewMode"
-      :image-size="activeImageSize" />
+      :image-size="activeImageSize" 
+      :extraFields="extraFields"
+      />
     <div v-if="!canLoadMore" class="text-center mt-2">No more items to load</div>
   </BCol>
 </template>
@@ -30,6 +32,10 @@ const props = defineProps({
     type: String,
     default: 'Item List',
   },
+  description: {
+    type: String,
+    default: '',
+  },
   settingsId: {
     type: String,
   },
@@ -52,6 +58,10 @@ const props = defineProps({
   offset: {
     type: Number,
     default: 0,
+  },
+  extraFields: {
+    type: Array as PropType<string[]>,
+    default: () => [],
   },
 })
 

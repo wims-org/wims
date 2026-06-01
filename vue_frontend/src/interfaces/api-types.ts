@@ -590,15 +590,11 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            filetype: components["schemas"]["FileType"];
+            /** Filetype */
+            filetype: string;
             /** Id */
             id: number;
         };
-        /**
-         * FileType
-         * @enum {string}
-         */
-        FileType: "image" | "manual" | "driver" | "firmware";
         /** FileUpdate */
         FileUpdate: {
             /** Item Id */
@@ -607,7 +603,8 @@ export interface components {
             uri: string;
             /** Filename */
             filename: string;
-            filetype: components["schemas"]["FileType"];
+            /** Filetype */
+            filetype: string;
         };
         /** Filter */
         Filter: {
@@ -616,7 +613,7 @@ export interface components {
             /** @description If null, defaults to 'eq'. */
             qualifier?: components["schemas"]["Qualifier"] | null;
             /** Value */
-            value: string | number | (string | number)[];
+            value: string | number | (string | number)[] | boolean | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -942,7 +939,7 @@ export interface components {
          * Qualifier
          * @enum {string}
          */
-        Qualifier: "in" | "not_in" | "eq" | "not_eq" | "gt" | "lt";
+        Qualifier: "in" | "not_in" | "eq" | "not_eq" | "gt" | "lt" | "lte" | "gte" | "contains" | "not_contains";
         /** Query */
         Query: {
             /** Term */
@@ -1023,7 +1020,7 @@ export interface components {
             data: components["schemas"]["SseEventData"] | components["schemas"]["ElementUpdateData"];
             /**
              * Id
-             * @default 4c9d4c19-8fbb-4b8f-9691-88df04ef20a2
+             * @default a3c34402-510a-4f07-b1cb-0188c61d6b13
              */
             id: string;
             /**
@@ -1887,9 +1884,7 @@ export interface operations {
     };
     create_file_files_post: {
         parameters: {
-            query?: {
-                item_id?: number | null;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
