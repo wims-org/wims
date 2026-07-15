@@ -22,6 +22,19 @@
             </BDropdownItem>
           </BDropdown>
         </BInputGroup>
+        <BRow class="p-2">
+          <BDropdown>
+            <BDropdownItem v-for="(field, key) in formFields" :key="key" @click="addFilter(key)">{{ field.label }}
+            </BDropdownItem>
+          </BDropdown>
+          <BRow v-for="(key, qualifier, value) in selectedFilters" :key="key">
+            <BDropdown>
+              <BDropdownItem v-for="q in QualifierValues" :key="q" @click="() => qualifier = q">{{ field.label }}
+              </BDropdownItem>
+
+            </BDropdown>
+          </BRow>
+        </BRow>
       </BCol>
     </BRow>
     <BRow class="mt-2">
@@ -52,7 +65,12 @@ import ItemList from '@/components/ItemList.vue'
 import QueryEditor from '@/components/shared/QueryEditor.vue'
 import type { Query } from '@/interfaces/queries'
 import type { components } from '@/interfaces/api-types'
+import { formFields } from '@/interfaces/FormField.interface'
 type Item = components['schemas']['ItemPublic'] & { [key: string]: unknown }
+type Qualifier = components['schemas']['Qualifier']
+const QualifierValues: Qualifier[] = [ "in" , "not_in" , "eq" , "not_eq" , "gt" , "lt" , "lte" , "gte" , "contains" , "not_contains"]
+// => ["foo", "bar"]
+
 type SearchQuery = components['schemas']['Query']
 
 const route = useRoute()
@@ -79,6 +97,9 @@ const queries = ref<Query[]>([
 ])
 
 const searchInput = ref<HTMLElement | null>(null)
+const filtersVisible = ref<boolean>(false)
+const filters = ref<Array<string>>([])
+const selectedFilters = ref<Array<Record<string, string>>>([])
 
 const triggerSearchFromQueryParams = () => {
   const queryParam = route.params.query as string | undefined
@@ -155,5 +176,9 @@ const selectQuery = (query: Query) => {
 
 const handleSelect = (item: Item) => {
   emit('select', item.id, searchedQuery.value || null, items.value.indexOf(item))
+}
+
+const addFilter = (fieldKey: string) => {
+  selectedFilters.value.push([fieldKey, 'eq', undefined])
 }
 </script>

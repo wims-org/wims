@@ -37,8 +37,8 @@
       <li class="list-group-item" @click="$router.push('/users')">Users</li>
     </ul>
     <BTabs class="mt-4">
-      <BTab title="Recent Items" active>
-        <ItemListContainer settingsId="home" title="Recent Items" :query="{ sort_desc: true, sort_by: 'created_at' }" />
+      <BTab title="New Items" active>
+        <ItemListContainer settingsId="home" title="New Items" :query="{ sort_desc: true, sort_by: 'created_at' }" />
       </BTab>
       <BTab title="Low Stock">
         <ItemListContainer settingsId="home-low-stock" title="Low Stock Items"
