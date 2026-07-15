@@ -14,12 +14,16 @@ class Qualifier(enum.Enum):
     NOT_EQUALS = "not_eq"
     GREATER_THAN = "gt"
     LESS_THAN = "lt"
+    LESS_THAN_OR_EQUAL = "lte"
+    GREATER_THAN_OR_EQUAL = "gte"
+    CONTAINS = "contains"
+    NOT_CONTAINS = "not_contains"
 
 
 class FilterReq(BaseModel):
     field: str
     qualifier: Qualifier = Qualifier.EQUALS
-    value: str | int | list[str | int]
+    value: str | int | list[str | int] | bool | None
 
 
 class Filter(FilterReq):

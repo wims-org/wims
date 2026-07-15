@@ -23,11 +23,16 @@
     <BCol col-11>
       <h5 class="mb-1">{{ title }}</h5>
       <p class="mb-1">{{ description }}</p>
+      <div v-if="extraValues && Object.keys(extraValues).length">
+        <div v-for="(value, field) in extraValues" :key="field" class="extra-field">
+          <span>{{ capitalize(field) }}:</span> {{ value }}
+        </div>
+      </div>
     </BCol>
   </BRow>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, capitalize } from 'vue'
 
 import type { File } from '@/interfaces/file.interface'
 
@@ -37,6 +42,7 @@ defineProps<{
   description?: string | null
   imageSize?: number
   loadRequested?: boolean
+  extraValues?: Record<string, unknown>
 }>()
 const imageErrored = ref<boolean>(false)
 </script>

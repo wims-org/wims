@@ -2,6 +2,7 @@
   <div class="container">
     <BRow class="mb-3 justify-content-between align-items-center">
       <h3>{{ title }}</h3>
+      <span v-if="description" class="text-secondary mb-1">{{ description }}</span>
       <BInputGroup>
         <BButton :pressed="activeViewMode === 'text'" @click="setViewMode('text')"
           ><font-awesome-icon icon="grip-lines"
@@ -69,6 +70,7 @@
             :images="item.images || []"
             :image-size="activeImageSize"
             :load-requested="loadRequested[''+item.id]"
+            :extraValues="extraFields ? Object.fromEntries(extraFields.map((f) => [f, item[f]])) : {}"
           />
         </template>
 
@@ -105,6 +107,10 @@ const props = defineProps({
     type: String,
     default: 'Item List',
   },
+  description: {
+    type: String,
+    default: '',
+  },
   viewMode: {
     type: String as PropType<'text' | 'image-list' | 'image'>,
     default: 'image-list',
@@ -112,6 +118,10 @@ const props = defineProps({
   imageSize: {
     type: Number,
     default: 3,
+  },
+  extraFields: {
+    type: Array as PropType<string[]>,
+    default: () => [],
   },
 })
 

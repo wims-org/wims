@@ -36,7 +36,36 @@
       <li class="list-group-item" @click="$router.push('/import')">Import</li>
       <li class="list-group-item" @click="$router.push('/users')">Users</li>
     </ul>
-    <ItemListContainer settingsId="home" title="Recent Items" :query="{ sort_desc: true, sort_by: 'created_at' }" />
+    <BTabs class="mt-4">
+      <BTab title="New Items" active>
+        <ItemListContainer settingsId="home" title="New Items" :query="{ sort_desc: true, sort_by: 'created_at' }" />
+      </BTab>
+      <BTab title="Low Stock">
+        <ItemListContainer settingsId="home-low-stock" title="Low Stock Items"
+          description="Items where amount is less than min_amount"
+          :query="{ filters: [{ field: 'amount', qualifier: 'lt', value: 'min_amount' }], sort_by: 'amount', sort_desc: false }"
+          :extraFields="['amount', 'min_amount']" />
+      </BTab>
+      <BTab title="Review Items">
+        <ItemListContainer settingsId="home-review" title="Items Needing Review" description="Items with tag 'review'"
+          :query="{ filters: [{ field: 'tags', qualifier: 'contains', value: 'review' }], sort_by: 'created_at', sort_desc: true }" />
+      </BTab>
+      <BTab title="Recently Updated">
+        <ItemListContainer settingsId="home-recently-updated" title="Recently Updated Items"
+          :query="{ sort_desc: true, sort_by: 'updated_at' }" />
+      </BTab>
+      <BTab title="Borrowed Items">
+        <ItemListContainer settingsId="home-borrowed" title="Borrowed Items"
+          :query="{ filters: [{ field: 'borrower_id', qualifier: 'not_eq', value: null }], sort_by: 'created_at', sort_desc: true }" />
+      </BTab>
+      <BTab title="Top Level Containers">
+        <ItemListContainer settingsId="home-top-level-containers" title="Top Level Containers"
+          description="Items with content that are not inside any other container" :query="{
+            filters: [{ field: 'container_id', qualifier: 'eq', value: null },
+            { field: 'content', qualifier: 'not_eq', value: null }], sort_by: 'created_at', sort_desc: true
+          }" />
+      </BTab>
+    </BTabs>
   </main>
 </template>
 

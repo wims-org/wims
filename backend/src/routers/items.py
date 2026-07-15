@@ -210,7 +210,7 @@ async def get_item_search(query: Query, session: SessionDep):
                 statement = statement.join(related_model)
                 column = getattr(related_model, field_name)
             else:
-                if filter.field not in Item.model_fields:
+                if not hasattr(Item, filter.field):
                     raise HTTPException(status_code=400, detail=f"Invalid filter field: {filter.field}")
                 column = getattr(Item, filter.field)
 
@@ -224,9 +224,30 @@ async def get_item_search(query: Query, session: SessionDep):
                 case Qualifier.NOT_IN:
                     statement = statement.where(~column.in_(filter.value))
                 case Qualifier.GREATER_THAN:
-                    statement = statement.where(column > filter.value)
+                    # compare different types - if value is a string, use as column key, otherwise compare as value
+                    if isinstance(filter.value, str) and hasattr(Item, filter.value):
+                        statement = statement.where(column > getattr(Item, filter.value))
+                    else:
+                        statement = statement.where(column > filter.value)
                 case Qualifier.LESS_THAN:
-                    statement = statement.where(column < filter.value)
+                    if isinstance(filter.value, str) and hasattr(Item, filter.value):
+                        statement = statement.where(column < getattr(Item, filter.value))
+                    else:
+                        statement = statement.where(column < filter.value)
+                case Qualifier.LESS_THAN_OR_EQUAL:
+                    if isinstance(filter.value, str) and hasattr(Item, filter.value):
+                        statement = statement.where(column <= getattr(Item, filter.value))
+                    else:
+                        statement = statement.where(column <= filter.value)
+                case Qualifier.GREATER_THAN_OR_EQUAL:
+                    if isinstance(filter.value, str) and hasattr(Item, filter.value):
+                        statement = statement.where(column >= getattr(Item, filter.value))
+                    else:
+                        statement = statement.where(column >= filter.value)
+                case Qualifier.CONTAINS:
+                    statement = statement.where(column.contains(filter.value))
+                case Qualifier.NOT_CONTAINS:
+                    statement = statement.where(~column.contains(filter.value))
 
         # Offset & limits
         statement = statement.offset(query.offset or 0).limit(query.limit or 10)
